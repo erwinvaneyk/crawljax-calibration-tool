@@ -25,10 +25,10 @@
   </issueManagement>
   <inceptionYear>2014</inceptionYear>
   <dependencies>
-  	<dependency>
-  		<groupId>com.crawljax</groupId>
-  		<artifactId>crawljax-core</artifactId>
-  		<version>4.0-SNAPSHOT</version>
-  	</dependency>
+  <dependency>
+  	<groupId>com.crawljax</groupId>
+  	<artifactId>crawljax-cli</artifactId>
+  	<version>4.0-SNAPSHOT</version>
+  </dependency>
   </dependencies>
 </project>
