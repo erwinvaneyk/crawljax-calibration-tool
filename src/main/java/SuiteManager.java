@@ -24,8 +24,8 @@ public class SuiteManager {
 	
 	final Logger logger = Logger.getLogger(SuiteManager.class.getName());
 	
-	public static String DEFAULT_SETTINGS_DIR = "C:\\Users\\Erwin\\Documents\\GitHub\\crawljax-functional-testing-suite\\src\\main\\config";
-	public static String DEFAULT_OUTPUT_DIR = "C:\\Users\\Erwin\\Documents\\GitHub\\crawljax-functional-testing-suite\\target\\output";
+	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\src\\main\\config";
+	public static String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\target\\output";
 	private Properties settings;
 	private Queue<String> websiteQueue;
 	private ArrayList<String> args;
