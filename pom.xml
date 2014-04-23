@@ -16,7 +16,20 @@
           <target/>
         </configuration>
       </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.6</version>
+      </plugin>
     </plugins>
+    <resources>
+        <resource>
+        <directory>src/main/java</directory>
+            <includes>
+                <include> **/*.ini</include>
+            </includes>
+        </resource>
+    </resources>
   </build>
   <url>https://github.com/erwinvaneyk/crawljax-functional-testing-suite</url>
   <issueManagement>
@@ -25,10 +38,10 @@
   </issueManagement>
   <inceptionYear>2014</inceptionYear>
   <dependencies>
-  <dependency>
-  	<groupId>com.crawljax</groupId>
-  	<artifactId>crawljax-cli</artifactId>
-  	<version>4.0-SNAPSHOT</version>
-  </dependency>
+	  <dependency>
+	  	<groupId>com.crawljax</groupId>
+	  	<artifactId>crawljax-cli</artifactId>
+	  	<version>4.0-SNAPSHOT</version>
+	  </dependency>
   </dependencies>
 </project>
