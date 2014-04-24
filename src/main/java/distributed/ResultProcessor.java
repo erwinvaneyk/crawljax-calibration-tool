@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Logger;
@@ -29,7 +30,7 @@ public class ResultProcessor {
 		this.website = website;
 		try {
 			con = new ConnectionManager();
-
+			
 			File jsonFile = this.findJsonFile(dir);
 			this.uploadFile(jsonFile);
 
@@ -80,7 +81,9 @@ public class ResultProcessor {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
-			String insertStatement = "INSERT INTO TestResults VALUES(\"" + this.website + "\", \"" + fileContent + "\")";			
+			int id = this.getIdOfCurrentTask();
+			System.out.println(id);
+			String insertStatement = "INSERT INTO TestResults(id,JsonResults) VALUES(" + id + ", \"" + fileContent + "\")";			
 			Statement statement = con.getConnection().createStatement();
 			statement.execute(insertStatement);	
 			
@@ -95,4 +98,18 @@ public class ResultProcessor {
 		}
 	}
 
+	/**
+	 * @return id of the website the worker is currently crawling
+	 * @throws SQLException If the id cannot be obtained from the website
+	 */
+	private int getIdOfCurrentTask() throws SQLException {
+		String sql = "SELECT * FROM workload WHERE url = \"" + website + "\"";
+		ResultSet resultQuery = con.getConnection().createStatement().executeQuery(sql);
+		int id = -1;
+
+		while (resultQuery.next()) {
+			id = resultQuery.getInt("id");
+		}
+		return id;
+	}
 }
