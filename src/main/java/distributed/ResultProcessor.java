@@ -27,18 +27,15 @@ public class ResultProcessor {
 	 */
 	public void uploadOutputJson(String website, String dir) {
 		this.website = website;
-		this.enableConnection();
-		File jsonFile = this.findJsonFile(dir);
-		this.uploadFile(jsonFile);
-		this.closeConnection();
-	}
-
-	/**
-	 * Get a connection with the server.
-	 */
-	private void enableConnection() {
 		try {
 			con = new ConnectionManager();
+
+			File jsonFile = this.findJsonFile(dir);
+			this.uploadFile(jsonFile);
+
+			con.closeConnection();
+		} catch (FileNotFoundException e) {
+			logger.warning("FileNotFoundException: " + e.getMessage());
 		} catch (IOException e) {
 			logger.warning("IOException: " + e.getMessage());
 		}
@@ -48,8 +45,9 @@ public class ResultProcessor {
 	 * Find the JSON file in the generated output of Crawljax.
 	 * @param dir The directory of the output of Crawljax
 	 * @return the JSON file with the results of the crawl
+	 * @throws FileNotFoundException if the file cannot be found in the given output directory dir
 	 */
-	private File findJsonFile(final String dir) {
+	private File findJsonFile(final String dir) throws FileNotFoundException {
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
 
@@ -61,8 +59,11 @@ public class ResultProcessor {
 			}
 		}
 
-		// Assert resultJson != null
-		return resultJson;
+		if (resultJson == null) {
+			throw new FileNotFoundException("The file cannot be found in the given output directory");
+		} else {
+			return resultJson;
+		}
 	}
 
 	/**
@@ -94,10 +95,4 @@ public class ResultProcessor {
 		}
 	}
 
-	/**
-	 * Close the connection with the database.
-	 */
-	private void closeConnection() {
-		con.closeConnection();
-	}
 }

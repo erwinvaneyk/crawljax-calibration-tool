@@ -115,7 +115,7 @@ public class SuiteRunner {
 		System.out.println("Started local crawler");
 		try {
 			SuiteManager suite = new SuiteManager();
-			suite .websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			suite.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
