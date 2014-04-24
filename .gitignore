@@ -19,4 +19,4 @@ target/
 .classpath
 .pr
 .project
-*.ini
+src/main/config/dist.ini
