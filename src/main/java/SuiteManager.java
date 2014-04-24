@@ -15,7 +15,10 @@ import java.util.PriorityQueue;
 import java.util.Properties;
 import java.util.Queue;
 
+import main.java.distributed.ResultProcessor;
+
 import org.apache.commons.validator.routines.UrlValidator;
+
 import java.util.logging.*;
 
 import com.crawljax.cli.JarRunner;
@@ -29,6 +32,8 @@ public class SuiteManager {
 	private Properties settings;
 	private Queue<String> websiteQueue;
 	private ArrayList<String> args;
+	
+	private ResultProcessor resultprocessor;
 	
 	public SuiteManager(String properties, String websites) throws IOException {
 		setupSettings(properties);
@@ -60,6 +65,8 @@ public class SuiteManager {
 		args.add(0, null);
 		args.add(1, null);
 		logger.info("Settings loaded.");
+		
+		resultprocessor = new ResultProcessor();
 	}
 	
 	private void setupWebsites(String websitesPath) throws IOException {
@@ -81,6 +88,7 @@ public class SuiteManager {
 			String dir = generateOutputDir(website);
 			
 			runCrawler(website, dir);
+			resultprocessor.uploadOutputJson(website, dir);
 			
 			website = websiteQueue.poll();
 		}
