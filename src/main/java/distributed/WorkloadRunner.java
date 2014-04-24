@@ -7,19 +7,27 @@ import org.apache.commons.validator.routines.UrlValidator;
 
 public class WorkloadRunner {
 	
+	/**
+	 * Main runnable method for the distributor. It allows an user to submit urls to the server.
+	 * @param args websites to be submitted to the server
+	 */
 	public static void main(String[] args) {
 		try {
+			// Deal with args
 			WorkloadDistributor workload = new WorkloadDistributor();
 			UrlValidator urlValidator = new UrlValidator();
 			for(String arg : args) {
 				if(urlValidator.isValid(arg)) {
-					if(workload.submitWork(arg))
+					if(workload.submitWork(arg)) {
 						System.out.println("Added: " + arg);
+					} else {
+						System.out.println("Url already exists in the database.");
+					}
 				} else {
 					System.out.println("Rejected invalid url: " + arg);
 				}
 			}
-			// commandline
+			// Process commandline inputs
 			Scanner in = new Scanner(System.in);
 			while(true) {
 				System.out.print("> ");
@@ -32,6 +40,7 @@ public class WorkloadRunner {
 					System.out.println("Rejected invalid url: " + url);
 				}
 			}
+			in.close();
 		} catch (IOException e) {
 			System.out.print("Error: Unable to find connection settings.");
 		}
