@@ -62,7 +62,7 @@ public class ConnectionManager {
 		if (connection == null) {
 			try {
 				connection = DriverManager.getConnection(url + database,username,password);
-				logger.info("Connection established with: " + url + database + connection.isClosed());
+				logger.info("Connection established with: " + url + database);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
