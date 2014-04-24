@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import main.java.distributed.ResultProcessor;
 import main.java.distributed.WorkloadDistributor;
 import main.java.distributed.WorkloadRunner;
 
@@ -37,13 +38,13 @@ public class SuiteRunner {
 			additionalArgs = Arrays.copyOfRange(args, 1, args.length);
 		}
 		// Actions
-		if(arg.equals("-w")||arg.equals("--worker")) {
+		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
-		} else if(arg.equals("-f")||arg.equals("--flush")) {
+		} else if (arg.equals("-f") || arg.equals("--flush")) {
 			actionFlushFile();
-		} else if(arg.equals("-d")||arg.equals("--distributor")) {
+		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
-		} else if(arg.equals("-l")||arg.equals("--local")){
+		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else {
 			actionHelp();
@@ -62,18 +63,29 @@ public class SuiteRunner {
 
 	private void actionWorker() {
 		try {
+			ResultProcessor resultprocessor = new ResultProcessor();
 			SuiteManager suite = new SuiteManager();
 			WorkloadDistributor workload = new WorkloadDistributor();
-			
+
 			System.out.println("Started client crawler/worker.");
 			while (true) {
 				ArrayList<String> websites;
 				websites = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
 				suite.getWebsiteQueue().addAll(websites);
-				suite.crawlWebsites();
-				for(String website : websites) {
-					workload.checkoutWork(website);
-					System.out.println("crawl: " + website + " completed");
+				
+				String website = suite.getWebsiteQueue().poll();
+				while (website != null) {
+					String dir = suite.generateOutputDir(website);
+					
+					suite.runCrawler(website, dir);
+
+					resultprocessor.uploadOutputJson(website, dir);
+					website = suite.getWebsiteQueue().poll();
+				}
+				
+				for (String site : websites) {
+					workload.checkoutWork(site);
+					System.out.println("crawl: " + site + " completed");
 				}
 			}
 		} catch (InterruptedException e) {

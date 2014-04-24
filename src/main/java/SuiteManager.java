@@ -33,7 +33,6 @@ public class SuiteManager {
 	private Queue<String> websiteQueue = new PriorityQueue<String>();
 	private ArrayList<String> args;
 
-	private ResultProcessor resultprocessor;
 
 	public SuiteManager(String properties, String websites) throws IOException {
 		setupSettings(properties);
@@ -63,8 +62,6 @@ public class SuiteManager {
 		args.add(0, null);
 		args.add(1, null);
 		logger.info("Settings loaded.");
-
-		resultprocessor = new ResultProcessor();
 	}
 
 	public void websitesFromFile(String websitesPath) throws IOException {
@@ -86,7 +83,6 @@ public class SuiteManager {
 
 			runCrawler(website, dir);
 
-			resultprocessor.uploadOutputJson(website, dir);
 			website = websiteQueue.poll();
 		}
 	}

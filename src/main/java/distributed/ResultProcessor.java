@@ -73,17 +73,17 @@ public class ResultProcessor {
 		try {
 			String fileContent = "";
 			String line;
-
 			BufferedReader bufr = new BufferedReader(new FileReader(f));
 
-			while( (line = bufr.readLine()) != null) {
+			while ((line = bufr.readLine()) != null) {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
 			String insertStatement = "INSERT INTO TestResults VALUES(\"" + this.website + "\", \"" + fileContent + "\")";			
 			Statement statement = con.getConnection().createStatement();
 			statement.execute(insertStatement);	
-
+			
+			System.out.println("Result of the crawl is sent to the database.");
 			bufr.close();
 		} catch (SQLException e) {
 			logger.warning("SQLException: " + e.getMessage());
