@@ -13,10 +13,10 @@ hs_err_pid*
 
 # Build files
 target/
+output/
 
 # Eclipse settings
 .settings/
 .classpath
 .pr
 .project
-src/main/config/dist.ini

@@ -15,8 +15,6 @@ import java.util.PriorityQueue;
 import java.util.Properties;
 import java.util.Queue;
 
-import main.java.distributed.ResultProcessor;
-
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.util.logging.*;
@@ -27,8 +25,8 @@ public class SuiteManager {
 
 	final Logger logger = Logger.getLogger(SuiteManager.class.getName());
 
-	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\src\\main\\config";
-	public static String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\target\\output";
+	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
+	public static String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\output";
 	private Properties settings;
 	private Queue<String> websiteQueue = new PriorityQueue<String>();
 	private ArrayList<String> args;
