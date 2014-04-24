@@ -58,14 +58,16 @@ public class ConnectionManager {
 		logger.info("Connection settings loaded. User: " + username);
 	}
 	
-	public void startConnection() {
-		try {
-			connection = DriverManager.getConnection(url + database,username,password);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public Connection getConnection() {
+		if (connection == null) {
+			try {
+				connection = DriverManager.getConnection(url + database,username,password);
+				logger.info("Connection established with: " + url + database + connection.isClosed());
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
-		logger.info("Connection established with: " + url + database);
+		return connection;
 	}
 	
 	public void closeConnection() {
@@ -75,10 +77,7 @@ public class ConnectionManager {
 			e.printStackTrace();
 		}
 		logger.info("Connection with: " + url + database + " closed.");
-	}
-
-	public Connection getConnection() {
-		return connection;
+		connection = null;
 	}
 	
 	
