@@ -50,10 +50,10 @@
           <goal>copy-resources</goal>
         </goals>
         <configuration>
-          <outputDirectory>${basedir}/target/${pom.artifactId}-${pom.version}/src/main/config</outputDirectory>
+          <outputDirectory>${basedir}/target/${pom.artifactId}-${pom.version}/config</outputDirectory>
           <resources>
             <resource>
-                <directory>src/main/config</directory>
+                <directory>/config</directory>
                 <filtering>true</filtering>
             </resource>
           </resources>
