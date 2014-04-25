@@ -76,16 +76,20 @@ public class SuiteManager {
 		logger.info("Website-queue loaded.");
 	}
 
-	public void crawlWebsites() {
+	public ArrayList<String> crawlWebsites() {
 		String website = websiteQueue.poll();
+		ArrayList<String> outputdirs = new ArrayList<String>();
 		while(website != null) {
 			try {
-					runCrawler(buildSettings(website));
+					HashMap<String,String> args = buildSettings(website);
+					runCrawler(args);
+					outputdirs.add(args.get(DEFAULT_OUTPUT_DIR));
 			} catch (URISyntaxException e) {
 				logger.info("Invalid uri provided: " + website);
 			};
 			website = websiteQueue.poll();
 		}
+		return outputdirs;
 	}
 
 	public String generateOutputDir(String website) {
@@ -108,6 +112,7 @@ public class SuiteManager {
 		finargs[0] = args.remove(ARG_WEBSITE);
 		finargs[1] = args.remove(ARG_OUTPUTDIR);
 		int index = 2;
+		
 		for(String key : args.keySet()) {
 			finargs[index] = "-" + key;
 			finargs[index+1] = args.get(key);
