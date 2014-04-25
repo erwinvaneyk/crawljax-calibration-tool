@@ -151,6 +151,9 @@ public class SuiteManager {
 			finargs[index+1] = args.get(key);
  			index += 2;
 		}
+		args.put(ARG_WEBSITE, finargs[0]);
+		args.put(ARG_OUTPUTDIR, finargs[1]);
+		
 		logger.info("Arguments provided: " + Arrays.toString(finargs));
 		JarRunner.main(finargs);
 		logger.info("Finished crawling " + args.get(ARG_WEBSITE) + ".");
