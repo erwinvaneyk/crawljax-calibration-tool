@@ -39,25 +39,34 @@ public class WorkloadDistributor {
 	 * @param maxcount the maximum number of urls to retrieve.
 	 * @return a list with claimed urls
 	 */
-	public ArrayList<String> retrieveWork(int maxcount) {
+	public ArrayList<WorkTask> retrieveWork(int maxcount) {
 		assert maxcount > 0;
-		ArrayList<String> urls = new ArrayList<String>();
+		ArrayList<WorkTask> workTasks = new ArrayList<WorkTask>();
 		Connection conn = connMgr.getConnection();
 		try {
 			// Retrieve urls from the server.
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  workload WHERE worker = \"\" AND crawled = 0 LIMIT " + maxcount);
 			while (res.next()) {
-				int id = res.getInt("id");
-				urls.add(res.getString("url"));
+				WorkTask workTask = new WorkTask();
+				workTask.setId(res.getInt("id"));
+				workTask.setUrl(res.getString("url"));
+				workTasks.add(workTask);
 				// Update the worker-field to show that the urls are claimed/worked on.
-				conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\" WHERE id=" + id);
+				conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\" WHERE id=" + workTask.getId());
 			}
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
 		}
 		connMgr.closeConnection();
-		logger.info("Retrieved workload: " + urls);
-		return urls;		
+		String infoTasks = "Retrieved workload: \n";
+		for (int i=0; i<workTasks.size(); i++) {
+			try {
+				infoTasks += workTasks.get(i).getCurrentWork() + "\n";
+			} catch (SQLException e) {
+				logger.warning(e.getMessage());
+			}
+		}
+		return workTasks;		
 	}
 	
 	/**
@@ -105,15 +114,14 @@ public class WorkloadDistributor {
 	 * @return a list with claimed urls
 	 * @throws InterruptedException thrown when the worker is unexpectedly awakened
 	 */
-	public ArrayList<String> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException {
-		ArrayList<String> ret = new ArrayList<String>();
-		ret = retrieveWork(maxcount);
-		while(ret.isEmpty()) {
-			ret = retrieveWork(maxcount);
+	public ArrayList<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException {
+		ArrayList<WorkTask> task = retrieveWork(maxcount);
+		while(task.isEmpty()) {
+			task = retrieveWork(maxcount);
 			logger.info("Sleeping for " + sleepMilisecs + " miliseconds");
 			Thread.sleep(sleepMilisecs);
 		}
-		return ret;
+		return task;
 	}
 	
 	/**

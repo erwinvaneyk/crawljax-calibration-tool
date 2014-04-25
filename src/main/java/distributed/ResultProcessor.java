@@ -19,15 +19,15 @@ public class ResultProcessor {
 	private final Logger logger = Logger.getLogger(SuiteManager.class.getName());
 
 	private ConnectionManager con;
-	private String website;
+	private int id;
 
 	/**
 	 * Upload the resulting JSON file of a crawled wesite to the sql database.
 	 * @param website The crawled website that genarates the output folder
 	 * @param dir The directory that contains the output of the crawl
 	 */
-	public void uploadOutputJson(String website, String dir) {
-		this.website = website;
+	public void uploadOutputJson(int id, String dir) {
+		this.id = id;
 		try {
 			con = new ConnectionManager();
 			
@@ -81,9 +81,7 @@ public class ResultProcessor {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
-			int id = this.getIdOfCurrentTask();
-			System.out.println(id);
-			String insertStatement = "INSERT INTO TestResults(id,JsonResults) VALUES(" + id + ", \"" + fileContent + "\")";			
+			String insertStatement = "INSERT INTO TestResults(id,JsonResults) VALUES(" + this.id + ", \"" + fileContent + "\")";			
 			Statement statement = con.getConnection().createStatement();
 			statement.execute(insertStatement);	
 			
@@ -96,20 +94,5 @@ public class ResultProcessor {
 		} catch (IOException e) {
 			logger.warning("IOException: " + e.getMessage());
 		}
-	}
-
-	/**
-	 * @return id of the website the worker is currently crawling
-	 * @throws SQLException If the id cannot be obtained from the website
-	 */
-	private int getIdOfCurrentTask() throws SQLException {
-		String sql = "SELECT * FROM workload WHERE url = \"" + website + "\"";
-		ResultSet resultQuery = con.getConnection().createStatement().executeQuery(sql);
-		int id = -1;
-
-		while (resultQuery.next()) {
-			id = resultQuery.getInt("id");
-		}
-		return id;
 	}
 }

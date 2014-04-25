@@ -1,6 +1,7 @@
 package main.java;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -8,10 +9,12 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import main.java.distributed.ResultProcessor;
+import main.java.distributed.WorkTask;
 import main.java.distributed.WorkloadDistributor;
 import main.java.distributed.WorkloadRunner;
 
 import com.crawljax.cli.JarRunner;
+import com.sun.media.jfxmedia.logging.Logger;
 
 public class SuiteRunner {
 
@@ -69,23 +72,21 @@ public class SuiteRunner {
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
-				ArrayList<String> websites;
-				websites = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
-				suite.getWebsiteQueue().addAll(websites);
-				
-				String website = suite.getWebsiteQueue().poll();
-				while (website != null) {
-					String dir = suite.generateOutputDir(website);
-					
-					suite.runCrawler(website, dir);
+				ArrayList<WorkTask> workTasks;
+				workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
 
-					resultprocessor.uploadOutputJson(website, dir);
-					website = suite.getWebsiteQueue().poll();
+				for (WorkTask task : workTasks) {
+					String dir = suite.generateOutputDir(task.getUrl());
+					
+					suite.runCrawler(task.getUrl(), dir);
+
+					resultprocessor.uploadOutputJson(task.getId(), dir);
+					
 				}
 				
-				for (String site : websites) {
-					workload.checkoutWork(site);
-					System.out.println("crawl: " + site + " completed");
+				for (WorkTask task : workTasks) {
+					workload.checkoutWork(task.getUrl());
+					System.out.println("crawl: " + task.getUrl() + " completed");
 				}
 			}
 		} catch (InterruptedException e) {
