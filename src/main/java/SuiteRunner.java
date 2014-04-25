@@ -16,7 +16,6 @@ import main.java.distributed.WorkloadDistributor;
 import main.java.distributed.WorkloadRunner;
 
 import com.crawljax.cli.JarRunner;
-import com.sun.media.jfxmedia.logging.Logger;
 
 public class SuiteRunner {
 
