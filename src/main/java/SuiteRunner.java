@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
@@ -79,7 +79,7 @@ public class SuiteRunner {
 				
 				try {
 					for (WorkTask task : workTasks) {
-						HashMap<String, String> args = suite.buildSettings(task.getUrl());
+						Map<String, String> args = suite.buildSettings(task.getUrl());
 						
 						suite.runCrawler(args);
 						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
