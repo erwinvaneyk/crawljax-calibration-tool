@@ -98,6 +98,8 @@ public class SuiteManager {
 		while ((line = br.readLine()) != null) {
 			if(urlValidator.isValid(line))
 				websiteQueue.add(line);
+			else
+				logger.warning("Website: " + line + " is an invalid url. Ignoring website.");
 		}
 		br.close();
 		logger.info("Website-queue loaded.");

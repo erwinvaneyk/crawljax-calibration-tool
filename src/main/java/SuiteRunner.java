@@ -1,7 +1,6 @@
 package main.java;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;

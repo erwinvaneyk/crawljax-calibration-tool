@@ -34,6 +34,7 @@
         <descriptorRefs>
           <descriptorRef>jar-with-dependencies</descriptorRef>
         </descriptorRefs>
+        <appendAssemblyId>false</appendAssemblyId>
         <finalName>${pom.artifactId}-${pom.version}</finalName>
 		<outputDirectory>target/${pom.artifactId}-${pom.version}/</outputDirectory>
       </configuration>
