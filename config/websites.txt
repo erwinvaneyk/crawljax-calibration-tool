@@ -1,2 +1,2 @@
-https://developer.mozilla.org/en-US/docs/AJAX/Getting_Started
 http://demo.crawljax.com
+http://example.com

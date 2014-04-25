@@ -1,8 +1,10 @@
 package main.java;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
@@ -75,17 +77,19 @@ public class SuiteRunner {
 				
 				String website = suite.getWebsiteQueue().poll();
 				while (website != null) {
-					String dir = suite.generateOutputDir(website);
-					
-					suite.runCrawler(website, dir);
-
-					resultprocessor.uploadOutputJson(website, dir);
+					try {
+						HashMap<String, String> args = suite.buildSettings(website);
+						
+						suite.runCrawler(args);
+						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
+	
+						resultprocessor.uploadOutputJson(website, dir);
+						workload.checkoutWork(website);
+						System.out.println("crawl: " + website + " completed");
+					} catch (URISyntaxException e) {
+						System.out.println("Crawl failed: invalid url");
+					}
 					website = suite.getWebsiteQueue().poll();
-				}
-				
-				for (String site : websites) {
-					workload.checkoutWork(site);
-					System.out.println("crawl: " + site + " completed");
 				}
 			}
 		} catch (InterruptedException e) {

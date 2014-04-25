@@ -1,7 +1,6 @@
 package main.java;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
@@ -10,12 +9,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.PriorityQueue;
-import java.util.Properties;
 import java.util.Queue;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
 
 import java.util.logging.*;
 
@@ -25,41 +25,43 @@ public class SuiteManager {
 
 	final Logger logger = Logger.getLogger(SuiteManager.class.getName());
 
-	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
-	public static String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\output";
-	private Properties settings;
+	static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
+	static final String DEFAULT_SETTINGS_INI = "/settings.ini";
+	static final String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\output";
+	static final String INI_SECTION_COMMON = "common";
+	static final String ARG_WEBSITE = "website";
+	static final String ARG_OUTPUTDIR = "outputdir";
 	private Queue<String> websiteQueue = new PriorityQueue<String>();
-	private ArrayList<String> args;
+
+	private Ini ini;
 
 
-	public SuiteManager(String properties, String websites) throws IOException {
-		setupSettings(properties);
+	public SuiteManager(String iniPath) throws IOException {
+		ini = new Ini(new FileReader(iniPath));
 	}
 
 	public SuiteManager() throws IOException {
 		logger.warning("Using the default paths for the config-file.");
-		setupSettings(DEFAULT_SETTINGS_DIR + "/settings.ini");
+		ini = new Ini(new FileReader(DEFAULT_SETTINGS_DIR + DEFAULT_SETTINGS_INI));
 	}
+	
+	public HashMap<String,String> buildSettings(String website) throws URISyntaxException {
+		// Check URI
+		URI uri = new URI(website);
 
-	private void setupSettings(String propertiesPath) throws IOException {
-		settings = new Properties();
-		FileInputStream input = new FileInputStream(propertiesPath);
-
-		// load a properties file
-		settings.load(input);
-
-		// Setup args
-		args = new ArrayList<String>();
-		Enumeration<?> e = settings.propertyNames();
-	    while (e.hasMoreElements()) {
-	      String key = (String) e.nextElement();
-	      args.add("--" + key);
-	      if (!settings.getProperty(key).equals(""))
-	      	args.add(settings.getProperty(key)); 
+		// Load common settings
+		HashMap<String,String> args = new HashMap<String,String>();
+		Section settings = ini.get(INI_SECTION_COMMON);
+	    for(String key : settings.keySet()) {
+	    	args.put(key, settings.get(key));
 	    }
-		args.add(0, null);
-		args.add(1, null);
-		logger.info("Settings loaded.");
+	    // Load custom settings
+	    addSettings(args, uri.getHost());
+	    
+	    // Setup vital arguments
+		args.put(ARG_WEBSITE, website);
+		args.put(ARG_OUTPUTDIR, generateOutputDir(website));
+		return args;
 	}
 
 	public void websitesFromFile(String websitesPath) throws IOException {
@@ -77,10 +79,11 @@ public class SuiteManager {
 	public void crawlWebsites() {
 		String website = websiteQueue.poll();
 		while(website != null) {
-			String dir = generateOutputDir(website);
-
-			runCrawler(website, dir);
-
+			try {
+					runCrawler(buildSettings(website));
+			} catch (URISyntaxException e) {
+				logger.info("Invalid uri provided: " + website);
+			};
 			website = websiteQueue.poll();
 		}
 	}
@@ -97,15 +100,34 @@ public class SuiteManager {
 		return DEFAULT_OUTPUT_DIR + "/" + uri.getHost() + "-" + timestamp.getTime();
 	}
 
-	public void runCrawler(String website, String outputDir) {
-		logger.info("Starting crawler on: " + website + " outputting to: " + outputDir + ".");
-		args.set(0, website);
-		args.set(1, outputDir);
-		String[] finargs = new String[args.size()];
-		finargs = (String[]) args.toArray(finargs);
+	public void runCrawler(HashMap<String, String> args) {
+		logger.info("Starting crawler on: " + args.get(ARG_WEBSITE) + " outputting to: " + args.get(ARG_OUTPUTDIR) + ".");
+		
+		// Convert args to valid args-line
+		String[] finargs = new String[(args.size() * 2 - 2)];
+		finargs[0] = args.remove(ARG_WEBSITE);
+		finargs[1] = args.remove(ARG_OUTPUTDIR);
+		int index = 2;
+		for(String key : args.keySet()) {
+			finargs[index] = "-" + key;
+			finargs[index+1] = args.get(key);
+ 			index += 2;
+		}
 		logger.info("Arguments provided: " + Arrays.toString(finargs));
 		JarRunner.main(finargs);
-		logger.info("Finished crawling " + website + ".");
+		logger.info("Finished crawling " + args.get(ARG_WEBSITE) + ".");
+	}
+	
+	public void addSettings(HashMap<String,String> args, String section) {
+		try {
+			Section settings = ini.get(section);
+			for(String key : settings.keySet()) {
+				args.put(key, settings.get(key));
+			}
+			logger.info("Custom settings loaded for section: " + section);
+		} catch (Exception e) {
+			logger.warning("Could not find custom settings-section: " + section);
+		}
 	}
 
 	public Queue<String> getWebsiteQueue() {
@@ -114,13 +136,5 @@ public class SuiteManager {
 
 	public void setWebsiteQueue(Queue<String> websiteQueue) {
 		this.websiteQueue = websiteQueue;
-	}
-
-	public ArrayList<String> getArgs() {
-		return args;
-	}
-
-	public void setArgs(ArrayList<String> args) {
-		this.args = args;
 	}
 }
