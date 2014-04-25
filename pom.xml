@@ -35,7 +35,7 @@
           <descriptorRef>jar-with-dependencies</descriptorRef>
         </descriptorRefs>
         <appendAssemblyId>false</appendAssemblyId>
-        <finalName>${pom.artifactId}-${pom.version}</finalName>
+        <finalName>${pom.artifactId}</finalName>
 		<outputDirectory>target/${pom.artifactId}-${pom.version}/</outputDirectory>
       </configuration>
     </plugin>
@@ -55,6 +55,22 @@
           <resources>
             <resource>
                 <directory>/config</directory>
+                <filtering>true</filtering>
+            </resource>
+          </resources>
+        </configuration>
+      </execution>
+      <execution>
+        <id>copy-resources-2</id>
+        <phase>validate</phase>
+        <goals>
+          <goal>copy-resources</goal>
+        </goals>
+        <configuration>
+          <outputDirectory>${basedir}/target/${pom.artifactId}-${pom.version}</outputDirectory>
+          <resources>
+            <resource>
+                <directory>/resources</directory>
                 <filtering>true</filtering>
             </resource>
           </resources>
