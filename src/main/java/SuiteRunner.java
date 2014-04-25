@@ -2,8 +2,10 @@ package main.java;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
@@ -72,21 +74,23 @@ public class SuiteRunner {
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
+
 				ArrayList<WorkTask> workTasks;
 				workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
-
-				for (WorkTask task : workTasks) {
-					String dir = suite.generateOutputDir(task.getUrl());
-					
-					suite.runCrawler(task.getUrl(), dir);
-
-					resultprocessor.uploadOutputJson(task.getId(), dir);
-					
-				}
 				
-				for (WorkTask task : workTasks) {
-					workload.checkoutWork(task.getUrl());
-					System.out.println("crawl: " + task.getUrl() + " completed");
+				try {
+					for (WorkTask task : workTasks) {
+						HashMap<String, String> args = suite.buildSettings(task.getUrl());
+						
+						suite.runCrawler(args);
+						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
+	
+						resultprocessor.uploadOutputJson(task.getId(), dir);
+						workload.checkoutWork(task.getUrl());
+						System.out.println("crawl: " + task.getUrl() + " completed");
+					}
+				} catch (URISyntaxException e) {
+					System.out.println("Crawl failed: invalid url");
 				}
 			}
 		} catch (InterruptedException e) {

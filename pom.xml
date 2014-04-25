@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>crawljax-functional-testing-suite</groupId>
   <artifactId>crawljax-functional-testing-suite</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <name>Crawljax Functional Testing Suite</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
@@ -80,5 +80,10 @@
 	  	<artifactId>crawljax-cli</artifactId>
 	  	<version>4.0-SNAPSHOT</version>
 	  </dependency>
+	  <dependency>
+		<groupId>org.ini4j</groupId>
+		<artifactId>ini4j</artifactId>
+		<version>0.5.1</version>
+	</dependency>
   </dependencies>
 </project>
