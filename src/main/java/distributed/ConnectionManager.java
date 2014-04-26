@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  * ConnectionManager manages a single connection resource to the database. 
  *
  */
-public class ConnectionManager {
+public class ConnectionManager implements IConnectionManager {
 	
 	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
 	
@@ -75,7 +75,6 @@ public class ConnectionManager {
 	/**
 	 * Returns the connection. If not present, create a new connection.
 	 * @return the active connection
-	 * @throws SQLException 
 	 */
 	public Connection getConnection() {
 		if (connection == null) {

@@ -1,4 +1,4 @@
-package main.java.distributed;
+package main.java.distributed.workload;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -6,21 +6,18 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.IConnectionManager;
+
 /**
- * The WorkloadDistributor is responsible for managing the workload of the clients. 
- * It should enable to send/retrieve/claim/unclaim/finish urls on the server.
- * 
- * A url or workunit can have three different states:
- * - unclaimed/Available:	The url has not been crawled and has no worker assigned.
- * - claimed:				A worker has been assigned, but has not finished crawling.
- * - Checked out/finished:	A worker has been assigned and has finished the crawling.
- *
+ * SQL-server-based implementation of the IWorkloadDistributor-interface. The 
+ * WorkloadDistributor is responsible for managing the workload of the clients.  
  */
-public class WorkloadDistributor {
+public class WorkloadDistributor implements IWorkloadDistributor {
 	
 	final Logger logger = Logger.getLogger(WorkloadDistributor.class.getName());
 	
-	private ConnectionManager connMgr;
+	private IConnectionManager connMgr;
 	
 	private String workerID;
 
@@ -53,19 +50,12 @@ public class WorkloadDistributor {
 				workTasks.add(workTask);
 				// Update the worker-field to show that the urls are claimed/worked on.
 				conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\" WHERE id=" + workTask.getId());
+				logger.info("Worktask retrieved: " + workTask.getUrl());
 			}
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
 		}
 		connMgr.closeConnection();
-		String infoTasks = "Retrieved workload: \n";
-		for (int i=0; i<workTasks.size(); i++) {
-			try {
-				infoTasks += workTasks.get(i).getCurrentWork() + "\n";
-			} catch (SQLException e) {
-				logger.warning(e.getMessage());
-			}
-		}
 		return workTasks;		
 	}
 	

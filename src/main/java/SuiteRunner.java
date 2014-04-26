@@ -9,10 +9,12 @@ import java.util.Map;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-import main.java.distributed.ResultProcessor;
-import main.java.distributed.WorkTask;
-import main.java.distributed.WorkloadDistributor;
-import main.java.distributed.WorkloadRunner;
+import main.java.distributed.results.IResultProcessor;
+import main.java.distributed.results.ResultProcessor;
+import main.java.distributed.workload.IWorkloadDistributor;
+import main.java.distributed.workload.WorkloadDistributor;
+import main.java.distributed.workload.WorkTask;
+import main.java.distributed.workload.WorkloadRunner;
 
 import com.crawljax.cli.JarRunner;
 
@@ -66,9 +68,9 @@ public class SuiteRunner {
 
 	private void actionWorker() {
 		try {
-			ResultProcessor resultprocessor = new ResultProcessor();
+			IResultProcessor resultprocessor = new ResultProcessor();
 			SuiteManager suite = new SuiteManager();
-			WorkloadDistributor workload = new WorkloadDistributor();
+			IWorkloadDistributor workload = new WorkloadDistributor();
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
@@ -100,7 +102,7 @@ public class SuiteRunner {
 
 	private void actionFlushFile() {
 		try {
-			WorkloadDistributor workload = new WorkloadDistributor();
+			IWorkloadDistributor workload = new WorkloadDistributor();
 			SuiteManager suite = new SuiteManager();
 			
 			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");

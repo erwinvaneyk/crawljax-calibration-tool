@@ -1,4 +1,4 @@
-package main.java.distributed;
+package main.java.distributed.workload;
 
 import java.io.IOException;
 import java.util.Scanner;

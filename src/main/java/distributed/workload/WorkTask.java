@@ -1,7 +1,5 @@
-package main.java.distributed;
+package main.java.distributed.workload;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 
 /**
  * A task for a worker to crawl a website
@@ -53,7 +51,7 @@ public class WorkTask {
 	/**
 	 * @return the string representation of this task.
 	 */
-	public String getCurrentWork() throws SQLException {
+	public String toString() {
 
 		return id + ": " + url;
 	}

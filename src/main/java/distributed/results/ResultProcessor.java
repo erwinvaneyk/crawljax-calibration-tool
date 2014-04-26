@@ -1,24 +1,25 @@
-package main.java.distributed;
+package main.java.distributed.results;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Logger;
 
 import main.java.SuiteManager;
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.IConnectionManager;
 
 /**
- * ResultProcessor should deal with the results of crawls, sending them to the server. 
+ * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
-public class ResultProcessor {
+public class ResultProcessor implements IResultProcessor {
 	private final Logger logger = Logger.getLogger(SuiteManager.class.getName());
 
-	private ConnectionManager con;
+	private IConnectionManager con;
 	private int id;
 
 	/**
