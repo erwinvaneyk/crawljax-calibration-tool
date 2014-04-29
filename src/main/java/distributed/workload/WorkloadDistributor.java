@@ -37,20 +37,23 @@ public class WorkloadDistributor implements IWorkloadDistributor {
 	 * @return a list with claimed urls
 	 */
 	public ArrayList<WorkTask> retrieveWork(int maxcount) {
-		assert maxcount > 0;
+		assert maxcount >= 0;
 		ArrayList<WorkTask> workTasks = new ArrayList<WorkTask>();
 		Connection conn = connMgr.getConnection();
 		try {
+			int claimed = conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\"  WHERE crawled = 0 AND worker=\"\" LIMIT " + maxcount);
+			logger.info("Rows claimed by update-query: " + claimed);
 			// Retrieve urls from the server.
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  workload WHERE worker = \"\" AND crawled = 0 LIMIT " + maxcount);
-			while (res.next()) {
-				WorkTask workTask = new WorkTask();
-				workTask.setId(res.getInt("id"));
-				workTask.setUrl(res.getString("url"));
-				workTasks.add(workTask);
-				// Update the worker-field to show that the urls are claimed/worked on.
-				conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\" WHERE id=" + workTask.getId());
-				logger.info("Worktask retrieved: " + workTask.getUrl());
+			if (claimed > 0) {
+				// Note: this will also return the claimed/unfinished websites not signed off.
+				ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  workload WHERE worker = \"" + workerID + "\" AND crawled = 0");
+				while (res.next()) {
+					WorkTask workTask = new WorkTask();
+					workTask.setId(res.getInt("id"));
+					workTask.setUrl(res.getString("url"));
+					workTasks.add(workTask);
+					logger.info("Worktask retrieved: " + workTask.getUrl());
+				}
 			}
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
