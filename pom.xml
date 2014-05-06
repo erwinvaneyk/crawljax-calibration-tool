@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>crawljax-functional-testing-suite</groupId>
   <artifactId>crawljax-functional-testing-suite</artifactId>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <name>Crawljax Functional Testing Suite</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
@@ -102,6 +102,17 @@
 		<artifactId>ini4j</artifactId>
 		<version>0.5.1</version>
 	</dependency>
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.11</version>
+	</dependency>
+    <dependency>
+		<groupId>org.mockito</groupId>
+		<artifactId>mockito-all</artifactId>
+		<version>1.8.4</version>
+	</dependency>
+            
   </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

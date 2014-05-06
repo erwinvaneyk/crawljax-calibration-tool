@@ -73,14 +73,14 @@ public class ConnectionManager implements IConnectionManager {
 	 * @return the active connection
 	 */
 	public Connection getConnection() {
-		if (connection == null) {
-			try {
-				// Setup connection
-				connection = DriverManager.getConnection(url + database,username,password);
-				logger.debug("Connection established with: " + url + database);
-			} catch (SQLException e) {
-				logger.error(e.getMessage());
+		try {
+			if (connection == null || connection.isClosed()) {
+					// Setup connection
+					connection = DriverManager.getConnection(url + database,username,password);
+					logger.debug("Connection established with: " + url + database);
 			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
 		}
 		return connection;
 	}
@@ -91,10 +91,12 @@ public class ConnectionManager implements IConnectionManager {
 	public void closeConnection() {
 		try {
 			connection.close();
+			logger.debug("Connection with: " + url + database + " closed.");
+		} catch (NullPointerException e) {
+			logger.warn("Connection was already closed");
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
 		}
-		logger.debug("Connection with: " + url + database + " closed.");
 		connection = null;
 	}
 }

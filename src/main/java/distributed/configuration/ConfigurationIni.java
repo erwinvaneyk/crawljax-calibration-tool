@@ -61,7 +61,6 @@ public class ConfigurationIni implements IConfigurationDAO {
 		ini = newIni;
 	}
 
-	@Override
 	public Map<String, String> getConfiguration() {
 		// Load common settings{
 		Map<String,String> args = new HashMap<String,String>();
@@ -70,7 +69,6 @@ public class ConfigurationIni implements IConfigurationDAO {
 	    return args;
 	}
 
-	@Override
 	public Map<String, String> getConfiguration(List<String> websites) {
 		assert websites != null;
 		Map<String,String> args = new HashMap<String,String>();
@@ -79,8 +77,7 @@ public class ConfigurationIni implements IConfigurationDAO {
 		}
 		return args;
 	}
-
-	@Override
+	
 	/**
 	 * Generates a map with settings extracted from the ini and website and outputdir-keys.
 	 * If defined custom settings of the website will be added. 
@@ -101,7 +98,6 @@ public class ConfigurationIni implements IConfigurationDAO {
 	}
 
 	// importance not used
-	@Override
 	public void updateConfiguration(String section, String key, String value, int importance) {
 		assert section != null;
 		assert key != null;
@@ -115,7 +111,6 @@ public class ConfigurationIni implements IConfigurationDAO {
 		}
 	}
 
-	@Override
 	public void deleteConfiguration(String section, String key) {
 		assert section != null;
 		assert key != null;
@@ -131,7 +126,6 @@ public class ConfigurationIni implements IConfigurationDAO {
 		}
 	}
 
-	@Override
 	public void deleteConfiguration(String section) {
 		assert section != null;
 		ini.remove(section);
