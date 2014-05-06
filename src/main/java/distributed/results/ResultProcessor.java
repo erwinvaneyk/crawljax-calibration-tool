@@ -38,8 +38,6 @@ public class ResultProcessor implements IResultProcessor {
 			con.closeConnection();
 		} catch (FileNotFoundException e) {
 			logger.warning("FileNotFoundException: " + e.getMessage());
-		} catch (IOException e) {
-			logger.warning("IOException: " + e.getMessage());
 		}
 	}
 

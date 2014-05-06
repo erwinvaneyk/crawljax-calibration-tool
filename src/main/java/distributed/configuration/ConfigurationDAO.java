@@ -1,6 +1,5 @@
 package main.java.distributed.configuration;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,7 +32,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	
 	private IConnectionManager connMgr;
 
-	public ConfigurationDAO() throws IOException {
+	public ConfigurationDAO() {
 		connMgr = new ConnectionManager();
 	}
 

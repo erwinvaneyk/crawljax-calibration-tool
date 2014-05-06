@@ -2,6 +2,8 @@ package main.java.distributed.workload;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,7 @@ import main.java.distributed.IConnectionManager;
  */
 public class WorkloadDAO implements IWorkloadDAO {
 	
-	final Logger logger = Logger.getLogger(WorkloadDAO.class.getName());
+	final static Logger logger = Logger.getLogger(WorkloadDAO.class.getName());
 	
 	private static final String TABLE = "workload";
 	private static final String COLUMN_ID = "id";
@@ -26,16 +28,23 @@ public class WorkloadDAO implements IWorkloadDAO {
 	
 	private IConnectionManager connMgr;
 	
-	private String workerID;
+	private static String workerID;
 
+	static {
+		try {
+			workerID = InetAddress.getLocalHost().toString();
+			logger.info("WorkerID: " + workerID);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Sets up the ConnectionManager and creates an ID based on the hostname and local ip.
 	 * @throws IOException The ConnectionManager could not retrieve the settings-file.
 	 */
-	public WorkloadDAO() throws IOException {
+	public WorkloadDAO() {
 		connMgr = new ConnectionManager();
-		workerID = InetAddress.getLocalHost().toString();
-		logger.info("WorkerID: " + workerID);
 	}
 	
 	/**
@@ -74,13 +83,13 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @param url The url to be checked out.
 	 * @return true if checkout was succesful, else false. 
 	 */
-	public boolean checkoutWork(String url) {
+	public boolean checkoutWork(WorkTask wt) {
 		int ret = 0;
 		Connection conn = connMgr.getConnection();
 		try {
 			// Update crawled-field to 1 to show crawl has finished.
-			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_URL + "=\"" + url + "\"");
-			logger.info("Checked out crawl of " + url);
+			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_ID + "=\"" + wt.getId() + "\"");
+			logger.info("Checked out crawl of id" + wt.getId());
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
 		}
@@ -93,19 +102,27 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @param url the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public boolean submitWork(String url) {
-		int ret = 0;
+	public int submitWork(URI url) {
+		assert url.toString().length() > 0;
+		int ret = -1;
 		Connection conn = connMgr.getConnection();
 		try {
 			// Insert a new row containing the url in the workload-table.
-			ret = conn.createStatement().executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
-					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0,\"\")");
+			Statement statement = conn.createStatement();
+			ret = statement.executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
+					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0,\"\")", Statement.RETURN_GENERATED_KEYS);
 			logger.info("Succesfully submitted " + url + " to the server.");
+			
+			// Get generated key
+			ResultSet generatedkeys = statement.getGeneratedKeys();
+	        if (generatedkeys.next()) {
+	            ret = generatedkeys.getInt(1);
+	        }
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
 		}
 		connMgr.closeConnection();
-		return ret != 0;
+		return ret;
 	}
 
 	/**
@@ -132,15 +149,15 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @param url the url to be reverted
 	 * @return true if successful, else false.
 	 */
-	public boolean revertWork(String url) {
+	public boolean revertWork(int id) {
 		int ret = 0;
 		Connection conn = connMgr.getConnection();
 		try {
 			Statement st = conn.createStatement();
 			// Update the worker and crawled field to the default values for the url.
 			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID 
-					+"=\"\" WHERE " + COLUMN_URL + "=\"" + url + "\"");
-			logger.info("Reverted claim/checkout of crawl for " + url);
+					+"=\"\" WHERE " + COLUMN_ID + "=\"" + id + "\"");
+			logger.info("Reverted claim/checkout of crawl for id: " + id);
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
 		}

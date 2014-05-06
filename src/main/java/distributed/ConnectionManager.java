@@ -12,35 +12,29 @@ import java.util.logging.Logger;
  */
 public class ConnectionManager implements IConnectionManager {
 	
-	public static String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
+	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 	
-	final Logger logger = Logger.getLogger(ConnectionManager.class.getName());
+	final static Logger logger = Logger.getLogger(ConnectionManager.class.getName());
 	
 	private Connection connection;
-	private Properties settings;
-	private String url;
-	private String database;
-	private String username;
-	private String password;
+	private static Properties settings;
+	private static String url;
+	private static String database;
+	private static String username;
+	private static String password;
 	
 	/**
-	 * Constructor calls the common constructor-method setup().
-	 * @param connectionDetailsPath the path to a custom connection-settings file.
-	 * @throws IOException connectionDetailsPath-file could not be found.
+	 * Load setting files for ConnectionManager
 	 */
-	public ConnectionManager(String connectionDetailsPath) throws IOException {
-		setup(connectionDetailsPath);
-	}
-	
-	/**
-	 * Constructor calls the common constructor-method setup().
-	 * @throws IOException the default connection-settings file could not be found.
-	 */
-	public ConnectionManager() throws IOException {
-		logger.warning("ConnectionManager uses the default paths for the config-files.");
-		setup(DEFAULT_SETTINGS_DIR + "/dist.ini");
+	static {
+		try {
+			logger.warning("ConnectionManager uses the default paths for the config-files.");
+			setup(DEFAULT_SETTINGS_DIR + "/dist.ini");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -48,7 +42,7 @@ public class ConnectionManager implements IConnectionManager {
 	 * @param connectionDetailsPath the path to the settings-file.
 	 * @throws IOException the connection-settings file could not be found.
 	 */
-	private void setup(String connectionDetailsPath) throws IOException {
+	private static void setup(String connectionDetailsPath) throws IOException {
 		settings = new Properties();
 		FileInputStream input = new FileInputStream(connectionDetailsPath);
 		 
@@ -69,7 +63,7 @@ public class ConnectionManager implements IConnectionManager {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		logger.info("Connection settings loaded. User: " + username);
+		logger.info("Connection settings loaded. Database-user: " + username);
 	}
 	
 	/**

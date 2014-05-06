@@ -1,5 +1,6 @@
 package main.java;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +14,7 @@ import java.util.Map.Entry;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.ini4j.Ini;
+import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
 import main.java.distributed.configuration.ConfigurationDAO;
@@ -100,7 +102,7 @@ public class SuiteRunner {
 						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 	
 						resultprocessor.uploadOutputJson(task.getId(), dir);
-						workload.checkoutWork(task.getUrl());
+						workload.checkoutWork(task);
 						System.out.println("crawl: " + task.getUrl() + " completed");
 					} catch (URISyntaxException e) {
 						System.out.println("Crawl failed: " + task.getUrl() + " is an invalid website.");
@@ -120,9 +122,15 @@ public class SuiteRunner {
 			SuiteManager suite = new SuiteManager();
 			
 			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
-			String url;
-			while((url = suite.getWebsiteQueue().poll()) != null) {
-				workload.submitWork(url);
+			URI url;
+			String rawUrl;
+			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
+				try {
+					url = new URI(rawUrl);
+					workload.submitWork(url);
+				} catch (URISyntaxException e) {
+					System.out.println("Invalid website; skipping " + rawUrl + "!");
+				}
 			}
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
@@ -139,7 +147,11 @@ public class SuiteRunner {
 					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
 				}
 			}
-		} catch (Exception e) {
+		} catch (InvalidFileFormatException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		

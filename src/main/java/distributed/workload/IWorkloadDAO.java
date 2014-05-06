@@ -1,5 +1,6 @@
 package main.java.distributed.workload;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -26,21 +27,21 @@ public interface IWorkloadDAO {
 	 * @param url The url to be checked out.
 	 * @return true if checkout was succesful, else false. 
 	 */
-	public boolean checkoutWork(String url);
+	public boolean checkoutWork(WorkTask id);
 	
 	/**
 	 * Submit a new url/workunit to the queue/server/container to crawl.
 	 * @param url the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public boolean submitWork(String url);
+	public int submitWork(URI url);
 	
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
 	 * @param url the url to be reverted
 	 * @return true if successful, else false.
 	 */
-	public boolean revertWork(String url);
+	public boolean revertWork(int id);
 	
 	/**
 	 * Attempts to retrieve a number of urls. If nothing is available sleep and try again.
