@@ -3,8 +3,10 @@ package main.java;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +20,8 @@ import java.util.Queue;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-
-import java.util.logging.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.crawljax.cli.JarRunner;
 
@@ -29,7 +31,7 @@ import com.crawljax.cli.JarRunner;
  */
 public class SuiteManager {
 
-	final Logger logger = Logger.getLogger(SuiteManager.class.getName());
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
 	static final String DEFAULT_SETTINGS_INI = "/settings.ini";
@@ -56,7 +58,7 @@ public class SuiteManager {
 	 * @throws IOException the default ini could not be found.
 	 */
 	public SuiteManager() throws IOException {
-		logger.warning("Using the default paths for the config-file.");
+		logger.warn("Using the default paths for the config-file.");
 		ini = new Ini(new FileReader(DEFAULT_SETTINGS_DIR + DEFAULT_SETTINGS_INI));
 	}
 	
@@ -98,7 +100,7 @@ public class SuiteManager {
 			if(urlValidator.isValid(line))
 				websiteQueue.add(line);
 			else
-				logger.warning("Website: " + line + " is an invalid url. Ignoring website.");
+				logger.warn("Website: " + line + " is an invalid url. Ignoring website.");
 		}
 		br.close();
 		logger.info("Website-queue loaded.");
@@ -117,9 +119,9 @@ public class SuiteManager {
 					String outputDir = generateOutputDir(website);
 					runCrawler(website, outputDir, args);
 					outputdirs.add(outputDir);
-			} catch (URISyntaxException e) {
-				logger.info("Invalid uri provided: " + website);
-			};
+			} catch (MalformedURLException | URISyntaxException e) {
+				logger.warn("Invalid uri provided: " + website);
+			}
 			website = websiteQueue.poll();
 		}
 		return outputdirs;
@@ -130,10 +132,11 @@ public class SuiteManager {
 	 * @param website the website needing a outputdir
 	 * @return unique name for the dir
 	 * @throws URISyntaxException website contains an invalid syntax
+	 * @throws MalformedURLException 
 	 */
-	public String generateOutputDir(String website) throws URISyntaxException {
+	public String generateOutputDir(String website) throws MalformedURLException {
 		Date date= new Date();
-		URI uri = new URI(website);
+		URL uri = new URL(website);
 		Timestamp timestamp = new Timestamp(date.getTime());
 		return DEFAULT_OUTPUT_DIR + "/" + uri.getHost() + "-" + timestamp.getTime();
 	}
@@ -156,9 +159,9 @@ public class SuiteManager {
 		args.put(ARG_WEBSITE, finargs[0]);
 		args.put(ARG_OUTPUTDIR, finargs[1]);
 		
-		logger.info("Arguments provided: " + Arrays.toString(finargs));
+		logger.debug("Arguments provided: " + Arrays.toString(finargs));
 		JarRunner.main(finargs);
-		logger.info("Finished crawling " + args.get(ARG_WEBSITE) + ".");
+		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ".");
 	}
 	
 	/**
@@ -174,7 +177,7 @@ public class SuiteManager {
 			}
 			logger.info("Custom settings loaded for section: " + section);
 		} catch (Exception e) {
-			logger.warning("Could not find custom settings-section: " + section);
+			logger.warn("Could not find custom settings-section: " + section);
 		}
 	}
 

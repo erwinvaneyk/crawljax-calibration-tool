@@ -4,7 +4,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Properties;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ConnectionManager manages a single connection resource to the database. 
@@ -15,8 +17,8 @@ public class ConnectionManager implements IConnectionManager {
 	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
-	
-	final static Logger logger = Logger.getLogger(ConnectionManager.class.getName());
+
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private Connection connection;
 	private static Properties settings;
@@ -30,7 +32,7 @@ public class ConnectionManager implements IConnectionManager {
 	 */
 	static {
 		try {
-			logger.warning("ConnectionManager uses the default paths for the config-files.");
+			//logger.warning("ConnectionManager uses the default paths for the config-files.");
 			setup(DEFAULT_SETTINGS_DIR + "/dist.ini");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -63,7 +65,7 @@ public class ConnectionManager implements IConnectionManager {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		logger.info("Connection settings loaded. Database-user: " + username);
+		//logger.info("Connection settings loaded. Database-user: " + username);
 	}
 	
 	/**
@@ -75,9 +77,9 @@ public class ConnectionManager implements IConnectionManager {
 			try {
 				// Setup connection
 				connection = DriverManager.getConnection(url + database,username,password);
-				logger.info("Connection established with: " + url + database);
+				logger.debug("Connection established with: " + url + database);
 			} catch (SQLException e) {
-				e.printStackTrace();
+				logger.error(e.getMessage());
 			}
 		}
 		return connection;
@@ -90,9 +92,9 @@ public class ConnectionManager implements IConnectionManager {
 		try {
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
-		logger.info("Connection with: " + url + database + " closed.");
+		logger.debug("Connection with: " + url + database + " closed.");
 		connection = null;
 	}
 }

@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
@@ -22,7 +24,7 @@ import main.java.distributed.IConnectionManager;
  */
 public class ConfigurationDAO implements IConfigurationDAO {
 
-	final Logger logger = Logger.getLogger(ConfigurationDAO.class.getName());
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String TABLE = "configuration"; 
 	private static final String COLUMN_SECTION = "section"; 
@@ -37,7 +39,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	}
 
 	public Map<String, String> getConfiguration(List<String> sections) {
-		logger.info("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
+		logger.debug("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
 		assert sections != null;
 		Map<String,String> config = new HashMap<String,String>();
 		try {
@@ -56,7 +58,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.warning("Error while retrieving configurations: " + e.getMessage());
+			logger.error("Error while retrieving configurations: " + e.getMessage());
 		}
 		return config;
 	}
@@ -85,7 +87,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.warning("Error while updating configurations: " + e.getMessage());
+			logger.error("Error while updating configurations: " + e.getMessage());
 		}
 	}
 
@@ -99,7 +101,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			logger.info("Deleted section: " + section);
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.warning("Error while deleting configurations: " + e.getMessage());
+			logger.error("Error while deleting configurations: " + e.getMessage());
 		}
 	}
 
@@ -111,7 +113,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			logger.info("Deleted section: " + section);
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.warning("Error while deleting configurations: " + e.getMessage());
+			logger.error("Error while deleting configurations: " + e.getMessage());
 		}
 	}
 	
@@ -126,7 +128,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.warning("Error while retrieving configurations: " + e.getMessage());
+			logger.error("Error while retrieving configurations: " + e.getMessage());
 		}
 		return config;
 	}

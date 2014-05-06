@@ -8,7 +8,9 @@ import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
@@ -18,8 +20,8 @@ import main.java.distributed.IConnectionManager;
  * WorkloadDistributor is responsible for managing the workload of the clients.  
  */
 public class WorkloadDAO implements IWorkloadDAO {
-	
-	final static Logger logger = Logger.getLogger(WorkloadDAO.class.getName());
+
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String TABLE = "workload";
 	private static final String COLUMN_ID = "id";
@@ -34,7 +36,6 @@ public class WorkloadDAO implements IWorkloadDAO {
 	static {
 		try {
 			workerID = InetAddress.getLocalHost().toString();
-			logger.info("WorkerID: " + workerID);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
@@ -46,6 +47,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 */
 	public WorkloadDAO() {
 		connMgr = new ConnectionManager();
+		logger.info("WorkerID: " + workerID);
 	}
 	
 	/**
@@ -60,7 +62,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			int claimed = conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + COLUMN_WORKERID + "=\"" + workerID
 					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
-			logger.info("Workunits claimed by worker: " + claimed);
+			logger.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 				// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
@@ -73,11 +75,11 @@ public class WorkloadDAO implements IWorkloadDAO {
 					workTasks.add(workTask);
 					logger.info("Worktask retrieved: " + workTask.getUrl());
 				} catch (MalformedURLException e) {
-					logger.warning(e.getMessage());
+					logger.error(e.getMessage());
 				}
 			}
 		} catch (SQLException e) {
-			logger.warning(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return workTasks;		
@@ -94,9 +96,9 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			// Update crawled-field to 1 to show crawl has finished.
 			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_ID + "=\"" + wt.getId() + "\"");
-			logger.info("Checked out crawl of id" + wt.getId());
+			logger.info("Checked out crawl of id: " + wt.getId());
 		} catch (SQLException e) {
-			logger.warning(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret != 0;
@@ -124,7 +126,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	            ret = generatedkeys.getInt(1);
 	        }
 		} catch (SQLException e) {
-			logger.warning(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret;
@@ -142,7 +144,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 		while(task.isEmpty()) {
 			task = retrieveWork(maxcount);
 			if (task.isEmpty()) {
-				logger.info("Sleeping for " + sleepMilisecs + " miliseconds");
+				logger.debug("Sleeping for " + sleepMilisecs + " miliseconds");
 				Thread.sleep(sleepMilisecs);
 			}
 		}
@@ -164,7 +166,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 					+"=\"\" WHERE " + COLUMN_ID + "=\"" + id + "\"");
 			logger.info("Reverted claim/checkout of crawl for id: " + id);
 		} catch (SQLException e) {
-			logger.warning(e.getMessage());
+			logger.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret != 0;

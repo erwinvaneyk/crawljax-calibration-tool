@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,21 +93,17 @@ public class SuiteRunner {
 				List<WorkTask>workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
 				
 				for (WorkTask task : workTasks) {
-					try {
-						//Map<String, String> args = suite.buildSettings(task.getUrl());
-						List<String> sections = new ArrayList<String>();
-						sections.add(task.getUrl().getHost());
-						sections.add("common");
-						Map<String, String> args = config.getConfiguration(sections);
-						suite.runCrawler(task.getUrl().toString(), suite.generateOutputDir(task.getUrl().getHost()), args);
-						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
-	
-						resultprocessor.uploadOutputJson(task.getId(), dir);
-						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getUrl() + " completed");
-					} catch (URISyntaxException e) {
-						System.out.println("Crawl failed: " + task.getUrl() + " is an invalid website.");
-					}
+					//Map<String, String> args = suite.buildSettings(task.getUrl());
+					List<String> sections = new ArrayList<String>();
+					sections.add(task.getUrl().getHost());
+					sections.add("common");
+					Map<String, String> args = config.getConfiguration(sections);
+					suite.runCrawler(task.getUrl().toString(), suite.generateOutputDir(task.getUrl().getHost()), args);
+					String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
+
+					resultprocessor.uploadOutputJson(task.getId(), dir);
+					workload.checkoutWork(task);
+					System.out.println("crawl: " + task.getUrl() + " completed");
 				}
 			}
 		} catch (InterruptedException e) {
@@ -123,7 +118,7 @@ public class SuiteRunner {
 			IWorkloadDAO workload = new WorkloadDAO();
 			SuiteManager suite = new SuiteManager();
 			UrlValidator urlvalidator = new UrlValidator();
-				suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			URL url;
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {

@@ -7,9 +7,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Logger;
 
-import main.java.SuiteManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 
@@ -17,7 +18,7 @@ import main.java.distributed.IConnectionManager;
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
 public class ResultProcessor implements IResultProcessor {
-	private final Logger logger = Logger.getLogger(SuiteManager.class.getName());
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private IConnectionManager con;
 	private int id;
@@ -37,7 +38,7 @@ public class ResultProcessor implements IResultProcessor {
 
 			con.closeConnection();
 		} catch (FileNotFoundException e) {
-			logger.warning("FileNotFoundException: " + e.getMessage());
+			logger.error("FileNotFoundException: " + e.getMessage());
 		}
 	}
 
@@ -87,11 +88,11 @@ public class ResultProcessor implements IResultProcessor {
 			System.out.println("Result of the crawl is sent to the database.");
 			bufr.close();
 		} catch (SQLException e) {
-			logger.warning("SQLException: " + e.getMessage());
+			logger.error("SQLException: " + e.getMessage());
 		} catch (FileNotFoundException e) {
-			logger.warning("FileNotFoundException: " + e.getMessage());
+			logger.error("FileNotFoundException: " + e.getMessage());
 		} catch (IOException e) {
-			logger.warning("IOException: " + e.getMessage());
+			logger.error("IOException: " + e.getMessage());
 		}
 	}
 }
