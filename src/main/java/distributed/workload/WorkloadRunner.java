@@ -14,7 +14,7 @@ public class WorkloadRunner {
 	public static void main(String[] args) {
 		try {
 			// Deal with args
-			WorkloadDistributor workload = new WorkloadDistributor();
+			WorkloadDAO workload = new WorkloadDAO();
 			UrlValidator urlValidator = new UrlValidator();
 			for(String arg : args) {
 				if(urlValidator.isValid(arg)) {

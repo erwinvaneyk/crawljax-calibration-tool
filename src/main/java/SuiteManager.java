@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -109,9 +110,9 @@ public class SuiteManager {
 	 * Crawl all websites in the queue.
 	 * @return the outputdirs of the crawled websites
 	 */
-	public ArrayList<String> crawlWebsites() {
+	public List<String> crawlWebsites() {
 		String website = websiteQueue.poll();
-		ArrayList<String> outputdirs = new ArrayList<String>();
+		List<String> outputdirs = new ArrayList<String>();
 		while(website != null) {
 			try {
 					Map<String,String> args = buildSettings(website);
@@ -166,7 +167,7 @@ public class SuiteManager {
 	 * @param args the argument-set to which the settings are added.
 	 * @param section the section (ini) that needs to be added.
 	 */
-	public void addSettings(HashMap<String,String> args, String section) {
+	public void addSettings(Map<String,String> args, String section) {
 		try {
 			Section settings = ini.get(section);
 			for(String key : settings.keySet()) {

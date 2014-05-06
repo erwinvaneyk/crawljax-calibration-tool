@@ -1,6 +1,6 @@
 package main.java.distributed.workload;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The WorkloadDistributor is responsible for managing the workload of the clients. 
@@ -12,14 +12,14 @@ import java.util.ArrayList;
  * - Checked out/finished:	A worker has been assigned and has finished the crawling.
  *
  */
-public interface IWorkloadDistributor {
+public interface IWorkloadDAO {
 	
 	/**
 	 * Retrieve and claim a number of urls (if nothing is available, an empty ArrayList is returned).
 	 * @param maxcount the maximum number of urls to retrieve.
 	 * @return a list with claimed urls
 	 */
-	public ArrayList<WorkTask> retrieveWork(int maxcount);
+	public List<WorkTask> retrieveWork(int maxcount);
 	
 	/**
 	 * Registering a succesful crawl.
@@ -49,6 +49,6 @@ public interface IWorkloadDistributor {
 	 * @return a list with claimed urls
 	 * @throws InterruptedException thrown when the worker is unexpectedly awakened
 	 */
-	public ArrayList<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException;
+	public List<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException;
 	
 }

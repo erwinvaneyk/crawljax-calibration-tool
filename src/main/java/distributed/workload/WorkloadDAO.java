@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import main.java.distributed.ConnectionManager;
@@ -13,9 +14,9 @@ import main.java.distributed.IConnectionManager;
  * SQL-server-based implementation of the IWorkloadDistributor-interface. The 
  * WorkloadDistributor is responsible for managing the workload of the clients.  
  */
-public class WorkloadDistributor implements IWorkloadDistributor {
+public class WorkloadDAO implements IWorkloadDAO {
 	
-	final Logger logger = Logger.getLogger(WorkloadDistributor.class.getName());
+	final Logger logger = Logger.getLogger(WorkloadDAO.class.getName());
 	
 	private IConnectionManager connMgr;
 	
@@ -25,7 +26,7 @@ public class WorkloadDistributor implements IWorkloadDistributor {
 	 * Sets up the ConnectionManager and creates an ID based on the hostname and local ip.
 	 * @throws IOException The ConnectionManager could not retrieve the settings-file.
 	 */
-	public WorkloadDistributor() throws IOException {
+	public WorkloadDAO() throws IOException {
 		connMgr = new ConnectionManager();
 		workerID = InetAddress.getLocalHost().toString();
 		logger.info("WorkerID: " + workerID);
@@ -36,7 +37,7 @@ public class WorkloadDistributor implements IWorkloadDistributor {
 	 * @param maxcount the maximum number of urls to retrieve.
 	 * @return a list with claimed urls
 	 */
-	public ArrayList<WorkTask> retrieveWork(int maxcount) {
+	public List<WorkTask> retrieveWork(int maxcount) {
 		assert maxcount >= 0;
 		ArrayList<WorkTask> workTasks = new ArrayList<WorkTask>();
 		Connection conn = connMgr.getConnection();
@@ -107,8 +108,8 @@ public class WorkloadDistributor implements IWorkloadDistributor {
 	 * @return a list with claimed urls
 	 * @throws InterruptedException thrown when the worker is unexpectedly awakened
 	 */
-	public ArrayList<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException {
-		ArrayList<WorkTask> task = retrieveWork(maxcount);
+	public List<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException {
+		List<WorkTask> task = retrieveWork(maxcount);
 		while(task.isEmpty()) {
 			task = retrieveWork(maxcount);
 			logger.info("Sleeping for " + sleepMilisecs + " miliseconds");
