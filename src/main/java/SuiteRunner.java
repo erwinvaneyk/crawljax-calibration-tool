@@ -98,7 +98,7 @@ public class SuiteRunner {
 					sections.add(task.getUrl().getHost());
 					sections.add("common");
 					Map<String, String> args = config.getConfiguration(sections);
-					suite.runCrawler(task.getUrl().toString(), SuiteManager.generateOutputDir(task.getUrl().getHost()), args);
+					suite.runCrawler(task.getUrl(), SuiteManager.generateOutputDir(task.getUrl()), args);
 					String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 
 					resultprocessor.uploadOutputJson(task.getId(), dir);
@@ -117,18 +117,10 @@ public class SuiteRunner {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO();
 			SuiteManager suite = new SuiteManager();
-			UrlValidator urlvalidator = new UrlValidator();
 			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			URL url;
-			String rawUrl;
-			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
-				try {
-					if (!urlvalidator.isValid(rawUrl)) throw new MalformedURLException("invalid url");
-					url = new URL(rawUrl);
-					workload.submitWork(url);
-				} catch (MalformedURLException e) {
-					System.out.println("Skipping invalid url " + rawUrl);
-				}
+			while((url = suite.getWebsiteQueue().poll()) != null) {
+				workload.submitWork(url);
 			}
 		} catch (IOException e1) {
 			System.out.println(e1.getMessage());

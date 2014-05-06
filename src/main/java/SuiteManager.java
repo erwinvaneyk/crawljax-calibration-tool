@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
+import main.java.distributed.configuration.ConfigurationIni;
+import main.java.distributed.configuration.IConfigurationDAO;
+
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +39,7 @@ public class SuiteManager {
 	static final String ARG_WEBSITE = "website";
 	static final String ARG_OUTPUTDIR = "outputdir";
 	
-	private Queue<String> websiteQueue = new PriorityQueue<String>();
+	private Queue<URL> websiteQueue = new PriorityQueue<URL>();
 
 	/**
 	 * Reads a file containing website (1 website per line) and adds them to the queue.
@@ -49,7 +52,7 @@ public class SuiteManager {
 		String line;
 		while ((line = br.readLine()) != null) {
 			if(urlValidator.isValid(line))
-				websiteQueue.add(line);
+				websiteQueue.add(new URL(line));
 			else
 				logger.warn("Website: " + line + " is an invalid url. Ignoring website.");
 		}
@@ -63,22 +66,18 @@ public class SuiteManager {
 	 */
 	public List<String> crawlWebsites() {
 		List<String> outputdirs = new ArrayList<String>();
-		try {
-			LocalConfiguration config = new LocalConfiguration();
-			String website = websiteQueue.poll();
-			while(website != null) {
-				try {
-						Map<String,String> args = config.buildSettings(website);
-						String outputDir = generateOutputDir(website);
-						runCrawler(website, outputDir, args);
-						outputdirs.add(outputDir);
-				} catch (MalformedURLException | URISyntaxException e) {
-					logger.warn("Invalid uri provided: " + website);
-				}
-				website = websiteQueue.poll();
+		IConfigurationDAO config = new ConfigurationIni();
+		URL website = websiteQueue.poll();
+		while(website != null) {
+			try {
+					Map<String,String> args = config.getConfiguration(website.toString());
+					String outputDir = generateOutputDir(website);
+					runCrawler(website, outputDir, args);
+					outputdirs.add(outputDir);
+			} catch (MalformedURLException e) {
+				logger.warn("Invalid uri provided: " + website);
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+			website = websiteQueue.poll();
 		}
 		return outputdirs;
 	}
@@ -91,11 +90,10 @@ public class SuiteManager {
 	 * @throws URISyntaxException website contains an invalid syntax
 	 * @throws MalformedURLException 
 	 */
-	public static String generateOutputDir(String website) throws MalformedURLException {
+	public static String generateOutputDir(URL website) throws MalformedURLException {
 		Date date= new Date();
-		URL uri = new URL(website);
 		Timestamp timestamp = new Timestamp(date.getTime());
-		return DEFAULT_OUTPUT_DIR + "/" + uri.getHost() + "-" + timestamp.getTime();
+		return DEFAULT_OUTPUT_DIR + "/" + website.getHost() + "-" + timestamp.getTime();
 	}
 	
 	
@@ -103,10 +101,10 @@ public class SuiteManager {
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * @param args arguments which need to be send to crawljax.
 	 */
-	public void runCrawler(String website, String outputdir, Map<String, String> args) {		
+	public void runCrawler(URL website, String outputdir, Map<String, String> args) {		
 		// Convert args to valid args-line
 		String[] finargs = new String[(args.size() * 2 + 2)];
-		finargs[0] = website;
+		finargs[0] = website.toString();
 		finargs[1] = outputdir;
 		int index = 2;
 		for(String key : args.keySet()) {
@@ -126,7 +124,7 @@ public class SuiteManager {
 	 * Get website-queue.
 	 * @return website-queue.
 	 */
-	public Queue<String> getWebsiteQueue() {
+	public Queue<URL> getWebsiteQueue() {
 		return websiteQueue;
 	}
 
@@ -134,7 +132,7 @@ public class SuiteManager {
 	 * Set Website-queue
 	 * @param websiteQueue the new website-queue.
 	 */
-	public void setWebsiteQueue(Queue<String> websiteQueue) {
+	public void setWebsiteQueue(Queue<URL> websiteQueue) {
 		this.websiteQueue = websiteQueue;
 	}
 	
