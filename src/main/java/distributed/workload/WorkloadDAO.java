@@ -140,7 +140,8 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			Statement st = conn.createStatement();
 			// Update the worker and crawled field to the default values for the url.
-			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID +"=\"\" WHERE " + COLUMN_URL + "=\"" + url + "\"");
+			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID 
+					+"=\"\" WHERE " + COLUMN_URL + "=\"" + url + "\"");
 			logger.info("Reverted claim/checkout of crawl for " + url);
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());

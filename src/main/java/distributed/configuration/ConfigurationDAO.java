@@ -18,7 +18,7 @@ import main.java.distributed.IConnectionManager;
  * SQL-implementation of the IConfigurationDAO
  * (Table) 
  * - Configuration: depth|section|key|value|
- * - <secton,key> is UNIQUE
+ * - pair <secton,key> is UNIQUE
  * - ORDER BY depth DESC
  */
 public class ConfigurationDAO implements IConfigurationDAO {
@@ -62,7 +62,6 @@ public class ConfigurationDAO implements IConfigurationDAO {
 		return config;
 	}
 
-	// aliases	
 	public Map<String, String> getConfiguration(String section) {
 		List<String> sections = new ArrayList<String>();
 		sections.add(section);
