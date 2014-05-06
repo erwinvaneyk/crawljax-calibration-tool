@@ -96,8 +96,7 @@ public class SuiteRunner {
 						sections.add(new URI(task.getUrl()).getHost());
 						sections.add("common");
 						Map<String, String> args = config.getConfiguration(sections);
-						
-							suite.runCrawler(task.getUrl(), suite.generateOutputDir(task.getUrl()), args);
+						suite.runCrawler(task.getUrl(), suite.generateOutputDir(task.getUrl()), args);
 						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 	
 						resultprocessor.uploadOutputJson(task.getId(), dir);

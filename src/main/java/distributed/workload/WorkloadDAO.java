@@ -52,17 +52,15 @@ public class WorkloadDAO implements IWorkloadDAO {
 					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
 			logger.info("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
-			if (claimed > 0) {
 				// Note: this will also return the claimed/unfinished websites not signed off.
-				ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
-						+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
-				while (res.next()) {
-					WorkTask workTask = new WorkTask();
-					workTask.setId(res.getInt("id"));
-					workTask.setUrl(res.getString("url"));
-					workTasks.add(workTask);
-					logger.info("Worktask retrieved: " + workTask.getUrl());
-				}
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
+					+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
+			while (res.next()) {
+				WorkTask workTask = new WorkTask();
+				workTask.setId(res.getInt("id"));
+				workTask.setUrl(res.getString("url"));
+				workTasks.add(workTask);
+				logger.info("Worktask retrieved: " + workTask.getUrl());
 			}
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
