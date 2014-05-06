@@ -2,7 +2,8 @@ package main.java.distributed.workload;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -65,11 +66,15 @@ public class WorkloadDAO implements IWorkloadDAO {
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
 					+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {
-				WorkTask workTask = new WorkTask();
-				workTask.setId(res.getInt("id"));
-				workTask.setUrl(res.getString("url"));
-				workTasks.add(workTask);
-				logger.info("Worktask retrieved: " + workTask.getUrl());
+				try {
+					int id = res.getInt("id");
+					URL url = new URL(res.getString("url"));
+					WorkTask workTask = new WorkTask(id, url);
+					workTasks.add(workTask);
+					logger.info("Worktask retrieved: " + workTask.getUrl());
+				} catch (MalformedURLException e) {
+					logger.warning(e.getMessage());
+				}
 			}
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
@@ -102,7 +107,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @param url the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public int submitWork(URI url) {
+	public int submitWork(URL url) {
 		assert url.toString().length() > 0;
 		int ret = -1;
 		Connection conn = connMgr.getConnection();

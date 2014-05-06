@@ -1,19 +1,16 @@
 package main.java.distributed.workload;
 
+import java.net.URL;
+
 
 /**
  * A task for a worker to crawl a website
  */
 public class WorkTask {
 	private int id;
-	private String url;
+	private URL url;
 	
-	public WorkTask() {
-		id = -1;
-		url = "";
-	}
-
-	public WorkTask(int id, String url) {
+	public WorkTask(int id, URL url) {
 		this.id = id;
 		this.url = url;
 	}
@@ -30,7 +27,7 @@ public class WorkTask {
 	 * Set the url for the task.
 	 * @param url The website to crawl
 	 */
-	public void setUrl(String url) {
+	public void setUrl(URL url) {
 		this.url = url;
 	}
 	
@@ -44,7 +41,7 @@ public class WorkTask {
 	/**
 	 * @return The url of this task
 	 */
-	public String getUrl() {
+	public URL getUrl() {
 		return url;
 	}
 	

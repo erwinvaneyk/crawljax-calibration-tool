@@ -1,6 +1,6 @@
 package main.java.distributed.workload;
 
-import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -34,7 +34,7 @@ public interface IWorkloadDAO {
 	 * @param url the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public int submitWork(URI url);
+	public int submitWork(URL url);
 	
 	/**
 	 * Reverts previously checked out or claimed work to the available state.

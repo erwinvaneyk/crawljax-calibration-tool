@@ -1,7 +1,9 @@
 package main.java.distributed.workload;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -20,18 +22,19 @@ public class WorkloadRunner {
 		UrlValidator urlvalidator = new UrlValidator();
 		// Add 
 		WorkloadDAO workload = new WorkloadDAO();
-		URI uri;
+		URL url;
 		for(String arg : args) {
 			try {
-				if (!urlvalidator.isValid(arg)) throw new URISyntaxException(arg, "invalid url");
-				uri = new URI(arg);
-				if(workload.submitWork(uri) >= 0) {
+				if (!urlvalidator.isValid(arg)) throw new MalformedURLException("invalid url");
+				url = new URL(arg);
+				if(workload.submitWork(url) >= 0) {
 					System.out.println("Added: " + arg);
 				} else {
 					System.out.println("Url already exists in the database.");
 				}
-			} catch (URISyntaxException e) {
-				System.out.println("Invalid website; skipping " + arg);
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		// Process commandline inputs
@@ -40,12 +43,12 @@ public class WorkloadRunner {
 		while(true) {
 			// add url
 			System.out.print("> ");
-			String url  = in.next();
-			if(url.equals("exit")||url.equals("quit")) break;
+			String rawurl  = in.next();
+			if(rawurl.equals("exit")||rawurl.equals("quit")) break;
 			try {
 				// Check url
-				if (!urlvalidator.isValid(url)) throw new URISyntaxException(url, "invalid url");
-				uri = new URI(url);
+				if (!urlvalidator.isValid(rawurl)) throw new MalformedURLException("invalid url");
+				url = new URL(rawurl);
 				
 				// Add configurations
 				System.out.println("Add custom configurations using the format key=value. To continue type: 'submit'");
@@ -54,7 +57,7 @@ public class WorkloadRunner {
 				while(!keyValue.equalsIgnoreCase("submit")) {
 					String[] keyValueArr = keyValue.split("=", 2);
 					if (keyValueArr.length >= 2) {
-						config.updateConfiguration(uri.getHost(), keyValueArr[0], keyValueArr[1], uri.getHost().length());
+						config.updateConfiguration(url.getHost(), keyValueArr[0], keyValueArr[1], url.getHost().length());
 						System.out.println("Config added to section " + url + ": " + Arrays.toString(keyValueArr));
 					} else {
 						System.out.println("Invalid configuration entry");
@@ -65,14 +68,14 @@ public class WorkloadRunner {
 				}
 				
 				// Submit url
-				int id = workload.submitWork(uri);
+				int id = workload.submitWork(url);
 				if(id >= 0)
 					System.out.println("Added: " + url + " (id: " + id + ")");
 				else 
 					System.out.println("Failed to add " + url + ": URL already exists in database.");
-			} catch (URISyntaxException e) {
-				System.out.println("Invalid website: " + url);
-			}
+			} catch (MalformedURLException e) {
+				System.out.println(e.getMessage());
+			} 
 		}
 		in.close();
 	}

@@ -3,8 +3,10 @@ package main.java;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
@@ -95,10 +98,10 @@ public class SuiteRunner {
 					try {
 						//Map<String, String> args = suite.buildSettings(task.getUrl());
 						List<String> sections = new ArrayList<String>();
-						sections.add(new URI(task.getUrl()).getHost());
+						sections.add(task.getUrl().getHost());
 						sections.add("common");
 						Map<String, String> args = config.getConfiguration(sections);
-						suite.runCrawler(task.getUrl(), suite.generateOutputDir(task.getUrl()), args);
+						suite.runCrawler(task.getUrl().toString(), suite.generateOutputDir(task.getUrl().getHost()), args);
 						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 	
 						resultprocessor.uploadOutputJson(task.getId(), dir);
@@ -120,20 +123,21 @@ public class SuiteRunner {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO();
 			SuiteManager suite = new SuiteManager();
-			
-			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
-			URI url;
+			UrlValidator urlvalidator = new UrlValidator();
+				suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			URL url;
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
 				try {
-					url = new URI(rawUrl);
+					if (!urlvalidator.isValid(rawUrl)) throw new MalformedURLException("invalid url");
+					url = new URL(rawUrl);
 					workload.submitWork(url);
-				} catch (URISyntaxException e) {
-					System.out.println("Invalid website; skipping " + rawUrl + "!");
+				} catch (MalformedURLException e) {
+					System.out.println("Skipping invalid url " + rawUrl);
 				}
 			}
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
+		} catch (IOException e1) {
+			System.out.println(e1.getMessage());
 		}
 		System.out.println("File flushed to server.");
 	}
