@@ -81,8 +81,6 @@ public class SuiteManager {
 	    addSettings(args, uri.getHost());
 	    
 	    // Setup vital arguments
-		args.put(ARG_WEBSITE, website);
-		args.put(ARG_OUTPUTDIR, generateOutputDir(website));
 		logger.info("Settings build for website: " + website);
 		return args;
 	}
@@ -116,8 +114,9 @@ public class SuiteManager {
 		while(website != null) {
 			try {
 					Map<String,String> args = buildSettings(website);
-					runCrawler(args);
-					outputdirs.add(args.get(DEFAULT_OUTPUT_DIR));
+					String outputDir = generateOutputDir(website);
+					runCrawler(website, outputDir, args);
+					outputdirs.add(outputDir);
 			} catch (URISyntaxException e) {
 				logger.info("Invalid uri provided: " + website);
 			};
@@ -143,11 +142,11 @@ public class SuiteManager {
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * @param args arguments which need to be send to crawljax.
 	 */
-	public void runCrawler(Map<String, String> args) {		
+	public void runCrawler(String website, String outputdir, Map<String, String> args) {		
 		// Convert args to valid args-line
-		String[] finargs = new String[(args.size() * 2 - 2)];
-		finargs[0] = args.remove(ARG_WEBSITE);
-		finargs[1] = args.remove(ARG_OUTPUTDIR);
+		String[] finargs = new String[(args.size() * 2 + 2)];
+		finargs[0] = website;
+		finargs[1] = outputdir;
 		int index = 2;
 		for(String key : args.keySet()) {
 			finargs[index] = "-" + key;

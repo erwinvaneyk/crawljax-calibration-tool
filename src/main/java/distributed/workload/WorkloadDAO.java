@@ -18,6 +18,12 @@ public class WorkloadDAO implements IWorkloadDAO {
 	
 	final Logger logger = Logger.getLogger(WorkloadDAO.class.getName());
 	
+	private static final String TABLE = "workload";
+	private static final String COLUMN_ID = "id";
+	private static final String COLUMN_URL = "url";
+	private static final String COLUMN_WORKERID = "worker";
+	private static final String COLUMN_CRAWLED = "crawled";
+	
 	private IConnectionManager connMgr;
 	
 	private String workerID;
@@ -42,12 +48,14 @@ public class WorkloadDAO implements IWorkloadDAO {
 		ArrayList<WorkTask> workTasks = new ArrayList<WorkTask>();
 		Connection conn = connMgr.getConnection();
 		try {
-			int claimed = conn.createStatement().executeUpdate("UPDATE workload SET worker=\"" + workerID + "\"  WHERE crawled = 0 AND worker=\"\" LIMIT " + maxcount);
-			logger.info("Rows claimed by update-query: " + claimed);
+			int claimed = conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + COLUMN_WORKERID + "=\"" + workerID
+					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
+			logger.info("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 			if (claimed > 0) {
 				// Note: this will also return the claimed/unfinished websites not signed off.
-				ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  workload WHERE worker = \"" + workerID + "\" AND crawled = 0");
+				ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
+						+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
 				while (res.next()) {
 					WorkTask workTask = new WorkTask();
 					workTask.setId(res.getInt("id"));
@@ -73,7 +81,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 		Connection conn = connMgr.getConnection();
 		try {
 			// Update crawled-field to 1 to show crawl has finished.
-			ret = conn.createStatement().executeUpdate("UPDATE workload SET crawled=1 WHERE url=\"" + url + "\"");
+			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_URL + "=\"" + url + "\"");
 			logger.info("Checked out crawl of " + url);
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
@@ -92,7 +100,8 @@ public class WorkloadDAO implements IWorkloadDAO {
 		Connection conn = connMgr.getConnection();
 		try {
 			// Insert a new row containing the url in the workload-table.
-			ret = conn.createStatement().executeUpdate("INSERT INTO workload (url,crawled,worker) VALUES (\"" + url + "\",0,\"\")");
+			ret = conn.createStatement().executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
+					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0,\"\")");
 			logger.info("Succesfully submitted " + url + " to the server.");
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());
@@ -112,8 +121,10 @@ public class WorkloadDAO implements IWorkloadDAO {
 		List<WorkTask> task = retrieveWork(maxcount);
 		while(task.isEmpty()) {
 			task = retrieveWork(maxcount);
-			logger.info("Sleeping for " + sleepMilisecs + " miliseconds");
-			Thread.sleep(sleepMilisecs);
+			if (task.isEmpty()) {
+				logger.info("Sleeping for " + sleepMilisecs + " miliseconds");
+				Thread.sleep(sleepMilisecs);
+			}
 		}
 		return task;
 	}
@@ -129,7 +140,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			Statement st = conn.createStatement();
 			// Update the worker and crawled field to the default values for the url.
-			ret = st.executeUpdate("UPDATE workload SET crawled=0, worker=\"\" WHERE url=\"" + url + "\"");
+			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID +"=\"\" WHERE " + COLUMN_URL + "=\"" + url + "\"");
 			logger.info("Reverted claim/checkout of crawl for " + url);
 		} catch (SQLException e) {
 			logger.warning(e.getMessage());

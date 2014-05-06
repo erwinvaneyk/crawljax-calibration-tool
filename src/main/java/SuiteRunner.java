@@ -1,22 +1,18 @@
 package main.java;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.ini4j.Ini;
-import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
 import main.java.distributed.configuration.ConfigurationDAO;
@@ -86,25 +82,30 @@ public class SuiteRunner {
 			IResultProcessor resultprocessor = new ResultProcessor();
 			SuiteManager suite = new SuiteManager();
 			IWorkloadDAO workload = new WorkloadDAO();
+			IConfigurationDAO config = new ConfigurationDAO();
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
 
 				List<WorkTask>workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
 				
-				try {
-					for (WorkTask task : workTasks) {
-						Map<String, String> args = suite.buildSettings(task.getUrl());
+				for (WorkTask task : workTasks) {
+					try {
+						//Map<String, String> args = suite.buildSettings(task.getUrl());
+						List<String> sections = new ArrayList<String>();
+						sections.add(new URI(task.getUrl()).getHost());
+						sections.add("common");
+						Map<String, String> args = config.getConfiguration(sections);
 						
-						suite.runCrawler(args);
+							suite.runCrawler(task.getUrl(), suite.generateOutputDir(task.getUrl()), args);
 						String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 	
 						resultprocessor.uploadOutputJson(task.getId(), dir);
 						workload.checkoutWork(task.getUrl());
 						System.out.println("crawl: " + task.getUrl() + " completed");
+					} catch (URISyntaxException e) {
+						System.out.println("Crawl failed: " + task.getUrl() + " is an invalid website.");
 					}
-				} catch (URISyntaxException e) {
-					System.out.println("Crawl failed: invalid url");
 				}
 			}
 		} catch (InterruptedException e) {
@@ -135,13 +136,9 @@ public class SuiteRunner {
 			IConfigurationDAO conf = new ConfigurationDAO();
 			Ini ini = new Ini(new FileReader(SuiteManager.DEFAULT_SETTINGS_DIR + SuiteManager.DEFAULT_SETTINGS_INI));
 			for (Section section : ini.values()) {
-				Map<String,String> map = new HashMap<String,String>();
-				List<String> li = new ArrayList<String>();
-				li.add(section.getName());
 				for (Entry<String, String> el : section.entrySet()) {
-					map.put(el.getKey(), el.getValue());
+					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
 				}
-				conf.updateConfiguration(li, map, true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

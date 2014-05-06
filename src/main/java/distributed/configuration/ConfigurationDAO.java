@@ -25,11 +25,11 @@ public class ConfigurationDAO implements IConfigurationDAO {
 
 	final Logger logger = Logger.getLogger(ConfigurationDAO.class.getName());
 	
-	private static String TABLE = "configuration"; 
-	private static String COLUMN_SECTION = "section"; 
-	private static String COLUMN_KEY = "key"; 
-	private static String COLUMN_VALUE = "value"; 
-	private static String COLUMN_DEPTH = "depth";
+	private static final String TABLE = "configuration"; 
+	private static final String COLUMN_SECTION = "section"; 
+	private static final String COLUMN_KEY = "key"; 
+	private static final String COLUMN_VALUE = "value"; 
+	private static final String COLUMN_DEPTH = "depth";
 	
 	private IConnectionManager connMgr;
 
@@ -38,17 +38,22 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	}
 
 	public Map<String, String> getConfiguration(List<String> sections) {
+		logger.info("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
+		assert sections != null;
 		Map<String,String> config = new HashMap<String,String>();
 		try {
 			Connection conn = connMgr.getConnection();
-			String where = " WHERE ";
+			String where = "WHERE ";
 			for( String section : sections) {
-				where += COLUMN_SECTION + "=\"" + section + "\" OR ";
+				where += "`" + COLUMN_SECTION + "`=\"" + section + "\" OR ";
 			}
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  " + TABLE + where.substring(0, where.length() - 4));
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` " + where.substring(0, where.length() - 4) 
+					+ " ORDER BY `" + COLUMN_DEPTH +"` DESC");
 			while (res.next()) {
-				config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
-				logger.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				if(!config.containsKey(res.getString(COLUMN_KEY))) {
+					config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
+					logger.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				}
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
@@ -57,54 +62,6 @@ public class ConfigurationDAO implements IConfigurationDAO {
 		return config;
 	}
 
-	public void updateConfiguration(List<String> sections, Map<String, String> configuration, boolean replaceOld) {
-		assert !sections.isEmpty();
-		try {
-			Connection conn = connMgr.getConnection();
-			String values = "";
-			for (Map.Entry<String, String> entry : configuration.entrySet()) {
-			    values += entry.getKey() + "=\"" + entry.getValue() + "\",";
-			}
-			
-			String where = ""; 
-			if (!sections.isEmpty()) 
-				where += " WHERE ";
-			for (String section : sections) {
-				where += COLUMN_SECTION + "=\"" + section + "\" OR ";
-			}
-			
-			conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + values.substring(0, values.length() - 1) + 
-					where.substring(0, where.length() - 4));
-			logger.info("From section updated keys: " + Arrays.toString(configuration.entrySet().toArray()));
-			connMgr.closeConnection();
-		} catch (SQLException e) {
-			logger.warning("Error while updating configurations: " + e.getMessage());
-		}
-	}
-
-	public void deleteConfiguration(List<String> sections, List<String> keys) {
-		assert !sections.isEmpty();
-		try {
-			Connection conn = connMgr.getConnection();
-			String where = " WHERE (";
-			for(String section : sections) {
-				where += COLUMN_SECTION + "=\"" + section + "\" AND ";
-			}
-			where = where.substring(0,where.length() - 4);
-			if (!keys.isEmpty()) {
-				where += " AND ";
-				for( String key : keys) {
-					where += COLUMN_KEY + "=\"" + key + "\" OR ";
-				}
-			}
-			conn.createStatement().executeUpdate("DELETE FROM  " + TABLE + where.substring(0, where.length() - 4));
-			logger.info("From section deleted keys: " + Arrays.toString(keys.toArray()));
-			connMgr.closeConnection();
-		} catch (SQLException e) {
-			logger.warning("Error while deleting configurations: " + e.getMessage());
-		}
-	}
-	
 	// aliases	
 	public Map<String, String> getConfiguration(String section) {
 		List<String> sections = new ArrayList<String>();
@@ -112,26 +69,47 @@ public class ConfigurationDAO implements IConfigurationDAO {
 		return getConfiguration(sections);
 	}
 	
-	public void updateConfiguration(String section, String key, String value, boolean replaceOld) {
-		Map<String,String> map = new HashMap<String,String>();
-		List<String> sections = new ArrayList<String>();
-		sections.add(section);
-		map.put(key, value);
-		updateConfiguration(sections, map,replaceOld);
+	public void updateConfiguration(String section, String key, String value, int importance) {
+		assert section != null;
+		assert key.length() > 0;
+		try {
+			Connection conn = connMgr.getConnection();
+			// Attempt update for new value
+			if(conn.createStatement().executeUpdate("UPDATE `" + TABLE + "` SET `"
+					+ COLUMN_VALUE + "`=\""+ value + "\",`" + COLUMN_DEPTH + "`=" + importance 
+					+ " WHERE `" + COLUMN_SECTION + "`=\"" + section + "\" AND `" + COLUMN_KEY + "`=\"" + key + "\"") > 0) {
+				logger.info("Updated in section " + section + " key " + key + " to value " + value);
+			} else {
+				// If update failed, try insert.
+				conn.createStatement().executeUpdate("INSERT INTO  " + TABLE + " VALUES (\"" + section + "\",\"" 
+						+ key + "\",\"" + value + "\"," + importance +")");
+				logger.info("Inserted into section " + section + " key " + key + " to value " + value);
+			}
+			connMgr.closeConnection();
+		} catch (SQLException e) {
+			logger.warning("Error while updating configurations: " + e.getMessage());
+		}
 	}
 
 	public void deleteConfiguration(String section, String key) {
-		List<String> keys = new ArrayList<String>();
-		List<String> sections = new ArrayList<String>();
-		sections.add(section);
-		keys.add(key);
-		deleteConfiguration(sections, keys);	
+		assert section != null;
+		assert key.length() > 0;
+		try {
+			Connection conn = connMgr.getConnection();
+			conn.createStatement().executeUpdate("DELETE FROM  `" + TABLE + "` WHERE `" + 
+					COLUMN_SECTION + "`=\"" + section + "\" AND `" + COLUMN_KEY + "`=\"" + key + "\"");
+			logger.info("Deleted section: " + section);
+			connMgr.closeConnection();
+		} catch (SQLException e) {
+			logger.warning("Error while deleting configurations: " + e.getMessage());
+		}
 	}
 
 	public void deleteConfiguration(String section) {
+		assert section != null;
 		try {
 			Connection conn = connMgr.getConnection();
-			conn.createStatement().executeUpdate("DELETE FROM  " + TABLE + " WHERE " + COLUMN_SECTION + "=\"" + section + "\"");
+			conn.createStatement().executeUpdate("DELETE FROM `" + TABLE + "` WHERE `" + COLUMN_SECTION + "`=\"" + section + "\"");
 			logger.info("Deleted section: " + section);
 			connMgr.closeConnection();
 		} catch (SQLException e) {
@@ -143,7 +121,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 		Map<String,String> config = new HashMap<String,String>();
 		try {
 			Connection conn = connMgr.getConnection();
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  " + TABLE);
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM `" + TABLE + "`");
 			while (res.next()) {
 				config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
 				logger.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
