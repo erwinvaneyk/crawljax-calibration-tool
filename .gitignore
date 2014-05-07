@@ -23,3 +23,4 @@ output/
 
 # Mac
 .metadata/
+config/dist.ini
