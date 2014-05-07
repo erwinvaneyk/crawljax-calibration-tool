@@ -10,6 +10,6 @@ public interface IResultProcessor {
 	 * @param website The crawled website that genarates the output folder
 	 * @param dir The directory that contains the output of the crawl
 	 */
-	public void uploadOutputJson(int id, String dir);
+	public void uploadAction(int id, String dir);
 
 }

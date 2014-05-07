@@ -19,6 +19,7 @@ import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
 import main.java.distributed.configuration.ConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
@@ -101,7 +102,7 @@ public class SuiteRunner {
 					suite.runCrawler(task.getUrl(), SuiteManager.generateOutputDir(task.getUrl()), args);
 					String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
 
-					resultprocessor.uploadOutputJson(task.getId(), dir);
+					resultprocessor.uploadAction(task.getId(), dir);
 					workload.checkoutWork(task);
 					System.out.println("crawl: " + task.getUrl() + " completed");
 				}
@@ -117,7 +118,7 @@ public class SuiteRunner {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO();
 			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			suite.websitesFromFile(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			URL url;
 			while((url = suite.getWebsiteQueue().poll()) != null) {
 				workload.submitWork(url);
@@ -131,7 +132,7 @@ public class SuiteRunner {
 	private void actionFlushSettingsFile() {
 		try {
 			IConfigurationDAO conf = new ConfigurationDAO();
-			Ini ini = new Ini(new FileReader(SuiteManager.DEFAULT_SETTINGS_DIR + SuiteManager.DEFAULT_SETTINGS_INI));
+			Ini ini = new Ini(new FileReader(ConfigurationIni.DEFAULT_SETTINGS_DIR + ConfigurationIni.DEFAULT_SETTINGS_INI));
 			for (Section section : ini.values()) {
 				for (Entry<String, String> el : section.entrySet()) {
 					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
@@ -151,7 +152,7 @@ public class SuiteRunner {
 		System.out.println("Started local crawler");
 		try {
 			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			suite.websitesFromFile(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			suite.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());

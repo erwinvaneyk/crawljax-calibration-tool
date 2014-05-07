@@ -2,6 +2,7 @@ package main.java.distributed.results;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,6 +11,8 @@ import java.sql.Statement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mysql.jdbc.PreparedStatement;
 
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
@@ -21,20 +24,25 @@ public class ResultProcessor implements IResultProcessor {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private IConnectionManager con;
-	private int id;
 
 	/**
 	 * Upload the resulting JSON file of a crawled wesite to the sql database.
 	 * @param website The crawled website that genarates the output folder
 	 * @param dir The directory that contains the output of the crawl
 	 */
-	public void uploadOutputJson(int id, String dir) {
-		this.id = id;
+	public void uploadAction(int id, String dir) {
 		try {
 			con = new ConnectionManager();
 			
-			File jsonFile = this.findJsonFile(dir);
-			this.uploadFile(jsonFile);
+			File jsonFile = this.findFile(dir, "result.json");
+			this.uploadFile(id, jsonFile);
+			
+			File screenshots = this.findFile(dir, "screenshots");
+			File[] screenshot = screenshots.listFiles();
+			for (int i = 0; i < screenshot.length; i++) {
+				this.uploadScreenshot(id, screenshot[i]);
+			}
+			
 
 			con.closeConnection();
 		} catch (FileNotFoundException e) {
@@ -48,14 +56,14 @@ public class ResultProcessor implements IResultProcessor {
 	 * @return the JSON file with the results of the crawl
 	 * @throws FileNotFoundException if the file cannot be found in the given output directory dir
 	 */
-	private File findJsonFile(final String dir) throws FileNotFoundException {
+	private File findFile(final String dir, String file) throws FileNotFoundException {
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
 
 		File resultJson = null;
 
 		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().contains("result.json")) {
+			if (files[i].getName().contains(file)) {
 				resultJson = files[i];
 			}
 		}
@@ -71,7 +79,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * Upload file to sql database.
 	 * @param f The file which should be uploaded
 	 */
-	private void uploadFile(final File f) {
+	private void uploadFile(int id, final File f) {
 		try {
 			String fileContent = "";
 			String line;
@@ -81,7 +89,7 @@ public class ResultProcessor implements IResultProcessor {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
-			String insertStatement = "INSERT INTO TestResults(id,JsonResults) VALUES(" + this.id + ", \"" + fileContent + "\")";			
+			String insertStatement = "INSERT INTO TestResults(id,JsonResults) VALUES(" + id + ", \"" + fileContent + "\")";			
 			Statement statement = con.getConnection().createStatement();
 			statement.execute(insertStatement);	
 			
@@ -94,5 +102,30 @@ public class ResultProcessor implements IResultProcessor {
 		} catch (IOException e) {
 			logger.error("IOException: " + e.getMessage());
 		}
+	}
+	
+	private void uploadScreenshot(int id, final File f) {
+		try {
+			FileInputStream fr = new FileInputStream(f);
+			
+			String sql = "INSERT INTO screenshots(id, screenshot) VALUES(?,?)";
+			PreparedStatement prepStat = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			
+			prepStat.setInt(1, id);
+			prepStat.setBinaryStream(2, fr);
+			
+			int result = prepStat.executeUpdate();
+			if(result == 1) {
+				logger.info("A screenshot is inserted into the database.");
+			} else {
+				logger.warn("A problem while inserting a screenshot into the database.");
+			}
+			} catch (FileNotFoundException e) {
+			logger.error("IOException during upload screenshot " + id + ". Message: " + e.getMessage());
+		} catch (SQLException e) {
+			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
+		}
+		
+		
 	}
 }
