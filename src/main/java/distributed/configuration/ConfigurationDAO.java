@@ -34,8 +34,8 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	
 	private IConnectionManager connMgr;
 
-	public ConfigurationDAO() {
-		connMgr = new ConnectionManager();
+	public ConfigurationDAO(IConnectionManager conn) {
+		connMgr = conn;
 	}
 
 	public Map<String, String> getConfiguration(List<String> sections) {

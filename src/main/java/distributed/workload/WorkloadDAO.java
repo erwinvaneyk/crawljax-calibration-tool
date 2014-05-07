@@ -12,7 +12,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 
 /**
@@ -45,8 +44,8 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * Sets up the ConnectionManager and creates an ID based on the hostname and local ip.
 	 * @throws IOException The ConnectionManager could not retrieve the settings-file.
 	 */
-	public WorkloadDAO() {
-		connMgr = new ConnectionManager();
+	public WorkloadDAO(IConnectionManager conn) {
+		connMgr = conn;
 		logger.info("WorkerID: " + workerID);
 	}
 	
@@ -91,6 +90,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @return true if checkout was succesful, else false. 
 	 */
 	public boolean checkoutWork(WorkTask wt) {
+		assert wt != null;
 		int ret = 0;
 		Connection conn = connMgr.getConnection();
 		try {
@@ -99,6 +99,8 @@ public class WorkloadDAO implements IWorkloadDAO {
 			logger.info("Checked out crawl of id: " + wt.getId());
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
+		} catch (NullPointerException e) {
+			logger.error("Unexpected null, probably the input " + wt + " or the connection " + conn);
 		}
 		connMgr.closeConnection();
 		return ret != 0;
@@ -107,10 +109,9 @@ public class WorkloadDAO implements IWorkloadDAO {
 	/**
 	 * Submit a new url/workunit to the server to crawl.
 	 * @param url the url to be crawled
-	 * @return true if no errors occurred, else false.
+	 * @return generated id of the url, if failed: -1
 	 */
 	public int submitWork(URL url) {
-		assert url.toString().length() > 0;
 		int ret = -1;
 		Connection conn = connMgr.getConnection();
 		try {
@@ -127,28 +128,11 @@ public class WorkloadDAO implements IWorkloadDAO {
 	        }
 		} catch (SQLException e) {
 			logger.error(e.getMessage());
+		}  catch (NullPointerException e) {
+			logger.error("Unexpected null, probably the input " + url + " or the connection " + conn);
 		}
 		connMgr.closeConnection();
 		return ret;
-	}
-
-	/**
-	 * Attempts to retrieve a number of urls. If nothing is available sleep and try again.
-	 * @param maxcount the maximum number of urls to retrieve.
-	 * @param sleepMilisecs the number of milliseconds to sleep
-	 * @return a list with claimed urls
-	 * @throws InterruptedException thrown when the worker is unexpectedly awakened
-	 */
-	public List<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException {
-		List<WorkTask> task = retrieveWork(maxcount);
-		while(task.isEmpty()) {
-			task = retrieveWork(maxcount);
-			if (task.isEmpty()) {
-				logger.debug("Sleeping for " + sleepMilisecs + " miliseconds");
-				Thread.sleep(sleepMilisecs);
-			}
-		}
-		return task;
 	}
 	
 	/**
