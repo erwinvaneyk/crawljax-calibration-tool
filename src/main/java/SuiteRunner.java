@@ -3,7 +3,6 @@ package main.java;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,11 +12,12 @@ import java.util.Map.Entry;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
@@ -85,13 +85,20 @@ public class SuiteRunner {
 		try {
 			IResultProcessor resultprocessor = new ResultProcessor();
 			SuiteManager suite = new SuiteManager();
-			IWorkloadDAO workload = new WorkloadDAO();
-			IConfigurationDAO config = new ConfigurationDAO();
+			IConnectionManager conn = new ConnectionManager();
+			IWorkloadDAO workload = new WorkloadDAO(conn);
+			IConfigurationDAO config = new ConfigurationDAO(conn);
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
-
-				List<WorkTask>workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
+				// Get worktasks
+				List<WorkTask> workTasks = workload.retrieveWork(1);
+				while(workTasks.isEmpty()) {
+					workTasks = workload.retrieveWork(1);
+					if (workTasks.isEmpty()) {
+						Thread.sleep(1000 * 10); // sleep 10 seconds
+					}
+				}
 				
 				for (WorkTask task : workTasks) {
 					//Map<String, String> args = suite.buildSettings(task.getUrl());
@@ -116,7 +123,8 @@ public class SuiteRunner {
 
 	private void actionFlushWebsitesFile() {
 		try {
-			IWorkloadDAO workload = new WorkloadDAO();
+			IConnectionManager conn = new ConnectionManager();
+			IWorkloadDAO workload = new WorkloadDAO(conn);
 			SuiteManager suite = new SuiteManager();
 			suite.websitesFromFile(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt");
 			URL url;
@@ -131,8 +139,11 @@ public class SuiteRunner {
 	
 	private void actionFlushSettingsFile() {
 		try {
-			IConfigurationDAO conf = new ConfigurationDAO();
+
+			IConnectionManager conn = new ConnectionManager();
+			IConfigurationDAO conf = new ConfigurationDAO(conn);
 			Ini ini = new Ini(new FileReader(ConfigurationIni.DEFAULT_SETTINGS_DIR + ConfigurationIni.DEFAULT_SETTINGS_INI));
+
 			for (Section section : ini.values()) {
 				for (Entry<String, String> el : section.entrySet()) {
 					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
