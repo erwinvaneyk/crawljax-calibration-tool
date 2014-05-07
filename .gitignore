@@ -20,3 +20,6 @@ output/
 .classpath
 .pr
 .project
+
+# Mac
+.metadata/

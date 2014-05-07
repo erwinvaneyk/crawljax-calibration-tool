@@ -32,10 +32,7 @@ public class SuiteManager {
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
-	static final String DEFAULT_SETTINGS_INI = "/settings.ini";
-	static final String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\output";
-	static final String INI_SECTION_COMMON = "common";
+	static final String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "/output";
 	static final String ARG_WEBSITE = "website";
 	static final String ARG_OUTPUTDIR = "outputdir";
 	

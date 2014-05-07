@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectionManager implements IConnectionManager {
 	
-	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
+	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "/config";
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 
