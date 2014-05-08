@@ -46,7 +46,6 @@ public class ResultProcessor implements IResultProcessor {
 		
 		logger.info(domState.length +" domstates found");
 		for (int i = 0; i < domState.length; i++) {
-			logger.info("Found domstate: " + domState[i].getName());
 			this.uploadDom(id, domState[i]);
 		}
 		
@@ -58,7 +57,14 @@ public class ResultProcessor implements IResultProcessor {
 			this.uploadScreenshot(id, screenshot[i]);
 		}
 		
+		// strippedDOM
+		File strippesDoms = this.findFile(dir, "strippedDOM");
+		File[] strippedDomState = strippesDoms.listFiles();
 		
+		logger.info(strippedDomState.length +" strippedDom-states found");
+		for (int i = 0; i < strippedDomState.length; i++) {
+			this.uploadStrippedDom(id, strippedDomState[i]);
+		}
 
 		con.closeConnection();
 	}
@@ -157,9 +163,7 @@ public class ResultProcessor implements IResultProcessor {
 				prepStat.setString(3, stateId);
 				
 				int result = prepStat.executeUpdate();
-				if(result == 1) {
-					logger.info("A screenshot is inserted into the database.");
-				} else {
+				if(result != 1) {
 					logger.warn("A problem while inserting a screenshot into the database.");
 				}
 			}
@@ -172,6 +176,48 @@ public class ResultProcessor implements IResultProcessor {
 		} finally {
 			try {
 				fr.close();
+			} catch (IOException e) {
+				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
+			}
+		}
+	}
+	
+	private void uploadStrippedDom(int id, final File f) throws ResultProcessorException {
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new FileReader(f));
+			String line;
+			String fileContent = "";
+			while ((line = br.readLine()) != null) {
+				fileContent += line; //.replaceAll("\"", "'")
+			}
+			
+			String stateId = getStateId(f);
+			
+			if (!stateId.contains("small")) {
+				String sql = "UPDATE DomResults SET StrippedDom = ? WHERE WebsiteId = ? AND StateId = ?";
+				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
+				
+				prepStat.setString(1, fileContent);
+				prepStat.setInt(2, id);
+				prepStat.setString(3, stateId);
+				
+				int result = prepStat.executeUpdate();
+				if(result != 1) {
+					logger.warn("A problem while inserting a screenshot into the database.");
+				}
+			}
+		} catch (FileNotFoundException e) {
+			logger.error("IOException during upload screenshot " + id + ". Message: " + e.getMessage());
+			throw new ResultProcessorException(e.getMessage());
+		} catch (SQLException e) {
+			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
+			throw new ResultProcessorException("IOException during the upload of a screenshot");
+		} catch (IOException e) {
+			logger.error("IOException during upload screenshot " + id + ". Message: " + e.getMessage());
+		} finally {
+			try {
+				br.close();
 			} catch (IOException e) {
 				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
 			}
@@ -208,9 +254,11 @@ public class ResultProcessor implements IResultProcessor {
 				statement.setString(2, stateId);
 				statement.setString(3, fileContent);
 				statement.setString(4, "");
-				statement.executeUpdate();	
 				
-				logger.info("The dom is insterted in the database");
+				int result = statement.executeUpdate();	
+				if(result != 1) {
+					logger.info("A problem while insterted a dom in the database");
+				}
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
