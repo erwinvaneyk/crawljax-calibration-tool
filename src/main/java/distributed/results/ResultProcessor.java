@@ -34,15 +34,26 @@ public class ResultProcessor implements IResultProcessor {
 
 		con = new ConnectionManager();
 		
+		// Json
 		File jsonFile = this.findFile(dir, "result.json");
-		System.out.println(jsonFile.getName());
 		this.uploadJson(id, jsonFile);
 		
+		// Screenshots
 		File screenshots = this.findFile(dir, "screenshots");
 		File[] screenshot = screenshots.listFiles();
+		
 		for (int i = 0; i < screenshot.length; i++) {
 			this.uploadScreenshot(id, screenshot[i]);
 		}
+		
+		// DOM
+		File doms = this.findFile(dir, "doms");
+		File[] domState = doms.listFiles();
+		
+		for (int i = 0; i < domState.length; i++) {
+			this.uploadDom(id, domState[i]);
+		}
+		
 		
 
 		con.closeConnection();
@@ -55,6 +66,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	private File findFile(final String dir, String file) throws ResultProcessorException  {
+		logger.debug(dir);
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
 
@@ -132,7 +144,38 @@ public class ResultProcessor implements IResultProcessor {
 			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of a screenshot");
 		}
-		
-		
+	}
+	
+	private void uploadDom(int id, final File f) throws ResultProcessorException {
+		try {
+			String fileContent = "";
+			String line;
+			BufferedReader bufr = new BufferedReader(new FileReader(f));
+
+			while ((line = bufr.readLine()) != null) {
+				fileContent += line.replaceAll("\"", "'");
+			}
+
+			String sql = "INSERT INTO DomResults(WebsiteId,StateId,Dom,StrippedDom) VALUES(?,?,?,?)";
+			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			
+			statement.setInt(1, id);
+			statement.setString(2, f.getName());
+			statement.setString(3, fileContent);
+			statement.setString(4, "");
+			statement.executeUpdate();	
+			
+			logger.info("The dom is insterted in the database");
+			bufr.close();
+		} catch (SQLException e) {
+			logger.error("SQLException: " + e.getMessage());
+			throw new ResultProcessorException("SQLException during the upload of the json-file");
+		} catch (FileNotFoundException e) {
+			logger.error("FileNotFoundException: " + e.getMessage());
+			throw new ResultProcessorException(e.getMessage());
+		} catch (IOException e) {
+			logger.error("IOException: " + e.getMessage());
+			throw new ResultProcessorException("IOException during the upload of the json-file");
+		}
 	}
 }
