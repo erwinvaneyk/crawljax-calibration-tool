@@ -11,21 +11,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
+import main.java.distributed.workload.WorkTask;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.mysql.jdbc.PreparedStatement;
 
 
 public class TestResultProcessor {
@@ -39,22 +44,8 @@ public class TestResultProcessor {
 	 */
 	@Before
 	public void makeTestDirAndMockObjects() {
-		
 		new File("TestDir").mkdir();
-		
-		// Mock objects
-		ConnectionManager connMgr = mock(ConnectionManager.class);
-		Connection conn = mock(Connection.class);
-		PreparedStatement statement = mock(PreparedStatement.class);
-		// Mock methods
-		when(connMgr.getConnection()).thenReturn(conn);
-		try {
-			when(conn.prepareStatement(anyString())).thenReturn(statement);
-			when(statement.executeUpdate()).thenReturn(1);
-		} catch (SQLException e) {
-			logger.error("SQLException while mocking");
-			System.exit(1);
-		}
+		logger.debug("Test directory setup.");
 	}
 	
 	/**
@@ -66,9 +57,9 @@ public class TestResultProcessor {
 		try {
 			FileUtils.deleteDirectory(new File("TestDir"));
 		} catch (IOException e) {
-			logger.error("IOException while removing the TestDir directory");
-			System.exit(1);
+			logger.error("IOException while removing the TestDir directory: " + e.getMessage());
 		}
+		logger.debug("Test directory removed.");
 	}
 	
 	/**
@@ -133,20 +124,31 @@ public class TestResultProcessor {
 	@Test (expected = ResultProcessorException.class)
 	public void testMissingJsonFile() throws ResultProcessorException {
 		makeScreenshotStub();
-		
-		ResultProcessor resProc = mock(ResultProcessor.class);
+		// Mock objects
+		ConnectionManager connMgr = mock(ConnectionManager.class);
+		// Method under inspection
+		ResultProcessor resProc = new ResultProcessor(connMgr);
 		resProc.uploadAction(1, "TestDir");
 	}
 	
 	/**
 	 * Test a run with missing Screenshot directory
 	 * @throws ResultProcessorException
+	 * @throws SQLException 
 	 */
 	@Test (expected = ResultProcessorException.class)
-	public void testMissingScreenshotDirectory() throws ResultProcessorException {
+	public void testMissingScreenshotDirectory() throws ResultProcessorException, SQLException {
 		makeJsonStub();
-		
-		ResultProcessor resProc = mock(ResultProcessor.class);
+		// Mock objects
+		ConnectionManager connMgr = mock(ConnectionManager.class);
+		Connection conn = mock(Connection.class);
+		PreparedStatement statement = mock(PreparedStatement.class);
+		// Mock methods
+		when(connMgr.getConnection()).thenReturn(conn);
+		when(conn.prepareStatement(anyString())).thenReturn(statement);
+		when(statement.executeUpdate(anyString())).thenReturn(1);
+		// Method under inspection
+		ResultProcessor resProc = new ResultProcessor(connMgr);
 		resProc.uploadAction(1, "TestDir");
 	}
 }
