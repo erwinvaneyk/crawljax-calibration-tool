@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -34,8 +35,20 @@ public class ResultProcessor implements IResultProcessor {
 	 */
 	public void uploadAction(int id, String dir) throws ResultProcessorException {
 
+		// Json
 		File jsonFile = this.findFile(dir, "result.json");
 		this.uploadJson(id, jsonFile);
+		
+		
+		// DOM
+		File doms = this.findFile(dir, "doms");
+		File[] domState = doms.listFiles();
+		
+		logger.info(domState.length +" domstates found");
+		for (int i = 0; i < domState.length; i++) {
+			logger.info("Found domstate: " + domState[i].getName());
+			this.uploadDom(id, domState[i]);
+		}
 		
 		// Screenshots
 		File screenshots = this.findFile(dir, "screenshots");
@@ -43,14 +56,6 @@ public class ResultProcessor implements IResultProcessor {
 		
 		for (int i = 0; i < screenshot.length; i++) {
 			this.uploadScreenshot(id, screenshot[i]);
-		}
-		
-		// DOM
-		File doms = this.findFile(dir, "doms");
-		File[] domState = doms.listFiles();
-		
-		for (int i = 0; i < domState.length; i++) {
-			this.uploadDom(id, domState[i]);
 		}
 		
 		
@@ -65,7 +70,6 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	private File findFile(final String dir, String file) throws ResultProcessorException  {
-		logger.debug(dir);
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
 
@@ -100,14 +104,24 @@ public class ResultProcessor implements IResultProcessor {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
-			String sql = "INSERT INTO TestResults(id,JsonResults) VALUES(?,?)";
-			PreparedStatement statement = con.getConnection().prepareStatement(sql);
+			String select = "SELECT * FROM TestResults WHERE id = ?";
+			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
+			selectSt.setInt(1, id);
 			
-			statement.setInt(1, id);
-			statement.setString(2, fileContent);
-			statement.executeUpdate();	
+			ResultSet res = selectSt.executeQuery();
 			
-			System.out.println("Result of the crawl is sent to the database.");
+			if (res.next()) {
+				logger.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
+			} else {
+				String sql = "INSERT INTO TestResults(id,JsonResults) VALUES(?,?)";
+				PreparedStatement statement = con.getConnection().prepareStatement(sql);
+				
+				statement.setInt(1, id);
+				statement.setString(2, fileContent);
+				statement.executeUpdate();	
+				
+				System.out.println("Result of the crawl is sent to the database.");
+			}
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
@@ -131,18 +145,23 @@ public class ResultProcessor implements IResultProcessor {
 		FileInputStream fr = null;
 		try {
 			fr = new FileInputStream(f);
+			String stateId = getStateId(f);
 			
-			String sql = "INSERT INTO screenshots(id, screenshot) VALUES(?,?)";
-			PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
-			
-			prepStat.setInt(1, id);
-			prepStat.setBinaryStream(2, fr);
-			
-			int result = prepStat.executeUpdate();
-			if(result == 1) {
-				logger.info("A screenshot is inserted into the database.");
-			} else {
-				logger.warn("A problem while inserting a screenshot into the database.");
+			if (!stateId.contains("small")) {
+				String sql = "UPDATE DomResults SET Screenshot = ? WHERE WebsiteId = ? AND StateId = ?";
+				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
+				
+				
+				prepStat.setBinaryStream(1, fr);
+				prepStat.setInt(2, id);
+				prepStat.setString(3, stateId);
+				
+				int result = prepStat.executeUpdate();
+				if(result == 1) {
+					logger.info("A screenshot is inserted into the database.");
+				} else {
+					logger.warn("A problem while inserting a screenshot into the database.");
+				}
 			}
 		} catch (FileNotFoundException e) {
 			logger.error("IOException during upload screenshot " + id + ". Message: " + e.getMessage());
@@ -160,26 +179,39 @@ public class ResultProcessor implements IResultProcessor {
 	}
 	
 	private void uploadDom(int id, final File f) throws ResultProcessorException {
+		BufferedReader bufr = null;
 		try {
 			String fileContent = "";
 			String line;
-			BufferedReader bufr = new BufferedReader(new FileReader(f));
+			bufr = new BufferedReader(new FileReader(f));
 
 			while ((line = bufr.readLine()) != null) {
 				fileContent += line.replaceAll("\"", "'");
 			}
+			
+			String stateId = getStateId(f);
 
-			String sql = "INSERT INTO DomResults(WebsiteId,StateId,Dom,StrippedDom) VALUES(?,?,?,?)";
-			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			String select = "SELECT * FROM DomResults WHERE WebsiteId = ? AND StateId = ?";
+			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
+			selectSt.setInt(1, id);
+			selectSt.setString(2, stateId);
 			
-			statement.setInt(1, id);
-			statement.setString(2, f.getName());
-			statement.setString(3, fileContent);
-			statement.setString(4, "");
-			statement.executeUpdate();	
+			ResultSet res = selectSt.executeQuery();
 			
-			logger.info("The dom is insterted in the database");
-			bufr.close();
+			if (res.next()) {
+				logger.warn("There already excist a dom for this state in the database");
+			} else {
+				String sql = "INSERT INTO DomResults(WebsiteId,StateId,Dom,StrippedDom) VALUES(?,?,?,?)";
+				PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
+				
+				statement.setInt(1, id);
+				statement.setString(2, stateId);
+				statement.setString(3, fileContent);
+				statement.setString(4, "");
+				statement.executeUpdate();	
+				
+				logger.info("The dom is insterted in the database");
+			}
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
@@ -189,6 +221,18 @@ public class ResultProcessor implements IResultProcessor {
 		} catch (IOException e) {
 			logger.error("IOException: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of the json-file");
+		} finally {
+			try {
+				bufr.close();
+			} catch (IOException e) {
+				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
+			}
 		}
+	}
+	
+	private String getStateId(File f) {
+		String fileName = f.getName();
+		int indexOfExtension = fileName.lastIndexOf(".");
+		return fileName.substring(0, indexOfExtension);
 	}
 }
