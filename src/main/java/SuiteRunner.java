@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,7 @@ import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
+import main.java.distributed.results.ResultProcessorException;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -112,7 +114,11 @@ public class SuiteRunner {
 					if(hasNoError) {
 					String dir = args.get(CrawlManager.ARG_OUTPUTDIR);
 
-					resultprocessor.uploadAction(task.getId(), dir);
+					try {
+						resultprocessor.uploadAction(task.getId(), dir);
+					} catch (ResultProcessorException e) {
+						System.out.println(e.getMessage());
+					}
 					workload.checkoutWork(task);
 					System.out.println("crawl: " + task.getUrl() + " completed");
 					} else {
