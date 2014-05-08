@@ -11,6 +11,7 @@ public class WorkTask {
 	private URL url;
 	
 	public WorkTask(int id, URL url) {
+		assert url != null;
 		this.id = id;
 		this.url = url;
 	}
@@ -28,6 +29,7 @@ public class WorkTask {
 	 * @param url The website to crawl
 	 */
 	public void setUrl(URL url) {
+		assert url != null;
 		this.url = url;
 	}
 	
@@ -44,12 +46,33 @@ public class WorkTask {
 	public URL getUrl() {
 		return url;
 	}
-	
+
 	/**
 	 * @return the string representation of this task.
 	 */
 	public String toString() {
 
-		return id + ": " + url;
+		return "[" + id + ", " + url + "]";
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		WorkTask other = (WorkTask) obj;
+		if (id != other.id)
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		return true;
+	}
+	
+	
 }

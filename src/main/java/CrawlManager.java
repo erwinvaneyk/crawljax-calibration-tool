@@ -1,6 +1,7 @@
 package main.java;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -8,7 +9,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -22,37 +22,36 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.crawljax.cli.JarRunner;
+import com.crawljax.core.CrawljaxRunner;
+import com.crawljax.core.ExitNotifier.ExitStatus;
+import com.crawljax.core.configuration.CrawljaxConfiguration;
 
 /**
  * SuiteManager is responsible for running the actual crawler. Therefore it 
  * deals with the arguments needed by the CrawlJax CLI and websites to be crawled.
  */
-public class SuiteManager {
+public class CrawlManager {
 
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
-	static final String DEFAULT_SETTINGS_INI = "/settings.ini";
-	static final String DEFAULT_OUTPUT_DIR = System.getProperty("user.dir") + "\\output";
-	static final String INI_SECTION_COMMON = "common";
+	static final File DEFAULT_OUTPUT_DIR = new File(System.getProperty("user.dir") + "/output");
 	static final String ARG_WEBSITE = "website";
 	static final String ARG_OUTPUTDIR = "outputdir";
 	
-	private Queue<URL> websiteQueue = new PriorityQueue<URL>();
+	private Queue<String> websiteQueue = new PriorityQueue<String>();
 
 	/**
 	 * Reads a file containing website (1 website per line) and adds them to the queue.
 	 * @param websitesPath the path to the file containing websites.
 	 * @throws IOException the file could not be found.
 	 */
-	public void websitesFromFile(String websitesPath) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(websitesPath));
+	public void websitesFromFile(File websitesPath) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()));
 		UrlValidator urlValidator = new UrlValidator();
 		String line;
 		while ((line = br.readLine()) != null) {
 			if(urlValidator.isValid(line))
-				websiteQueue.add(new URL(line));
+				websiteQueue.add(new URL(line).toString());
 			else
 				logger.warn("Website: " + line + " is an invalid url. Ignoring website.");
 		}
@@ -64,20 +63,23 @@ public class SuiteManager {
 	 * Crawl all websites in the queue.
 	 * @return the outputdirs of the crawled websites
 	 */
-	public List<String> crawlWebsites() {
-		List<String> outputdirs = new ArrayList<String>();
-		IConfigurationDAO config = new ConfigurationIni();
-		URL website = websiteQueue.poll();
-		while(website != null) {
-			try {
-					Map<String,String> args = config.getConfiguration(website.toString());
-					String outputDir = generateOutputDir(website);
-					runCrawler(website, outputDir, args);
-					outputdirs.add(outputDir);
-			} catch (MalformedURLException e) {
-				logger.warn("Invalid uri provided: " + website);
+	public List<File> crawlWebsites() {
+		List<File> outputdirs = new ArrayList<File>();
+		try {
+			IConfigurationDAO config = new ConfigurationIni();
+			while(!websiteQueue.isEmpty()) {
+				URL website = new URL(websiteQueue.poll());
+				try {
+						Map<String,String> args = config.getConfiguration(website.toString());
+						File outputDir = generateOutputDir(website);
+						runCrawler(website, outputDir, args);
+						outputdirs.add(outputDir);
+				} catch (MalformedURLException e) {
+					logger.warn("Invalid uri provided: " + website);
+				}
 			}
-			website = websiteQueue.poll();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 		return outputdirs;
 	}
@@ -90,10 +92,10 @@ public class SuiteManager {
 	 * @throws URISyntaxException website contains an invalid syntax
 	 * @throws MalformedURLException 
 	 */
-	public static String generateOutputDir(URL website) throws MalformedURLException {
+	public static File generateOutputDir(URL website) throws MalformedURLException {
 		Date date= new Date();
 		Timestamp timestamp = new Timestamp(date.getTime());
-		return DEFAULT_OUTPUT_DIR + "/" + website.getHost() + "-" + timestamp.getTime();
+		return new File(DEFAULT_OUTPUT_DIR + "/" + website.getHost() + "-" + timestamp.getTime());
 	}
 	
 	
@@ -101,30 +103,21 @@ public class SuiteManager {
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * @param args arguments which need to be send to crawljax.
 	 */
-	public void runCrawler(URL website, String outputdir, Map<String, String> args) {		
-		// Convert args to valid args-line
-		String[] finargs = new String[(args.size() * 2 + 2)];
-		finargs[0] = website.toString();
-		finargs[1] = outputdir;
-		int index = 2;
-		for(String key : args.keySet()) {
-			finargs[index] = "-" + key;
-			finargs[index+1] = args.get(key);
- 			index += 2;
-		}
-		args.put(ARG_WEBSITE, finargs[0]);
-		args.put(ARG_OUTPUTDIR, finargs[1]);
-		
-		logger.debug("Arguments provided: " + Arrays.toString(finargs));
-		JarRunner.main(finargs);
-		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ".");
+	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {		
+		CrawljaxConfiguration config = ConfigurationMapper.convert(website, outputdir, args);
+
+		CrawljaxRunner runner = new CrawljaxRunner(config);
+		runner.call();
+		ExitStatus reason = runner.getReason();
+		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ". Reason: " + reason.toString());
+		return (!reason.equals(ExitStatus.ERROR));
 	}
 	
 	/**
 	 * Get website-queue.
 	 * @return website-queue.
 	 */
-	public Queue<URL> getWebsiteQueue() {
+	public Queue<String> getWebsiteQueue() {
 		return websiteQueue;
 	}
 
@@ -132,7 +125,7 @@ public class SuiteManager {
 	 * Set Website-queue
 	 * @param websiteQueue the new website-queue.
 	 */
-	public void setWebsiteQueue(Queue<URL> websiteQueue) {
+	public void setWebsiteQueue(Queue<String> websiteQueue) {
 		this.websiteQueue = websiteQueue;
 	}
 	

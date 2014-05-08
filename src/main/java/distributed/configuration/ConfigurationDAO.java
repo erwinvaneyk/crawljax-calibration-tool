@@ -11,8 +11,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 
 /**
@@ -34,8 +32,8 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	
 	private IConnectionManager connMgr;
 
-	public ConfigurationDAO() {
-		connMgr = new ConnectionManager();
+	public ConfigurationDAO(IConnectionManager conn) {
+		connMgr = conn;
 	}
 
 	public Map<String, String> getConfiguration(List<String> sections) {

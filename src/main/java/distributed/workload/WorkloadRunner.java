@@ -7,6 +7,8 @@ import java.util.Scanner;
 
 import org.apache.commons.validator.routines.UrlValidator;
 
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.IConfigurationDAO;
 
@@ -18,8 +20,9 @@ public class WorkloadRunner {
 	 */
 	public static void main(String[] args) {
 		UrlValidator urlvalidator = new UrlValidator();
-		// Add 
-		WorkloadDAO workload = new WorkloadDAO();
+		IConnectionManager conn = new ConnectionManager();
+		IConfigurationDAO config = new ConfigurationDAO(conn);
+		IWorkloadDAO workload = new WorkloadDAO(conn);
 		URL url;
 		for(String arg : args) {
 			try {
@@ -37,7 +40,6 @@ public class WorkloadRunner {
 		}
 		// Process commandline inputs
 		Scanner in = new Scanner(System.in);
-		IConfigurationDAO config = new ConfigurationDAO();
 		while(true) {
 			// add url
 			System.out.print("> ");

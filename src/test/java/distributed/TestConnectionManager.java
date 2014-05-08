@@ -22,7 +22,9 @@ public class TestConnectionManager {
 	public void testGetActiveConnection() throws SQLException {
 		IConnectionManager connMgr = new ConnectionManager();
 		Connection conn = connMgr.getConnection();
+		assertNotNull(conn);
 		Connection conn2 = connMgr.getConnection();
+		assertNotNull(conn2);
 		assertEquals(conn, conn2);
 	}
 	

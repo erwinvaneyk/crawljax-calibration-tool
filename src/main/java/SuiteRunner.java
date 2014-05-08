@@ -1,10 +1,11 @@
 package main.java;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,15 +14,18 @@ import java.util.Map.Entry;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
+import main.java.distributed.results.ResultProcessorException;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -82,28 +86,46 @@ public class SuiteRunner {
 
 	private void actionWorker() {
 		try {
-			IResultProcessor resultprocessor = new ResultProcessor();
-			SuiteManager suite = new SuiteManager();
-			IWorkloadDAO workload = new WorkloadDAO();
-			IConfigurationDAO config = new ConfigurationDAO();
+			IConnectionManager conn = new ConnectionManager();
+			IResultProcessor resultprocessor = new ResultProcessor(conn);
+			CrawlManager suite = new CrawlManager();
+			IWorkloadDAO workload = new WorkloadDAO(conn);
+			IConfigurationDAO config = new ConfigurationDAO(conn);
 
 			System.out.println("Started client crawler/worker.");
 			while (true) {
-
-				List<WorkTask>workTasks = workload.retrieveWork(1, 1000 * 10); //poll server every 10 seconds
+				// Get worktasks
+				List<WorkTask> workTasks = workload.retrieveWork(1);
+				while(workTasks.isEmpty()) {
+					workTasks = workload.retrieveWork(1);
+					if (workTasks.isEmpty()) {
+						Thread.sleep(1000 * 10); // sleep 10 seconds
+					}
+				}
 				
 				for (WorkTask task : workTasks) {
 					//Map<String, String> args = suite.buildSettings(task.getUrl());
 					List<String> sections = new ArrayList<String>();
 					sections.add(task.getUrl().getHost());
-					sections.add("common");
+					sections.add(ConfigurationIni.INI_SECTION_COMMON);
 					Map<String, String> args = config.getConfiguration(sections);
-					suite.runCrawler(task.getUrl(), SuiteManager.generateOutputDir(task.getUrl()), args);
-					String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
-
-					resultprocessor.uploadOutputJson(task.getId(), dir);
-					workload.checkoutWork(task);
-					System.out.println("crawl: " + task.getUrl() + " completed");
+					File dir = CrawlManager.generateOutputDir(task.getUrl());
+					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
+					if(hasNoError) {
+						System.out.println("Crawl seems succesfull, submitting results..");
+	
+						try {
+							resultprocessor.uploadAction(task.getId(), dir.toString());
+						} catch (ResultProcessorException e) {
+							System.out.println(e.getMessage());
+						}
+						workload.checkoutWork(task);
+						System.out.println("crawl: " + task.getUrl() + " completed");
+					} else {
+						System.out.println("crawl: " + task.getUrl() + " failed.");
+						workload.revertWork(task.getId());						
+						System.out.println("Claim reverted.");
+					}
 				}
 			}
 		} catch (InterruptedException e) {
@@ -115,11 +137,14 @@ public class SuiteRunner {
 
 	private void actionFlushWebsitesFile() {
 		try {
-			IWorkloadDAO workload = new WorkloadDAO();
-			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			IConnectionManager conn = new ConnectionManager();
+			IWorkloadDAO workload = new WorkloadDAO(conn);
+			CrawlManager suite = new CrawlManager();
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 			URL url;
-			while((url = suite.getWebsiteQueue().poll()) != null) {
+			String rawUrl;
+			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
+				url = new URL(rawUrl);
 				workload.submitWork(url);
 			}
 		} catch (IOException e1) {
@@ -130,8 +155,11 @@ public class SuiteRunner {
 	
 	private void actionFlushSettingsFile() {
 		try {
-			IConfigurationDAO conf = new ConfigurationDAO();
-			Ini ini = new Ini(new FileReader(SuiteManager.DEFAULT_SETTINGS_DIR + SuiteManager.DEFAULT_SETTINGS_INI));
+
+			IConnectionManager conn = new ConnectionManager();
+			IConfigurationDAO conf = new ConfigurationDAO(conn);
+			Ini ini = new Ini(new FileReader(ConfigurationIni.DEFAULT_SETTINGS_DIR + ConfigurationIni.DEFAULT_SETTINGS_INI));
+
 			for (Section section : ini.values()) {
 				for (Entry<String, String> el : section.entrySet()) {
 					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
@@ -150,8 +178,8 @@ public class SuiteRunner {
 	private void actionLocalCrawler() {
 		System.out.println("Started local crawler");
 		try {
-			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(SuiteManager.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			CrawlManager suite = new CrawlManager();
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 			suite.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());

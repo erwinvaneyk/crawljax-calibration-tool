@@ -1,5 +1,6 @@
 package main.java.distributed;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectionManager implements IConnectionManager {
 	
-	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "\\config";
+	public static final File DEFAULT_SETTINGS_PATH = new File(System.getProperty("user.dir") + "/config/dist.ini");
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 
@@ -33,7 +34,7 @@ public class ConnectionManager implements IConnectionManager {
 	static {
 		try {
 			//logger.warning("ConnectionManager uses the default paths for the config-files.");
-			setup(DEFAULT_SETTINGS_DIR + "/dist.ini");
+			setup(DEFAULT_SETTINGS_PATH);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -44,7 +45,7 @@ public class ConnectionManager implements IConnectionManager {
 	 * @param connectionDetailsPath the path to the settings-file.
 	 * @throws IOException the connection-settings file could not be found.
 	 */
-	private static void setup(String connectionDetailsPath) throws IOException {
+	private static void setup(File connectionDetailsPath) throws IOException {
 		settings = new Properties();
 		FileInputStream input = new FileInputStream(connectionDetailsPath);
 		 

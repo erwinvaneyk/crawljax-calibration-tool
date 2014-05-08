@@ -43,13 +43,4 @@ public interface IWorkloadDAO {
 	 */
 	public boolean revertWork(int id);
 	
-	/**
-	 * Attempts to retrieve a number of urls. If nothing is available sleep and try again.
-	 * @param maxcount the maximum number of urls to retrieve.
-	 * @param sleepMilisecs the number of milliseconds to sleep
-	 * @return a list with claimed urls
-	 * @throws InterruptedException thrown when the worker is unexpectedly awakened
-	 */
-	public List<WorkTask> retrieveWork(int maxcount, int sleepMilisecs) throws InterruptedException;
-	
 }
