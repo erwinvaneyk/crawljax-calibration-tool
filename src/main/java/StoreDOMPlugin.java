@@ -11,6 +11,9 @@ import com.crawljax.core.state.StateVertex;
 import com.google.common.collect.ImmutableList;
 
 public class StoreDOMPlugin implements PreStateCrawlingPlugin {
+	
+	static final String specificOutputDir = "/strippedDOM/";
+	static final String fileExtension = ".html";
 
 	@Override
 	public String toString() {
@@ -21,10 +24,10 @@ public class StoreDOMPlugin implements PreStateCrawlingPlugin {
 			ImmutableList<CandidateElement> candidateElements,
 			StateVertex state) {
 		File outputDir = context.getConfig().getOutputDir();
-		File domFile = new File(outputDir + "/strippedDOM/");
+		File domFile = new File(outputDir + specificOutputDir);
 		domFile.mkdirs();
 		try {
-			PrintWriter out = new PrintWriter(domFile + "/" + state.getName() + ".html");
+			PrintWriter out = new PrintWriter(domFile + "/" + state.getName() + fileExtension);
 			out.print(state.getStrippedDom());
 			out.close();
 		} catch (FileNotFoundException e) {

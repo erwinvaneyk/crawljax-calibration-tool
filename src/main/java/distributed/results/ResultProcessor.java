@@ -6,14 +6,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mysql.jdbc.PreparedStatement;
-
-import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 
 /**
@@ -24,6 +22,10 @@ public class ResultProcessor implements IResultProcessor {
 
 	private IConnectionManager con;
 
+	public ResultProcessor(IConnectionManager conn) {
+		this.con = conn;
+	}
+	
 	/**
 	 * Upload the resulting JSON file of a crawled wesite to the sql database.
 	 * @param website The crawled website that genarates the output folder
@@ -32,9 +34,6 @@ public class ResultProcessor implements IResultProcessor {
 	 */
 	public void uploadAction(int id, String dir) throws ResultProcessorException {
 
-		con = new ConnectionManager();
-		
-		// Json
 		File jsonFile = this.findFile(dir, "result.json");
 		this.uploadJson(id, jsonFile);
 		
@@ -91,24 +90,24 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	private void uploadJson(int id, final File f) throws ResultProcessorException {
+		BufferedReader bufr = null;
 		try {
 			String fileContent = "";
 			String line;
-			BufferedReader bufr = new BufferedReader(new FileReader(f));
-
+			bufr = new BufferedReader(new FileReader(f));
+			
 			while ((line = bufr.readLine()) != null) {
 				fileContent += line.replaceAll("\"", "'");
 			}
 
 			String sql = "INSERT INTO TestResults(id,JsonResults) VALUES(?,?)";
-			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			PreparedStatement statement = con.getConnection().prepareStatement(sql);
 			
 			statement.setInt(1, id);
 			statement.setString(2, fileContent);
 			statement.executeUpdate();	
 			
 			System.out.println("Result of the crawl is sent to the database.");
-			bufr.close();
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
@@ -118,15 +117,23 @@ public class ResultProcessor implements IResultProcessor {
 		} catch (IOException e) {
 			logger.error("IOException: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of the json-file");
+		} finally {
+			try {
+				bufr.close();
+			} catch (IOException e) {
+				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
+				
+			}
 		}
 	}
 	
 	private void uploadScreenshot(int id, final File f) throws ResultProcessorException {
+		FileInputStream fr = null;
 		try {
-			FileInputStream fr = new FileInputStream(f);
+			fr = new FileInputStream(f);
 			
 			String sql = "INSERT INTO screenshots(id, screenshot) VALUES(?,?)";
-			PreparedStatement prepStat = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
 			
 			prepStat.setInt(1, id);
 			prepStat.setBinaryStream(2, fr);
@@ -143,6 +150,12 @@ public class ResultProcessor implements IResultProcessor {
 		} catch (SQLException e) {
 			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of a screenshot");
+		} finally {
+			try {
+				fr.close();
+			} catch (IOException e) {
+				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
+			}
 		}
 	}
 	

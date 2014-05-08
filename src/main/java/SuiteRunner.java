@@ -86,9 +86,9 @@ public class SuiteRunner {
 
 	private void actionWorker() {
 		try {
-			IResultProcessor resultprocessor = new ResultProcessor();
-			CrawlManager suite = new CrawlManager();
 			IConnectionManager conn = new ConnectionManager();
+			IResultProcessor resultprocessor = new ResultProcessor(conn);
+			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
 
