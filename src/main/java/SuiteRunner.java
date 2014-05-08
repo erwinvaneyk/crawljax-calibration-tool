@@ -1,5 +1,6 @@
 package main.java;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -84,7 +85,7 @@ public class SuiteRunner {
 	private void actionWorker() {
 		try {
 			IResultProcessor resultprocessor = new ResultProcessor();
-			SuiteManager suite = new SuiteManager();
+			CrawlManager suite = new CrawlManager();
 			IConnectionManager conn = new ConnectionManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
@@ -104,10 +105,10 @@ public class SuiteRunner {
 					//Map<String, String> args = suite.buildSettings(task.getUrl());
 					List<String> sections = new ArrayList<String>();
 					sections.add(task.getUrl().getHost());
-					sections.add("common");
+					sections.add(ConfigurationIni.INI_SECTION_COMMON);
 					Map<String, String> args = config.getConfiguration(sections);
-					suite.runCrawler(task.getUrl(), SuiteManager.generateOutputDir(task.getUrl()), args);
-					String dir = args.get(SuiteManager.ARG_OUTPUTDIR);
+					suite.runCrawler(task.getUrl(), CrawlManager.generateOutputDir(task.getUrl()), args);
+					String dir = args.get(CrawlManager.ARG_OUTPUTDIR);
 
 					resultprocessor.uploadAction(task.getId(), dir);
 					workload.checkoutWork(task);
@@ -125,10 +126,12 @@ public class SuiteRunner {
 		try {
 			IConnectionManager conn = new ConnectionManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
-			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			CrawlManager suite = new CrawlManager();
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 			URL url;
-			while((url = suite.getWebsiteQueue().poll()) != null) {
+			String rawUrl;
+			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
+				url = new URL(rawUrl);
 				workload.submitWork(url);
 			}
 		} catch (IOException e1) {
@@ -162,8 +165,8 @@ public class SuiteRunner {
 	private void actionLocalCrawler() {
 		System.out.println("Started local crawler");
 		try {
-			SuiteManager suite = new SuiteManager();
-			suite.websitesFromFile(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt");
+			CrawlManager suite = new CrawlManager();
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 			suite.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
