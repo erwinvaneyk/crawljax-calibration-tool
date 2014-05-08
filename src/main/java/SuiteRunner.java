@@ -109,18 +109,18 @@ public class SuiteRunner {
 					sections.add(task.getUrl().getHost());
 					sections.add(ConfigurationIni.INI_SECTION_COMMON);
 					Map<String, String> args = config.getConfiguration(sections);
-					boolean hasNoError = suite.runCrawler(task.getUrl(), 
-							CrawlManager.generateOutputDir(task.getUrl()), args);
+					File dir = CrawlManager.generateOutputDir(task.getUrl());
+					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
 					if(hasNoError) {
-					String dir = args.get(CrawlManager.ARG_OUTPUTDIR);
-
-					try {
-						resultprocessor.uploadAction(task.getId(), dir);
-					} catch (ResultProcessorException e) {
-						System.out.println(e.getMessage());
-					}
-					workload.checkoutWork(task);
-					System.out.println("crawl: " + task.getUrl() + " completed");
+						System.out.println("Crawl seems succesfull, submitting results..");
+	
+						try {
+							resultprocessor.uploadAction(task.getId(), dir.toString());
+						} catch (ResultProcessorException e) {
+							System.out.println(e.getMessage());
+						}
+						workload.checkoutWork(task);
+						System.out.println("crawl: " + task.getUrl() + " completed");
 					} else {
 						System.out.println("crawl: " + task.getUrl() + " failed.");
 						workload.revertWork(task.getId());						
