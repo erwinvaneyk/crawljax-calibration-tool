@@ -17,7 +17,7 @@ public class ConfigurationIni implements IConfigurationDAO {
 
 	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "/config";
 	public static final String DEFAULT_SETTINGS_INI = "/settings.ini";
-	static final String INI_SECTION_COMMON = "common";
+	public static final String INI_SECTION_COMMON = "common";
 	
 
 	private static Ini ini;

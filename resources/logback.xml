@@ -13,7 +13,7 @@
   </encoder>
 </appender>
 
-<!-- <logger name="chapters.configuration" level="INFO"/> -->
+<!-- <logger name="main.java" level="DEBUG"/> -->
 
 <root level="DEBUG">
 	<appender-ref ref="FILE" />
