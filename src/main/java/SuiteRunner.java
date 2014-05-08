@@ -107,12 +107,19 @@ public class SuiteRunner {
 					sections.add(task.getUrl().getHost());
 					sections.add(ConfigurationIni.INI_SECTION_COMMON);
 					Map<String, String> args = config.getConfiguration(sections);
-					suite.runCrawler(task.getUrl(), CrawlManager.generateOutputDir(task.getUrl()), args);
+					boolean hasNoError = suite.runCrawler(task.getUrl(), 
+							CrawlManager.generateOutputDir(task.getUrl()), args);
+					if(hasNoError) {
 					String dir = args.get(CrawlManager.ARG_OUTPUTDIR);
 
 					resultprocessor.uploadAction(task.getId(), dir);
 					workload.checkoutWork(task);
 					System.out.println("crawl: " + task.getUrl() + " completed");
+					} else {
+						System.out.println("crawl: " + task.getUrl() + " failed.");
+						workload.revertWork(task.getId());						
+						System.out.println("Claim reverted.");
+					}
 				}
 			}
 		} catch (InterruptedException e) {

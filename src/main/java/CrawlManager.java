@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.crawljax.core.CrawljaxRunner;
+import com.crawljax.core.ExitNotifier.ExitStatus;
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 
 /**
@@ -102,13 +103,14 @@ public class CrawlManager {
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * @param args arguments which need to be send to crawljax.
 	 */
-	public void runCrawler(URL website, File outputdir, Map<String, String> args) {		
+	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {		
 		CrawljaxConfiguration config = ConfigurationMapper.convert(website, outputdir, args);
 
 		CrawljaxRunner runner = new CrawljaxRunner(config);
 		runner.call();
-		
-		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ".");
+		ExitStatus reason = runner.getReason();
+		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ". Reason: " + reason.toString());
+		return (!reason.equals(ExitStatus.ERROR));
 	}
 	
 	/**
