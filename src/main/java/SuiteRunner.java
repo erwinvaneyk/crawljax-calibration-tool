@@ -1,11 +1,8 @@
 package main.java;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +12,6 @@ import java.util.Map.Entry;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.ini4j.Ini;
-import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
 import main.java.distributed.ConnectionManager;
@@ -104,7 +100,6 @@ public class SuiteRunner {
 				}
 				
 				for (WorkTask task : workTasks) {
-					//Map<String, String> args = suite.buildSettings(task.getUrl());
 					List<String> sections = new ArrayList<String>();
 					sections.add(task.getUrl().getHost());
 					sections.add(ConfigurationIni.INI_SECTION_COMMON);
@@ -112,8 +107,6 @@ public class SuiteRunner {
 					File dir = CrawlManager.generateOutputDir(task.getUrl());
 					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
 					if(hasNoError) {
-						System.out.println("Crawl seems succesfull, submitting results..");
-	
 						try {
 							resultprocessor.uploadAction(task.getId(), dir.toString());
 						} catch (ResultProcessorException e) {
@@ -122,17 +115,14 @@ public class SuiteRunner {
 						workload.checkoutWork(task);
 						System.out.println("crawl: " + task.getUrl() + " completed");
 					} else {
-						System.out.println("crawl: " + task.getUrl() + " failed.");
 						workload.revertWork(task.getId());						
-						System.out.println("Claim reverted.");
+						System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
 					}
 				}
 			}
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted; worker stopped.");
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+		} 
 	}
 
 	private void actionFlushWebsitesFile() {
@@ -154,25 +144,15 @@ public class SuiteRunner {
 	}
 	
 	private void actionFlushSettingsFile() {
-		try {
+		IConnectionManager conn = new ConnectionManager();
+		IConfigurationDAO conf = new ConfigurationDAO(conn);
+		Ini ini = new ConfigurationIni().getIni();
 
-			IConnectionManager conn = new ConnectionManager();
-			IConfigurationDAO conf = new ConfigurationDAO(conn);
-			Ini ini = new Ini(new FileReader(ConfigurationIni.DEFAULT_SETTINGS_DIR + ConfigurationIni.DEFAULT_SETTINGS_INI));
-
-			for (Section section : ini.values()) {
-				for (Entry<String, String> el : section.entrySet()) {
-					conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
-				}
+		for (Section section : ini.values()) {
+			for (Entry<String, String> el : section.entrySet()) {
+				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
 			}
-		} catch (InvalidFileFormatException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
-		
 	}
 	
 	private void actionLocalCrawler() {

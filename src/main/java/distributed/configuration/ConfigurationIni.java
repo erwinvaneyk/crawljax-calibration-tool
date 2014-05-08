@@ -60,6 +60,12 @@ public class ConfigurationIni implements IConfigurationDAO {
 			logger.warn("Common section could not be found in INI-file");
 		ini = newIni;
 	}
+	
+
+	public Ini getIni() {
+		return ini;
+	}
+
 
 	public Map<String, String> getConfiguration() {
 		// Load common settings{

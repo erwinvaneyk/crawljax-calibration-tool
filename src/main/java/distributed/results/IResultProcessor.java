@@ -1,8 +1,5 @@
 package main.java.distributed.results;
 
-import java.io.IOException;
-import java.sql.SQLException;
-
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the server. 
  */
