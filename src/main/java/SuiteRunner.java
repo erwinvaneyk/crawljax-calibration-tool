@@ -105,10 +105,13 @@ public class SuiteRunner {
 					sections.add(ConfigurationIni.INI_SECTION_COMMON);
 					Map<String, String> args = config.getConfiguration(sections);
 					File dir = CrawlManager.generateOutputDir(task.getUrl());
+					// Crawl
+					java.util.Date date= new java.util.Date();
+					long timeStart = date.getTime();
 					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
 					if(hasNoError) {
 						try {
-							resultprocessor.uploadAction(task.getId(), dir.toString());
+							resultprocessor.uploadAction(task.getId(), dir.toString(), date.getTime() - timeStart);
 						} catch (ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
