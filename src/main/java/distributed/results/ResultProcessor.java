@@ -22,7 +22,7 @@ public class ResultProcessor implements IResultProcessor {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private IConnectionManager con;
-	private Long duration;
+	private long duration;
 
 	public ResultProcessor(IConnectionManager conn) {
 		this.con = conn;
@@ -34,7 +34,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The directory that contains the output of the crawl
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadAction(int id, String dir, Long duration) throws ResultProcessorException {
+	public void uploadAction(int id, String dir, long duration) throws ResultProcessorException {
 		this.duration = duration;
 		// Json
 		File jsonFile = this.findFile(dir, "result.json");
