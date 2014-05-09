@@ -110,20 +110,20 @@ public class SuiteRunner {
 						// Crawl
 						long timeStart = new Date().getTime();
 						boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
-						if(hasNoError) {
-							try {
-								resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
-							} catch(ResultProcessorException e) {
-								System.out.println(e.getMessage());
-							}
-							workload.checkoutWork(task);
-							System.out.println("crawl: " + task.getUrl() + " completed");
-						} else {
-							workload.revertWork(task.getId());						
-							System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
+						if(!hasNoError) {
+							throw new Exception("Crawljax returned an error code");
 						}
+						try {
+							resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
+						} catch(ResultProcessorException e) {
+							System.out.println(e.getMessage());
+						}
+						workload.checkoutWork(task);
+						System.out.println("crawl: " + task.getUrl() + " completed");
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
+						workload.revertWork(task.getId());						
+						System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
 					}
 				}
 			}

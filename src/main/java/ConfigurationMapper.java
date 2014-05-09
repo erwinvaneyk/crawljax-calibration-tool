@@ -22,8 +22,6 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
  *
  */
 public class ConfigurationMapper {
-
-	final static Logger logger = LoggerFactory.getLogger("JFJIJ");
 	
 	public static CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
 
@@ -47,7 +45,6 @@ public class ConfigurationMapper {
 		assert key != null;
 		assert value != null;
 		
-		logger.warn("builder={}, key={}, value={}",builder, key, value);
 		// Standard settings
 		if(key.equalsIgnoreCase("d") || key.equalsIgnoreCase("depth")) {
 			builder.setMaximumDepth(Integer.parseInt(value));
