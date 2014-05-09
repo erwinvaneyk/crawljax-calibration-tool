@@ -56,7 +56,7 @@ public class TestResultProcessor {
 		}
 	}
 	
-	private void mockAndRun(boolean dbContainsTuple) throws SQLException, ResultProcessorException {
+	private void mockAndRun(boolean dbContainsTuple, int updateSucces) throws SQLException, ResultProcessorException {
 		// Mock objects
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
@@ -65,7 +65,7 @@ public class TestResultProcessor {
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.prepareStatement(anyString())).thenReturn(statement);
-		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeUpdate()).thenReturn(updateSucces);
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
@@ -145,7 +145,7 @@ public class TestResultProcessor {
 	public void testUploadAction() throws ResultProcessorException, SQLException {
 		makeFileStructure();
 		
-		mockAndRun(false);
+		mockAndRun(false, 1);
 	}
 	
 	/**
@@ -155,7 +155,7 @@ public class TestResultProcessor {
 	 */
 	@Test (expected = ResultProcessorException.class)
 	public void testMissingFiles() throws ResultProcessorException, SQLException {
-		mockAndRun(false);
+		mockAndRun(false, 1);
 	}
 	
 	/**
@@ -167,7 +167,19 @@ public class TestResultProcessor {
 	public void testContainsTuple() throws ResultProcessorException, SQLException {
 		makeFileStructure();
 		
-		mockAndRun(true);
+		mockAndRun(true, 1);
+	}
+	
+	/**
+	 * Test if a ResultProcessorException is thrown if the update of a json-file
+	 * @throws SQLException
+	 * @throws ResultProcessorException
+	 */
+	@Test (expected = ResultProcessorException.class)
+	public void testFailedInsertJson() throws SQLException, ResultProcessorException {
+		makeFileStructure();
+		
+		mockAndRun(false, 0);
 	}
 	
 	/**
