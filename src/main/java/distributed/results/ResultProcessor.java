@@ -22,6 +22,7 @@ public class ResultProcessor implements IResultProcessor {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private IConnectionManager con;
+	private Long duration;
 
 	public ResultProcessor(IConnectionManager conn) {
 		this.con = conn;
@@ -33,8 +34,8 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The directory that contains the output of the crawl
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadAction(int id, String dir) throws ResultProcessorException {
-
+	public void uploadAction(int id, String dir, Long duration) throws ResultProcessorException {
+		this.duration = duration;
 		// Json
 		File jsonFile = this.findFile(dir, "result.json");
 		this.uploadJson(id, jsonFile);
@@ -112,11 +113,12 @@ public class ResultProcessor implements IResultProcessor {
 			if (this.tableContainsJson(id)) {
 				logger.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
 			} else {
-				String sql = "INSERT INTO TestResults(id,JsonResults) VALUES(?,?)";
+				String sql = "INSERT INTO TestResults(id,JsonResults,duration) VALUES(?,?,?)";
 				PreparedStatement statement = con.getConnection().prepareStatement(sql);
 				
 				statement.setInt(1, id);
 				statement.setString(2, fileContent);
+				statement.setFloat(3, this.duration);
 				statement.executeUpdate();	
 				
 				System.out.println("Result of the crawl is sent to the database.");
