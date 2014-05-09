@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -106,12 +107,11 @@ public class SuiteRunner {
 					Map<String, String> args = config.getConfiguration(sections);
 					File dir = CrawlManager.generateOutputDir(task.getUrl());
 					// Crawl
-					java.util.Date date= new java.util.Date();
-					long timeStart = date.getTime();
+					long timeStart = new Date().getTime();
 					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
 					if(hasNoError) {
 						try {
-							resultprocessor.uploadAction(task.getId(), dir.toString(), date.getTime() - timeStart);
+							resultprocessor.uploadAction(task.getId(), dir.toString(), new Date().getTime() - timeStart);
 						} catch (ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
