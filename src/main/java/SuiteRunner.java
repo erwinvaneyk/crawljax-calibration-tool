@@ -101,25 +101,29 @@ public class SuiteRunner {
 				}
 				
 				for (WorkTask task : workTasks) {
-					List<String> sections = new ArrayList<String>();
-					sections.add(task.getUrl().getHost());
-					sections.add(ConfigurationIni.INI_SECTION_COMMON);
-					Map<String, String> args = config.getConfiguration(sections);
-					File dir = CrawlManager.generateOutputDir(task.getUrl());
-					// Crawl
-					long timeStart = new Date().getTime();
-					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
-					if(hasNoError) {
-						try {
-							resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
-						} catch (ResultProcessorException e) {
-							System.out.println(e.getMessage());
+					try {
+						List<String> sections = new ArrayList<String>();
+						sections.add(task.getUrl().getHost());
+						sections.add(ConfigurationIni.INI_SECTION_COMMON);
+						Map<String, String> args = config.getConfiguration(sections);
+						File dir = CrawlManager.generateOutputDir(task.getUrl());
+						// Crawl
+						long timeStart = new Date().getTime();
+						boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
+						if(hasNoError) {
+							try {
+								resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
+							} catch(ResultProcessorException e) {
+								System.out.println(e.getMessage());
+							}
+							workload.checkoutWork(task);
+							System.out.println("crawl: " + task.getUrl() + " completed");
+						} else {
+							workload.revertWork(task.getId());						
+							System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
 						}
-						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getUrl() + " completed");
-					} else {
-						workload.revertWork(task.getId());						
-						System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
+					} catch (Exception e) {
+						System.out.println(e.getMessage());
 					}
 				}
 			}

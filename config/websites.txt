@@ -34,7 +34,7 @@ http://www.messi.com/
 http://www.rogerfederer.com/
 http://www.minigames.nl/
 http://www.nespresso.com/
-purecss.io
+http://purecss.io/
 http://www.knmi.nl/
 http://www.avans.nl/
 http://www.mathworks.nl/
