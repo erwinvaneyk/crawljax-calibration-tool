@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>crawljax-functional-testing-suite</groupId>
   <artifactId>crawljax-functional-testing-suite</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.2</version>
   <name>Crawljax Functional Testing Suite</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
