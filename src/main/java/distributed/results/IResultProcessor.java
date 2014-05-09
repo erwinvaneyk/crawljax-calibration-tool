@@ -11,6 +11,6 @@ public interface IResultProcessor {
 	 * @param dir The directory that contains the output of the crawl 
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadAction(int id, String dir) throws ResultProcessorException;
+	public void uploadAction(int id, String dir, Long duration) throws ResultProcessorException;
 
 }
