@@ -69,14 +69,10 @@ public class CrawlManager {
 			IConfigurationDAO config = new ConfigurationIni();
 			while(!websiteQueue.isEmpty()) {
 				URL website = new URL(websiteQueue.poll());
-				try {
-						Map<String,String> args = config.getConfiguration(website.toString());
-						File outputDir = generateOutputDir(website);
-						runCrawler(website, outputDir, args);
-						outputdirs.add(outputDir);
-				} catch (MalformedURLException e) {
-					logger.warn("Invalid uri provided: " + website);
-				}
+				Map<String,String> args = config.getConfiguration(website.toString());
+				File outputDir = generateOutputDir(website);
+				runCrawler(website, outputDir, args);
+				outputdirs.add(outputDir);
 			}
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -92,7 +88,7 @@ public class CrawlManager {
 	 * @throws URISyntaxException website contains an invalid syntax
 	 * @throws MalformedURLException 
 	 */
-	public static File generateOutputDir(URL website) throws MalformedURLException {
+	public static File generateOutputDir(URL website) {
 		Date date= new Date();
 		Timestamp timestamp = new Timestamp(date.getTime());
 		return new File(DEFAULT_OUTPUT_DIR + "/" + website.getHost() + "-" + timestamp.getTime());

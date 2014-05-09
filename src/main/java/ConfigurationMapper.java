@@ -6,8 +6,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import main.java.plugins.StoreDOMPlugin;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.crawljax.browser.EmbeddedBrowser.BrowserType;
+import com.crawljax.core.configuration.BrowserConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
@@ -17,8 +22,6 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
  *
  */
 public class ConfigurationMapper {
-
-	final static Logger logger = LoggerFactory.getLogger("JFJIJ");
 	
 	public static CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
 
@@ -28,6 +31,7 @@ public class ConfigurationMapper {
 		// Add plugins
 		builder.addPlugin(new CrawlOverview());
 		builder.addPlugin(new StoreDOMPlugin());
+		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.FIREFOX, 1));
 		
 		// arguments
 		for( Entry<String, String> entry : args.entrySet()) {
@@ -41,7 +45,6 @@ public class ConfigurationMapper {
 		assert key != null;
 		assert value != null;
 		
-		logger.warn("builder={}, key={}, value={}",builder, key, value);
 		// Standard settings
 		if(key.equalsIgnoreCase("d") || key.equalsIgnoreCase("depth")) {
 			builder.setMaximumDepth(Integer.parseInt(value));
@@ -55,7 +58,13 @@ public class ConfigurationMapper {
 			builder.crawlRules().waitAfterReloadUrl(Long.parseLong(value), TimeUnit.MILLISECONDS);
 		} else if(key.equalsIgnoreCase("waitAfterEvent")) {
 			builder.crawlRules().waitAfterEvent(Long.parseLong(value), TimeUnit.MILLISECONDS);
-		} 
+		} else if(key.equalsIgnoreCase("b") || key.equalsIgnoreCase("browser")) {
+			for (BrowserType b : BrowserType.values()) {
+				if (b.name().equalsIgnoreCase(value)) {
+					builder.setBrowserConfig(new BrowserConfiguration(b, 1));
+				}
+			}
+		}
 		// TODO browsertype and parallel
 	}
 }

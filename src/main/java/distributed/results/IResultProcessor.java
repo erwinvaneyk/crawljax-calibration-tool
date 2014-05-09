@@ -1,8 +1,5 @@
 package main.java.distributed.results;
 
-import java.io.IOException;
-import java.sql.SQLException;
-
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the server. 
  */
@@ -14,6 +11,11 @@ public interface IResultProcessor {
 	 * @param dir The directory that contains the output of the crawl 
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadAction(int id, String dir) throws ResultProcessorException;
+	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException;
 
+	public void uploadDom(int id, String dir) throws ResultProcessorException;
+		
+	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException;
+	
+	public void uploadScreenshot(int id, String dir) throws ResultProcessorException;
 }
