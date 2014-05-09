@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,52 +23,99 @@ public class ResultProcessor implements IResultProcessor {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private IConnectionManager con;
-	private long duration;
 
 	public ResultProcessor(IConnectionManager conn) {
 		this.con = conn;
 	}
 	
 	/**
-	 * Upload the resulting JSON file of a crawled wesite to the sql database.
+	 * Upload the resulting all the results to the database.
 	 * @param website The crawled website that genarates the output folder
 	 * @param dir The directory that contains the output of the crawl
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadAction(int id, String dir, long duration) throws ResultProcessorException {
-		this.duration = duration;
-		// Json
-		File jsonFile = this.findFile(dir, "result.json");
-		this.uploadJson(id, jsonFile);
+	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException {
 		
-		// DOM
-		File doms = this.findFile(dir, "doms");
-		File[] domState = doms.listFiles();
-		
-		logger.info(domState.length +" domstates found");
-		for (int i = 0; i < domState.length; i++) {
-			this.makeTupleAndinsertDom(id, domState[i]);
-		}
-		
-		// strippedDOM
-		File strippesDoms = this.findFile(dir, "strippedDOM");
-		File[] strippedDomState = strippesDoms.listFiles();
-		
-		logger.info(strippedDomState.length +" strippedDom-states found");
-		for (int i = 0; i < strippedDomState.length; i++) {
-			this.uploadStrippedDom(id, strippedDomState[i]);
-		}
-
-		// Screenshots
-		File screenshots = this.findFile(dir, "screenshots");
-		File[] screenshot = screenshots.listFiles();
-		
-		for (int i = 0; i < screenshot.length; i++) {
-			this.uploadScreenshot(id, screenshot[i]);
-		}
+		this.uploadJson(id, dir, duration);
+		this.uploadDom(id, dir);
+		this.uploadStrippedDom(id, dir);
+		this.uploadScreenshot(id, dir);
 				
+		this.removeDir(dir);
+		
 		con.closeConnection();
 	}
+	
+	/**
+	 * Upload only the result.json file to the database.
+	 * @param id The id of the website
+	 * @param dir The output directory
+	 * @param duration The duration of the crawl
+	 * @throws ResultProcessorException
+	 */
+	public void uploadJson(int id, String dir, long duration) throws ResultProcessorException {
+		File jsonFile = this.findFile(dir, "result.json");
+		this.uploadJson(id, jsonFile, duration);
+	}
+	
+	/**
+	 * Upload only the dom of every state to the database.
+	 * @param id The id of the website
+	 * @param dir The output directory
+	 * @throws ResultProcessorException
+	 */
+	public void uploadDom(int id, String dir) throws ResultProcessorException {
+		//TODO: First insert tuple with only stateId and websiteId and then insert dom
+		File dirOfMap = this.findFile(dir, "doms");
+		File[] files = dirOfMap.listFiles();
+		
+		logger.info(files.length +" domstates found");
+		for (int i = 0; i < files.length; i++) {
+			this.makeTupleAndinsertDom(id, files[i]);
+		}
+	}
+	
+	/**
+	 * Upload only the stripped dom of every state to the database.
+	 * @param id The id of the website
+	 * @param dir The output directory
+	 * @throws ResultProcessorException
+	 */
+	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException {
+		File dirOfMap = this.findFile(dir, "strippedDOM");
+		File[] files = dirOfMap.listFiles();
+		
+		logger.info(files.length +" stripped dom-states found");
+		for (int i = 0; i < files.length; i++) {
+			this.uploadStrippedDom(id, files[i]);
+		}
+	}
+	
+	/**
+	 * Upload only the screenshot of every state to the database.
+	 * @param id The id of the website
+	 * @param dir The output directory
+	 * @throws ResultProcessorException
+	 */
+	public void uploadScreenshot(int id, String dir) throws ResultProcessorException {
+		File dirOfMap = this.findFile(dir, "screenshots");
+		File[] files = dirOfMap.listFiles();
+		
+		logger.info(files.length +" screenshots found");
+		for (int i = 0; i < files.length; i++) {
+			this.uploadScreenshotAction(id, files[i]);
+		}
+	}
+	
+	private void removeDir(String dir) {
+		try {
+			FileUtils.deleteDirectory(new File(dir));
+			logger.debug("Output directory removed.");
+		} catch (IOException e) {
+			logger.error("IOException while removing the output directory: " + e.getMessage());
+		}
+	}
+	
 
 	/**
 	 * Find the JSON file in the generated output of Crawljax.
@@ -99,7 +147,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param f The file which should be uploaded
 	 * @throws ResultProcessorException 
 	 */
-	private void uploadJson(int id, final File f) throws ResultProcessorException {
+	private void uploadJson(int id, final File f, long duration) throws ResultProcessorException {
 		BufferedReader bufr = null;
 		try {
 			String fileContent = "";
@@ -118,7 +166,7 @@ public class ResultProcessor implements IResultProcessor {
 				
 				statement.setInt(1, id);
 				statement.setString(2, fileContent);
-				statement.setFloat(3, this.duration);
+				statement.setFloat(3, duration);
 				statement.executeUpdate();	
 				
 				System.out.println("Result of the crawl is sent to the database.");
@@ -128,7 +176,7 @@ public class ResultProcessor implements IResultProcessor {
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
 		} catch (FileNotFoundException e) {
 			logger.error("FileNotFoundException: " + e.getMessage());
-			throw new ResultProcessorException(e.getMessage());
+			throw new ResultProcessorException("FileNotFoundException: the json-file cannot be found");
 		} catch (IOException e) {
 			logger.error("IOException: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of the json-file");
@@ -192,7 +240,7 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 	
-	private void uploadScreenshot(int id, final File f) throws ResultProcessorException {
+	private void uploadScreenshotAction(int id, final File f) throws ResultProcessorException {
 		FileInputStream fr = null;
 		try {
 			fr = new FileInputStream(f);
@@ -232,7 +280,7 @@ public class ResultProcessor implements IResultProcessor {
 		return fileName.substring(0, indexOfExtension);
 	}
 	
-	private boolean tableContainsTuple(int id, String stateId) {
+	private boolean tableContainsTuple(int id, String stateId) throws ResultProcessorException {
 		boolean res = false;
 		
 		try {
@@ -249,6 +297,7 @@ public class ResultProcessor implements IResultProcessor {
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException: It is not possible to check if the table contains a tuple with id=" + id + " and StateId=" + stateId + ". Message: " + e.getMessage());
+			throw new ResultProcessorException("SQLException during the search of excisting tuple");
 		}
 		return res;
 	}

@@ -111,7 +111,7 @@ public class SuiteRunner {
 					boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
 					if(hasNoError) {
 						try {
-							resultprocessor.uploadAction(task.getId(), dir.toString(), new Date().getTime() - timeStart);
+							resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
 						} catch (ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
