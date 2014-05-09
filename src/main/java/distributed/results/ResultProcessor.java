@@ -35,7 +35,6 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException {
-		
 		this.uploadJson(id, dir, duration);
 		this.uploadDom(id, dir);
 		this.uploadStrippedDom(id, dir);
@@ -65,13 +64,12 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadDom(int id, String dir) throws ResultProcessorException {
-		//TODO: First insert tuple with only stateId and websiteId and then insert dom
 		File dirOfMap = this.findFile(dir, "doms");
 		File[] files = dirOfMap.listFiles();
 		
 		logger.info(files.length +" domstates found");
 		for (int i = 0; i < files.length; i++) {
-			this.makeTupleAndinsertDom(id, files[i]);
+			this.uploadDomAction(id, files[i]);
 		}
 	}
 	
@@ -116,13 +114,6 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 	
-
-	/**
-	 * Find the JSON file in the generated output of Crawljax.
-	 * @param dir The directory of the output of Crawljax
-	 * @return the JSON file with the results of the crawl
-	 * @throws ResultProcessorException 
-	 */
 	private File findFile(final String dir, String file) throws ResultProcessorException  {
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
@@ -142,11 +133,6 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 
-	/**
-	 * Upload file to sql database.
-	 * @param f The file which should be uploaded
-	 * @throws ResultProcessorException 
-	 */
 	private void uploadJson(int id, final File f, long duration) throws ResultProcessorException {
 		BufferedReader bufr = null;
 		try {
@@ -167,9 +153,14 @@ public class ResultProcessor implements IResultProcessor {
 				statement.setInt(1, id);
 				statement.setString(2, fileContent);
 				statement.setFloat(3, duration);
-				statement.executeUpdate();	
+				int insert = statement.executeUpdate();	
 				
-				System.out.println("Result of the crawl is sent to the database.");
+				if (insert == 1) {
+					logger.info("The result.json file is sent to the database");
+				} else {
+					logger.warn("The result.json file is NOT sent to the database");
+					throw new ResultProcessorException("Can not insert the json-file");
+				}
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
@@ -190,49 +181,45 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 	
-	private void makeTupleAndinsertDom(int id, final File f) throws ResultProcessorException {
+	private void uploadDomAction(int id, final File f) throws ResultProcessorException {
 		try {
 			String fileContent = this.readFile(f);
 			String stateId = getStateId(f);
 
-			if (this.tableContainsTuple(id, stateId)) {
-				logger.warn("There already excist a dom for this state in the database");
-			} else {
-				String sql = "INSERT INTO DomResults(WebsiteId,StateId,Dom) VALUES(?,?,?)";
-				PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
-				
-				statement.setInt(1, id);
-				statement.setString(2, stateId);
-				statement.setString(3, fileContent);
-				
-				int result = statement.executeUpdate();	
-				if(result != 1) {
-					logger.info("A problem while insterted a dom in the database");
-				}
+			if (!this.tableContainsTuple(id, stateId)) {
+				this.makeTuple(id, f);
 			}
+			this.insertInTuple("Dom", fileContent, id, stateId);
+			
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
 		}
 	}
 	
+	private int insertInTuple(String column, String content, int websiteId, String stateId) throws SQLException {
+		String update  = "UPDATE DomResults SET " + column + " = ? WHERE WebsiteId = ? AND StateId = ?";
+		PreparedStatement statement = con.getConnection().prepareStatement(update);
+		
+		statement.setString(1, content);
+		statement.setInt(2, websiteId);
+		statement.setString(3, stateId);
+		
+		return statement.executeUpdate();
+	}
+	
 	private void uploadStrippedDom(int id, final File f) throws ResultProcessorException {
 		try {
 			String fileContent = this.readFile(f);
 			String stateId = getStateId(f);
+		
+			if (!this.tableContainsTuple(id, stateId)) {
+				this.makeTuple(id, f);
+			}
+			int update = this.insertInTuple("StrippedDOM", fileContent, id, stateId);
 			
-			if (!stateId.contains("small")) {
-				String sql = "UPDATE DomResults SET StrippedDom = ? WHERE WebsiteId = ? AND StateId = ?";
-				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
-				
-				prepStat.setString(1, fileContent);
-				prepStat.setInt(2, id);
-				prepStat.setString(3, stateId);
-				
-				int result = prepStat.executeUpdate();
-				if(result != 1) {
-					logger.warn("A problem while inserting a screenshot into the database.");
-				}
+			if(update != 1) {
+				logger.warn("A problem while inserting a screenshot into the database.");
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
@@ -247,6 +234,9 @@ public class ResultProcessor implements IResultProcessor {
 			String stateId = getStateId(f);
 			
 			if (!stateId.contains("small")) {
+				if (!this.tableContainsTuple(id, stateId)) {
+					this.makeTuple(id, f);
+				}
 				String sql = "UPDATE DomResults SET Screenshot = ? WHERE WebsiteId = ? AND StateId = ?";
 				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
 				
@@ -338,5 +328,26 @@ public class ResultProcessor implements IResultProcessor {
 			throw new ResultProcessorException("Could not read file " + f.getName());
 		}
 		return fileContent;
+	}
+	
+	private void makeTuple(int id, final File f) throws ResultProcessorException {
+		try {
+			String stateId = getStateId(f);
+
+			String sql = "INSERT INTO DomResults(WebsiteId,StateId) VALUES(?,?)";
+			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
+			
+			statement.setInt(1, id);
+			statement.setString(2, stateId);
+			
+			int result = statement.executeUpdate();	
+			if(result != 1) {
+				logger.info("A problem while insterted a dom in the database");
+			}
+		
+		} catch (SQLException e) {
+			logger.error("SQLException: " + e.getMessage());
+			throw new ResultProcessorException("SQLException: can not make new tupe with id=" + id + " and StateId=" + getStateId(f));
+		}
 	}
 }

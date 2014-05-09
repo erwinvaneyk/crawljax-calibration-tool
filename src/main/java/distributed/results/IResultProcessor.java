@@ -13,4 +13,9 @@ public interface IResultProcessor {
 	 */
 	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException;
 
+	public void uploadDom(int id, String dir) throws ResultProcessorException;
+		
+	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException;
+	
+	public void uploadScreenshot(int id, String dir) throws ResultProcessorException;
 }
