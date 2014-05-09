@@ -14,22 +14,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 
 import main.java.distributed.ConnectionManager;
-import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.workload.WorkTask;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,10 +50,27 @@ public class TestResultProcessor {
 	public void removeFileStructure() {
 		try {
 			FileUtils.deleteDirectory(new File("TestDir"));
+			logger.debug("Test directory removed.");
 		} catch (IOException e) {
 			logger.error("IOException while removing the TestDir directory: " + e.getMessage());
 		}
-		logger.debug("Test directory removed.");
+	}
+	
+	private void mockAndRun(boolean dbContainsTuple) throws SQLException, ResultProcessorException {
+		// Mock objects
+		ConnectionManager connMgr = mock(ConnectionManager.class);
+		Connection conn = mock(Connection.class);
+		PreparedStatement statement = mock(PreparedStatement.class);
+		ResultSet resultset = mock(ResultSet.class);
+		// Mock methods
+		when(connMgr.getConnection()).thenReturn(conn);
+		when(conn.prepareStatement(anyString())).thenReturn(statement);
+		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeQuery()).thenReturn(resultset);
+		when(resultset.next()).thenReturn(dbContainsTuple);
+		// Method under inspection
+		ResultProcessor resProc = new ResultProcessor(connMgr);
+		resProc.uploadResults(1, "TestDir", 10L);
 	}
 	
 	/**
@@ -120,6 +130,12 @@ public class TestResultProcessor {
 		}
 	}
 	
+	private void makeFileStructure() {
+		makeJsonStub();
+		makeScreenshotStub();
+		makeDomStub("doms");
+		makeDomStub("strippedDOM");
+	}
 	/**
 	 * Test a good run
 	 * @throws ResultProcessorException
@@ -127,27 +143,9 @@ public class TestResultProcessor {
 	 */
 	@Test
 	public void testUploadAction() throws ResultProcessorException, SQLException {
-		// Make the correct file structure
-		makeJsonStub();
-		makeScreenshotStub();
-		makeDomStub("doms");
-		makeDomStub("strippedDOM");
+		makeFileStructure();
 		
-		// Mock objects
-		ConnectionManager connMgr = mock(ConnectionManager.class);
-		Connection conn = mock(Connection.class);
-		PreparedStatement statement = mock(PreparedStatement.class);
-		ResultSet resultset = mock(ResultSet.class);
-		// Mock methods
-		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenReturn(statement);
-		when(statement.executeUpdate(anyString())).thenReturn(1);
-		when(statement.executeQuery()).thenReturn(resultset);
-		when(resultset.next()).thenReturn(false);
-				
-		
-		IResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadAction(1, System.getProperty("user.dir") + "/TestDir", 10L);
+		mockAndRun(false);
 	}
 	
 	/**
@@ -155,9 +153,31 @@ public class TestResultProcessor {
 	 * @throws ResultProcessorException
 	 * @throws SQLException 
 	 */
-	@Ignore //(expected = ResultProcessorException.class)
-	public void testMissingJsonFile() throws ResultProcessorException, SQLException {
-		makeScreenshotStub();
+	@Test (expected = ResultProcessorException.class)
+	public void testMissingFiles() throws ResultProcessorException, SQLException {
+		mockAndRun(false);
+	}
+	
+	/**
+	 * Test a good run where the database already contains the tuple that need te be inserted
+	 * @throws ResultProcessorException
+	 * @throws SQLException 
+	 */
+	@Test
+	public void testContainsTuple() throws ResultProcessorException, SQLException {
+		makeFileStructure();
+		
+		mockAndRun(true);
+	}
+	
+	/**
+	 * Test a SQLException in the sql-statement
+	 * @throws SQLException
+	 * @throws ResultProcessorException
+	 */
+	@Test (expected = ResultProcessorException.class)
+	public void testSQLException() throws SQLException, ResultProcessorException {
+		makeFileStructure();
 		
 		// Mock objects
 		ConnectionManager connMgr = mock(ConnectionManager.class);
@@ -166,35 +186,39 @@ public class TestResultProcessor {
 		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenReturn(statement);
+		when(conn.prepareStatement(anyString())).thenThrow(new SQLException());
 		when(statement.executeUpdate(anyString())).thenReturn(1);
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
 		ResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadAction(1, "TestDir", 10L);
+		resProc.uploadResults(1, "TestDir", 10L);
 	}
 	
 	/**
-	 * Test a run with missing Screenshot directory
+	 * Test a SQLException in the sql-statement
+	 * @throws SQLException
 	 * @throws ResultProcessorException
-	 * @throws SQLException 
 	 */
-	@Ignore //(expected = ResultProcessorException.class)
-	public void testMissingScreenshotDirectory() throws ResultProcessorException, SQLException {
-		makeJsonStub();
+	@Test (expected = ResultProcessorException.class)
+	public void testiets() throws SQLException, ResultProcessorException {
+		makeFileStructure();
 		
 		// Mock objects
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
 		PreparedStatement statement = mock(PreparedStatement.class);
+		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenReturn(statement);
+		when(conn.prepareStatement(anyString())).thenThrow(new SQLException());
 		when(statement.executeUpdate(anyString())).thenReturn(1);
-		
+		when(statement.executeQuery()).thenReturn(resultset);
+		when(resultset.next()).thenReturn(false);
 		// Method under inspection
 		ResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadAction(1, "TestDir", 10L);
+		resProc.uploadResults(1, "TestDir", 10L);
 	}
+	
+	
 }
