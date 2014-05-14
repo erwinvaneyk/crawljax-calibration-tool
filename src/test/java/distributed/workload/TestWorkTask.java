@@ -19,10 +19,6 @@ public class TestWorkTask {
 		assertEquals(wt.getURL(), url);
 	}
 
-	@Test(expected=AssertionError.class)
-	public void testWorkTaskInvalidURL() {
-		new WorkTask(1,(URL) null);
-	}
 
 	@Test
 	public void testEqualsObjectSame() throws MalformedURLException {

@@ -1,7 +1,6 @@
 package main.java.distributed.results;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
@@ -14,7 +13,7 @@ import com.j256.ormlite.table.DatabaseTable;
 	private final WebsiteResult websiteResult;
 	
 	@DatabaseField (uniqueCombo = true, canBeNull = false) 
-	private final int stateId;
+	private final String stateId;
 	
 	@DatabaseField
 	private final String dom;
@@ -30,32 +29,10 @@ import com.j256.ormlite.table.DatabaseTable;
 	
 	public StateResult() {
 		websiteResult = null;
-		stateId = 0;
+		stateId = "";
 		dom = "";
 		strippedDom = "";
 		strippedDomHash = null;
 		screenshot = null;
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		StateResult other = (StateResult) obj;
-		if (dom == null) {
-			if (other.dom != null)
-				return false;
-		} else if (!dom.equals(other.dom))
-			return false;
-		if (strippedDom == null) {
-			if (other.strippedDom != null)
-				return false;
-		} else if (!strippedDom.equals(other.strippedDom))
-			return false;
-		return true;
-	}	
 }
