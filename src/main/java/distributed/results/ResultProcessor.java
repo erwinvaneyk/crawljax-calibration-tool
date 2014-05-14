@@ -15,6 +15,8 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
+
 import main.java.distributed.IConnectionManager;
 
 /**
@@ -28,6 +30,7 @@ public class ResultProcessor implements IResultProcessor {
 	private static final String COLUMN_ID_STATE = "stateId";
 	private static final String COLUMN_DOM = "dom";
 	private static final String COLUMN_STRIPPEDDOM = "strippedDom";
+	private static final String COLUMN_STRIPPEDDOMHASH = "strippedDomHash";
 	private static final String COLUMN_SCREENSHOT = "screenshot";
 	
 	private static final String TABLE_WEBSITE_RESULTS = "WebsiteResults";
@@ -214,7 +217,7 @@ public class ResultProcessor implements IResultProcessor {
 			String stateId = getStateId(f);
 
 			if (!this.tableContainsTuple(id, stateId)) {
-				this.makeTuple(id, f);
+				this.makeTuple(id, stateId);
 			}
 			this.insertInTuple(COLUMN_DOM, fileContent, id, stateId);
 			
@@ -239,13 +242,28 @@ public class ResultProcessor implements IResultProcessor {
 		try {
 			String fileContent = this.readFile(f);
 			String stateId = getStateId(f);
-		
-			if (!this.tableContainsTuple(id, stateId)) {
-				this.makeTuple(id, f);
-			}
-			int update = this.insertInTuple(COLUMN_STRIPPEDDOM, fileContent, id, stateId);
+			long hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent);
 			
-			if(update != 1) {
+			String hashBits = Long.toBinaryString(hash);
+	
+			if (!this.tableContainsTuple(id, stateId)) {
+				this.makeTuple(id, stateId);
+			}
+			
+			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=?, " + COLUMN_STRIPPEDDOMHASH + "=? WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
+			System.out.println(update);
+			PreparedStatement statement = con.getConnection().prepareStatement(update);
+			
+			statement.setString(1, fileContent);
+			statement.setString(2, hashBits);
+			statement.setInt(3, id);
+			statement.setString(4, stateId);
+			
+			int updateSt = statement.executeUpdate();
+			
+			
+			
+			if(updateSt != 1) {
 				logger.warn("A problem while inserting a screenshot into the database.");
 			}
 		} catch (SQLException e) {
@@ -262,7 +280,7 @@ public class ResultProcessor implements IResultProcessor {
 			
 			if (!stateId.contains("small")) {
 				if (!this.tableContainsTuple(id, stateId)) {
-					this.makeTuple(id, f);
+					this.makeTuple(id, stateId);
 				}
 				String sql = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_SCREENSHOT + " = ? WHERE " + COLUMN_ID_WEBSITE + " = ? AND " + COLUMN_ID_STATE + " = ?";
 				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
@@ -357,10 +375,8 @@ public class ResultProcessor implements IResultProcessor {
 		return fileContent;
 	}
 	
-	private void makeTuple(int id, final File f) throws ResultProcessorException {
+	private void makeTuple(int id, String stateId) throws ResultProcessorException {
 		try {
-			String stateId = getStateId(f);
-
 			String sql = "INSERT INTO " + TABLE_STATE_RESULTS + "(" + COLUMN_ID_WEBSITE + ","+COLUMN_ID_STATE+") VALUES(?,?)";
 			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
 			
@@ -374,7 +390,7 @@ public class ResultProcessor implements IResultProcessor {
 		
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
-			throw new ResultProcessorException("SQLException: can not make new tupe with id=" + id + " and StateId=" + getStateId(f));
+			throw new ResultProcessorException("SQLException: can not make new tupe with id=" + id + " and StateId=" + stateId);
 		}
 	}
 }

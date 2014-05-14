@@ -22,6 +22,9 @@ import com.j256.ormlite.table.DatabaseTable;
 	@DatabaseField
 	private final String strippedDom;
 	
+	@DatabaseField
+	private final String strippedDomHash;
+	
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private final byte[] screenshot;
 	
@@ -30,6 +33,7 @@ import com.j256.ormlite.table.DatabaseTable;
 		stateId = 0;
 		dom = "";
 		strippedDom = "";
+		strippedDomHash = null;
 		screenshot = null;
 	}
 
