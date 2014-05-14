@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -22,6 +23,23 @@ import main.java.distributed.IConnectionManager;
 public class ResultProcessor implements IResultProcessor {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	private static final String TABLE_STATE_RESULTS = "DomResults";
+	private static final String COLUMN_ID_WEBSITE = "websiteResult_id";
+	private static final String COLUMN_ID_STATE = "stateId";
+	private static final String COLUMN_DOM = "dom";
+	private static final String COLUMN_STRIPPEDDOM = "strippedDom";
+	private static final String COLUMN_SCREENSHOT = "screenshot";
+	
+	private static final String TABLE_WEBSITE_RESULTS = "WebsiteResults";
+	private static final String COLUMN_ID_WORKTASK = "workTask_id";
+	private static final String COLUMN_RESULTS_JSON = "jsonResults";
+	private static final String COLUMN_DURATION = "duration";
+	
+	private static final String PATH_RESULTS_JSON = "result.json"; 
+	private static final String PATH_RESULTS_DOM = "doms";  
+	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM"; 
+	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
+	
 	private IConnectionManager con;
 
 	public ResultProcessor(IConnectionManager conn) {
@@ -35,10 +53,10 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException {
-		this.uploadJson(id, dir, duration);
-		this.uploadDom(id, dir);
-		this.uploadStrippedDom(id, dir);
-		this.uploadScreenshot(id, dir);
+		int websiteID = this.uploadJson(id, dir, duration);
+		this.uploadDom(websiteID, dir);
+		this.uploadStrippedDom(websiteID, dir);
+		this.uploadScreenshot(websiteID, dir);
 				
 		this.removeDir(dir);
 		
@@ -52,9 +70,9 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param duration The duration of the crawl
 	 * @throws ResultProcessorException
 	 */
-	public void uploadJson(int id, String dir, long duration) throws ResultProcessorException {
-		File jsonFile = this.findFile(dir, "result.json");
-		this.uploadJson(id, jsonFile, duration);
+	public int uploadJson(int id, String dir, long duration) throws ResultProcessorException {
+		File jsonFile = this.findFile(dir, PATH_RESULTS_JSON);
+		return this.uploadJson(id, jsonFile, duration);
 	}
 	
 	/**
@@ -64,7 +82,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadDom(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "doms");
+		File dirOfMap = this.findFile(dir,PATH_RESULTS_DOM);
 		File[] files = dirOfMap.listFiles();
 		
 		logger.info(files.length +" domstates found");
@@ -80,7 +98,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "strippedDOM");
+		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 		
 		logger.info(files.length +" stripped dom-states found");
@@ -96,7 +114,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadScreenshot(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "screenshots");
+		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
 		File[] files = dirOfMap.listFiles();
 		
 		logger.info(files.length +" screenshots found");
@@ -133,8 +151,9 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 
-	private void uploadJson(int id, final File f, long duration) throws ResultProcessorException {
+	private int uploadJson(int id, final File f, long duration) throws ResultProcessorException {
 		BufferedReader bufr = null;
+		int ret = -1;
 		try {
 			String fileContent = "";
 			String line;
@@ -147,8 +166,9 @@ public class ResultProcessor implements IResultProcessor {
 			if (this.tableContainsJson(id)) {
 				logger.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
 			} else {
-				String sql = "INSERT INTO TestResults(id,JsonResults,duration) VALUES(?,?,?)";
-				PreparedStatement statement = con.getConnection().prepareStatement(sql);
+				String sql = "INSERT INTO " + TABLE_WEBSITE_RESULTS + "(" + COLUMN_ID_WORKTASK 
+						+ "," + COLUMN_RESULTS_JSON + "," + COLUMN_DURATION + ") VALUES(?,?,?)";
+				PreparedStatement statement = con.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 				
 				statement.setInt(1, id);
 				statement.setString(2, fileContent);
@@ -161,6 +181,12 @@ public class ResultProcessor implements IResultProcessor {
 					logger.warn("The result.json file is NOT sent to the database");
 					throw new ResultProcessorException("Can not insert the json-file");
 				}
+				
+				// Get generated key
+				ResultSet generatedkeys = statement.getGeneratedKeys();
+		        if (generatedkeys.next()) {
+		            ret = generatedkeys.getInt(1);
+		        }
 			}
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
@@ -179,6 +205,7 @@ public class ResultProcessor implements IResultProcessor {
 				
 			}
 		}
+		return ret;
 	}
 	
 	private void uploadDomAction(int id, final File f) throws ResultProcessorException {
@@ -189,7 +216,7 @@ public class ResultProcessor implements IResultProcessor {
 			if (!this.tableContainsTuple(id, stateId)) {
 				this.makeTuple(id, f);
 			}
-			this.insertInTuple("Dom", fileContent, id, stateId);
+			this.insertInTuple(COLUMN_DOM, fileContent, id, stateId);
 			
 		} catch (SQLException e) {
 			logger.error("SQLException: " + e.getMessage());
@@ -198,7 +225,7 @@ public class ResultProcessor implements IResultProcessor {
 	}
 	
 	private int insertInTuple(String column, String content, int websiteId, String stateId) throws SQLException {
-		String update  = "UPDATE DomResults SET " + column + " = ? WHERE WebsiteId = ? AND StateId = ?";
+		String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + column + " = ? WHERE " + COLUMN_ID_WEBSITE + " = ? AND " + COLUMN_ID_STATE +" = ?";
 		PreparedStatement statement = con.getConnection().prepareStatement(update);
 		
 		statement.setString(1, content);
@@ -216,14 +243,14 @@ public class ResultProcessor implements IResultProcessor {
 			if (!this.tableContainsTuple(id, stateId)) {
 				this.makeTuple(id, f);
 			}
-			int update = this.insertInTuple("StrippedDOM", fileContent, id, stateId);
+			int update = this.insertInTuple(COLUMN_STRIPPEDDOM, fileContent, id, stateId);
 			
 			if(update != 1) {
 				logger.warn("A problem while inserting a screenshot into the database.");
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
-			throw new ResultProcessorException("IOException during the upload of a screenshot");
+			logger.error("SQLException during upload of stripped-dom " + id + ". Message: " + e.getMessage());
+			throw new ResultProcessorException("IOException during the upload of a stripped-dom");
 		}
 	}
 	
@@ -237,7 +264,7 @@ public class ResultProcessor implements IResultProcessor {
 				if (!this.tableContainsTuple(id, stateId)) {
 					this.makeTuple(id, f);
 				}
-				String sql = "UPDATE DomResults SET Screenshot = ? WHERE WebsiteId = ? AND StateId = ?";
+				String sql = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_SCREENSHOT + " = ? WHERE " + COLUMN_ID_WEBSITE + " = ? AND " + COLUMN_ID_STATE + " = ?";
 				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
 				
 				prepStat.setBinaryStream(1, fr);
@@ -274,7 +301,7 @@ public class ResultProcessor implements IResultProcessor {
 		boolean res = false;
 		
 		try {
-			String select = "SELECT * FROM DomResults WHERE WebsiteId = ? AND StateId = ?";
+			String select = "SELECT * FROM " + TABLE_STATE_RESULTS + " WHERE " + COLUMN_ID_WEBSITE + " = ? AND " + COLUMN_ID_STATE +" = ?";
 			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
 			selectSt.setInt(1, id);
 			selectSt.setString(2, stateId);
@@ -296,7 +323,7 @@ public class ResultProcessor implements IResultProcessor {
 		boolean res = false;
 		
 		try {
-			String select = "SELECT * FROM TestResults WHERE id = ?";
+			String select = "SELECT * FROM " + TABLE_WEBSITE_RESULTS + " WHERE " + COLUMN_ID_WORKTASK + " = ?";
 			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
 			selectSt.setInt(1, id);
 			
@@ -334,7 +361,7 @@ public class ResultProcessor implements IResultProcessor {
 		try {
 			String stateId = getStateId(f);
 
-			String sql = "INSERT INTO DomResults(WebsiteId,StateId) VALUES(?,?)";
+			String sql = "INSERT INTO " + TABLE_STATE_RESULTS + "(" + COLUMN_ID_WEBSITE + ","+COLUMN_ID_STATE+") VALUES(?,?)";
 			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
 			
 			statement.setInt(1, id);

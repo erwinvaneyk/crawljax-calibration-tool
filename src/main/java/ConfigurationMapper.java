@@ -8,9 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import main.java.plugins.StoreDOMPlugin;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration;

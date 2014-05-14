@@ -72,7 +72,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 					URL url = new URL(res.getString("url"));
 					WorkTask workTask = new WorkTask(id, url);
 					workTasks.add(workTask);
-					logger.info("Worktask retrieved: " + workTask.getUrl());
+					logger.info("Worktask retrieved: " + workTask.getURL());
 				} catch (MalformedURLException e) {
 					logger.error(e.getMessage());
 				}

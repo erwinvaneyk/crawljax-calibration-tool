@@ -11,7 +11,7 @@ import com.j256.ormlite.table.DatabaseTable;
 @Data public class StateResult {
 	
 	@DatabaseField(canBeNull = false, foreign = true, uniqueCombo = true)
-	private final WebsiteResult websiteId;
+	private final WebsiteResult websiteResult;
 	
 	@DatabaseField (uniqueCombo = true, canBeNull = false) 
 	private final int stateId;
@@ -26,11 +26,32 @@ import com.j256.ormlite.table.DatabaseTable;
 	private final byte[] screenshot;
 	
 	public StateResult() {
-		websiteId = null;
+		websiteResult = null;
 		stateId = 0;
 		dom = "";
 		strippedDom = "";
 		screenshot = null;
-		
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StateResult other = (StateResult) obj;
+		if (dom == null) {
+			if (other.dom != null)
+				return false;
+		} else if (!dom.equals(other.dom))
+			return false;
+		if (strippedDom == null) {
+			if (other.strippedDom != null)
+				return false;
+		} else if (!strippedDom.equals(other.strippedDom))
+			return false;
+		return true;
+	}	
 }

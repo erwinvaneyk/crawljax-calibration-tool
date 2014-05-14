@@ -12,10 +12,13 @@ import com.j256.ormlite.table.*;
 @RequiredArgsConstructor
 @Data public class WebsiteResult {
 	
-	@DatabaseField(canBeNull = false, id = true, foreign = true)
-    private WorkTask workTaskId;
+	@DatabaseField(canBeNull = false, foreignAutoRefresh=true, foreign = true)
+    private WorkTask workTask;
 	
-	@DatabaseField(dataType=DataType.DATE_LONG)
+	 @DatabaseField(generatedId = true)
+    private int id;
+	
+	@DatabaseField
 	private final String jsonResults;
 	
 	@DatabaseField

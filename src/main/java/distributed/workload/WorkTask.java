@@ -1,5 +1,6 @@
 package main.java.distributed.workload;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.j256.ormlite.field.DatabaseField;
@@ -20,10 +21,10 @@ import lombok.RequiredArgsConstructor;
 	private final int id;
 	
 	@DatabaseField(canBeNull=false)
-	private final URL url;
+	private final String url;
 
-	@DatabaseField
-	private String crawler;
+	@DatabaseField(defaultValue="",canBeNull=false)
+	private String worker;
 
 	@DatabaseField
 	private boolean crawled;
@@ -31,5 +32,22 @@ import lombok.RequiredArgsConstructor;
 	public WorkTask() {
 		id = 0;
 		url = null;
+		
 	}
+	
+	public WorkTask(int id,URL url) {
+		this.id = id;
+		this.url = url.toString();
+	}
+	
+	public URL getURL() {
+		try {
+			return new URL(url);
+		} catch (MalformedURLException e) {
+			System.out.println("Invalid url: " + url + " - " + e);
+		}
+		return null;
+	}
+	
+	
 }
