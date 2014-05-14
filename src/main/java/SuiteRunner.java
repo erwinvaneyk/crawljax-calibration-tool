@@ -31,6 +31,7 @@ import main.java.distributed.workload.WorkloadRunner;
 import com.crawljax.cli.JarRunner;
 
 public class SuiteRunner {
+	String[] additionalArgs = null;
 
 	public static void main(String[] args) {
 		// Header
@@ -49,7 +50,6 @@ public class SuiteRunner {
 	public SuiteRunner(String[] args) {
 		// Parse Args
 		String arg = "";
-		String[] additionalArgs = null;
 		if (args.length > 0) {
 			arg = args[0];
 			additionalArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -96,6 +96,7 @@ public class SuiteRunner {
 				while(workTasks.isEmpty()) {
 					workTasks = workload.retrieveWork(1);
 					if (workTasks.isEmpty()) {
+						if(additionalArgs.length >= 1 && additionalArgs[0].equals("-finish")) return;
 						Thread.sleep(1000 * 10); // sleep 10 seconds
 					}
 				}
@@ -103,13 +104,13 @@ public class SuiteRunner {
 				for (WorkTask task : workTasks) {
 					try {
 						List<String> sections = new ArrayList<String>();
-						sections.add(task.getUrl().getHost());
+						sections.add(task.getURL().getHost());
 						sections.add(ConfigurationIni.INI_SECTION_COMMON);
 						Map<String, String> args = config.getConfiguration(sections);
-						File dir = CrawlManager.generateOutputDir(task.getUrl());
+						File dir = CrawlManager.generateOutputDir(task.getURL());
 						// Crawl
 						long timeStart = new Date().getTime();
-						boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
+						boolean hasNoError = suite.runCrawler(task.getURL(), dir, args);
 						if(!hasNoError) {
 							throw new Exception("Crawljax returned an error code");
 						}
@@ -119,11 +120,11 @@ public class SuiteRunner {
 							System.out.println(e.getMessage());
 						}
 						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getUrl() + " completed");
+						System.out.println("crawl: " + task.getURL() + " completed");
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
 						workload.revertWork(task.getId());						
-						System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
+						System.out.println("crawl: " + task.getURL() + " failed. Claim reverted.");
 					}
 				}
 			}
