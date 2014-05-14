@@ -11,6 +11,8 @@ public class AnalysisRunner {
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
+			// Output to cmd
+			new AnalysisProcessorCmd().apply(analysis);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
