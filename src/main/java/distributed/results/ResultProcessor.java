@@ -61,7 +61,7 @@ public class ResultProcessor implements IResultProcessor {
 		this.uploadStrippedDom(websiteID, dir);
 		this.uploadScreenshot(websiteID, dir);
 				
-		this.removeDir(dir);
+		//this.removeDir(dir);
 		
 		con.closeConnection();
 	}
@@ -244,14 +244,16 @@ public class ResultProcessor implements IResultProcessor {
 			String stateId = getStateId(f);
 			long hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent);
 			
-			String hashBits = Long.toBinaryString(hash);
+			String hashBits = Integer.toBinaryString((int)hash);
+			while (hashBits.length() != 32) {
+				hashBits = "0" + hashBits;
+			}
 	
 			if (!this.tableContainsTuple(id, stateId)) {
 				this.makeTuple(id, stateId);
 			}
 			
 			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=?, " + COLUMN_STRIPPEDDOMHASH + "=? WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
-			System.out.println(update);
 			PreparedStatement statement = con.getConnection().prepareStatement(update);
 			
 			statement.setString(1, fileContent);
