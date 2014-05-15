@@ -3,6 +3,7 @@ package main.java.analysis;
 import java.io.*;
 
 import lombok.extern.slf4j.Slf4j;
+import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
 
 @Slf4j
@@ -34,11 +35,19 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	    writer.write("----------------------------\r\n");
 	    writer.write("Benchmarked Websites: \r\n");
 	    for(WebsiteResult website : analysisReport.getBenchmarkWebsites()) {
-	    	writer.write(website.getWorkTask().getURL() + "\r\n");
+	    	writer.write("("+ website.getId() + ") " + website.getWorkTask().getURL() + "\r\n");
 	    }
 	    writer.write("----------------------------\r\n");
 	    writer.write("metrics: \r\n");
 	    writer.write("Accuracy:\t" + String.valueOf(analysisReport.getAccuracy()) + "\r\n");
 	    writer.write("Speed diff:\t" + analysisReport.getSpeedDifference() + "\r\n");	    
+	    writer.write("Dupli. states:\t" + analysisReport.getFailedStatesDuplicates().size() + "\r\n");
+	    for(StateResult state : analysisReport.getFailedStatesDuplicates()) {
+	    	writer.write("- (" + state.getWebsiteResult().getId() + ") " + state.getStateId() +  "\r\n");
+	    }
+	    writer.write("Missed states:\t" + analysisReport.getFailedStatesMissed().size() + "\r\n");
+	    for(StateResult state : analysisReport.getFailedStatesMissed()) {
+	    	writer.write("- (" + state.getWebsiteResult().getId() + ") " +  state.getStateId() + "\r\n");
+	    }
 	}
 }

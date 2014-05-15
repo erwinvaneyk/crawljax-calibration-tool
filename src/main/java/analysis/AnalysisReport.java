@@ -1,6 +1,7 @@
 package main.java.analysis;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
@@ -22,9 +23,9 @@ import main.java.distributed.results.WebsiteResult;
 	// Metrics
 	private float accuracy;
 	
-	private Collection<StateResult> failedStatesMissed;
+	private Collection<StateResult> failedStatesMissed = new ArrayList<StateResult>();
 	
-	private Collection<StateResult> failedStatesDuplicates;
+	private Collection<StateResult> failedStatesDuplicates = new ArrayList<StateResult>();
 	
 	private double speedDifference;
 	
@@ -33,9 +34,9 @@ import main.java.distributed.results.WebsiteResult;
 		log.info("benchmarked websitesResults("+benchmarkWebsites.size()+"):\t " + benchmarkWebsites.toString());
 		accuracy = accuracyAnalysis(benchmarkWebsites, testWebsitesResults);
 		speedDifference = speedAnalysis(benchmarkWebsites, testWebsitesResults);
-		log.info("Missed websiteResults (" + failedStatesMissed.size() + "):\t" + failedStatesMissed.toString());
-		log.info("Redundant websitesResults("+failedStatesDuplicates.size()+"):\t " + failedStatesDuplicates.toString());
 		stateAnalysis(benchmarkWebsites, testWebsitesResults);
+		log.info("Missed websiteResults (" + failedStatesMissed.size() + ")");
+		log.info("Redundant websitesResults("+failedStatesDuplicates.size()+")");
 	}
 	
 	private float accuracyAnalysis(Collection<WebsiteResult> benchmarkWebsites, Collection<WebsiteResult> testWebsitesResults) {
@@ -81,23 +82,32 @@ import main.java.distributed.results.WebsiteResult;
 	private void stateAnalysis(Collection<WebsiteResult> bw, Collection<WebsiteResult> tr) {
 		for(WebsiteResult benchmarkWebsite : bw) {
 			WebsiteResult testedResult = retrieveByUrl(tr, benchmarkWebsite.getWorkTask().getURL());
-			for(StateResult benchmarkState : benchmarkWebsite.getStateResults()) {
-				StateResult testedState = retrieveStateByHash(testedResult, benchmarkState.getStrippedDomHash(), 4);
+			log.info(benchmarkWebsite.getWorkTask().getURL() + " == " + testedResult.getWorkTask().getURL() + "?");
+			// match each state
+			Collection<StateResult> benchmarkStates = new ArrayList<StateResult>(benchmarkWebsite.getStateResults());
+			Collection<StateResult> testedStates = new ArrayList<StateResult>(testedResult.getStateResults());
+			Collection<StateResult> temp = new ArrayList<StateResult>();
+			for(StateResult benchmarkState : benchmarkStates) {
+				StateResult testedState = retrieveStateByHash(testedStates, benchmarkState.getStrippedDomHash(), 4);
 				if(testedState != null) {
-					testedResult.getStateResults().remove(testedState);
-					benchmarkWebsite.getStateResults().remove(benchmarkState);
+					temp.add(benchmarkState);
+					if(!testedStates.remove(testedState))
+						log.error("Failed to remove " + testedState.getStateId());
 				}
 			}
-			// metrics
-			failedStatesMissed.addAll(benchmarkWebsite.getStateResults());
-			failedStatesDuplicates.addAll(testedResult.getStateResults());
+			if(!benchmarkStates.removeAll(temp))
+				log.error("Failed to removeAll " + temp);
+			failedStatesMissed.addAll(benchmarkStates);
+			failedStatesDuplicates.addAll(testedStates);
 		}
 	}
 	
-	private StateResult retrieveStateByHash(WebsiteResult tr, int hash, int threshold) {
-		for(StateResult state : tr.getStateResults()) {
+	private StateResult retrieveStateByHash(Collection<StateResult> tr, int hash, int threshold) {
+		for(StateResult state : tr) {
+			//log.warn("hash:" + Integer.toBinaryString(state.getStrippedDomHash()) + " ~ " + Integer.toBinaryString(hash));
 			NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold, null);
-			npd.isNearDuplicateHash(hash, state.getStrippedDomHash());
+			if(npd.isNearDuplicateHash(hash, state.getStrippedDomHash()))
+				return state;
 		}
 		return null;		
 	}

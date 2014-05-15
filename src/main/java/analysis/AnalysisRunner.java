@@ -7,7 +7,7 @@ public class AnalysisRunner {
 	public static void main(String[] args) {
 		try {
 			// Generate report
-			AnalysisReport analysis = new AnalysisFactory().getAnalysis("analysis", new int[]{1});
+			AnalysisReport analysis = new AnalysisFactory().getAnalysis("analysis", new int[]{11});
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
