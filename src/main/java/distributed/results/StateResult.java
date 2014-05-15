@@ -35,4 +35,8 @@ import com.j256.ormlite.table.DatabaseTable;
 		strippedDomHash = null;
 		screenshot = null;
 	}
+	
+	public int getStrippedDomHash() {
+		return (int) Long.parseLong(strippedDomHash,2);
+	}
 }

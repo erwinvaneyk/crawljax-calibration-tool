@@ -2,6 +2,10 @@ package main.java.analysis;
 
 import java.net.URL;
 import java.util.Collection;
+
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlHash32;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.results.StateResult;
@@ -15,8 +19,6 @@ import main.java.distributed.results.WebsiteResult;
 	
 	private final Collection<WebsiteResult> benchmarkWebsites;
 	
-	private boolean analysed = false;
-	
 	// Metrics
 	private float accuracy;
 	
@@ -27,11 +29,13 @@ import main.java.distributed.results.WebsiteResult;
 	private double speedDifference;
 	
 	public void runAnalysis(Collection<WebsiteResult> testWebsitesResults) {
-		log.info("tested websiteResults:\t" + testWebsitesResults.toString());
-		log.info("benchmarked websitesResults:\t " + benchmarkWebsites.toString());
+		log.info("tested websiteResults (" + testWebsitesResults.size() + "):\t" + testWebsitesResults.toString());
+		log.info("benchmarked websitesResults("+benchmarkWebsites.size()+"):\t " + benchmarkWebsites.toString());
 		accuracy = accuracyAnalysis(benchmarkWebsites, testWebsitesResults);
 		speedDifference = speedAnalysis(benchmarkWebsites, testWebsitesResults);
-		analysed = true;
+		log.info("Missed websiteResults (" + failedStatesMissed.size() + "):\t" + failedStatesMissed.toString());
+		log.info("Redundant websitesResults("+failedStatesDuplicates.size()+"):\t " + failedStatesDuplicates.toString());
+		stateAnalysis(benchmarkWebsites, testWebsitesResults);
 	}
 	
 	private float accuracyAnalysis(Collection<WebsiteResult> benchmarkWebsites, Collection<WebsiteResult> testWebsitesResults) {
@@ -70,5 +74,31 @@ import main.java.distributed.results.WebsiteResult;
 			}
 		}
 		return null;
+	}
+	
+	// missed states = in Benchmark, not in testresults
+	// Redundant states = not in Benchmark, in testresults
+	private void stateAnalysis(Collection<WebsiteResult> bw, Collection<WebsiteResult> tr) {
+		for(WebsiteResult benchmarkWebsite : bw) {
+			WebsiteResult testedResult = retrieveByUrl(tr, benchmarkWebsite.getWorkTask().getURL());
+			for(StateResult benchmarkState : benchmarkWebsite.getStateResults()) {
+				StateResult testedState = retrieveStateByHash(testedResult, benchmarkState.getStrippedDomHash(), 4);
+				if(testedState != null) {
+					testedResult.getStateResults().remove(testedState);
+					benchmarkWebsite.getStateResults().remove(benchmarkState);
+				}
+			}
+			// metrics
+			failedStatesMissed.addAll(benchmarkWebsite.getStateResults());
+			failedStatesDuplicates.addAll(testedResult.getStateResults());
+		}
+	}
+	
+	private StateResult retrieveStateByHash(WebsiteResult tr, int hash, int threshold) {
+		for(StateResult state : tr.getStateResults()) {
+			NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold, null);
+			npd.isNearDuplicateHash(hash, state.getStrippedDomHash());
+		}
+		return null;		
 	}
 }

@@ -10,7 +10,7 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 
 	public void apply(AnalysisReport analysisReport) {
 	    writer.print("============================\r\n");
-		writer.print(analysisReport.getTitle() + "\r\n");
+		writer.print("- " + analysisReport.getTitle() + "\r\n");
 	    writer.print("----------------------------\r\n");
 	    writer.print("Benchmarked Websites: \r\n");
 	    for(WebsiteResult website : analysisReport.getBenchmarkWebsites()) {
