@@ -49,6 +49,8 @@ public class ConfigurationMapper {
 			builder.setMaximumStates(Integer.parseInt(value));
 		} else if(key.equalsIgnoreCase("t") || key.equalsIgnoreCase("timeout")) {
 			builder.setMaximumRunTime(Long.parseLong(value), TimeUnit.MINUTES);
+		} else if(key.equalsIgnoreCase("threshold")) {
+			builder.setThresholdNearDuplicateDetection(Integer.parseInt(value));
 		} else if(key.equalsIgnoreCase("a") || key.equalsIgnoreCase("crawlHiddenAnchors")) {
 			builder.crawlRules().crawlHiddenAnchors(true);
 		} else if(key.equalsIgnoreCase("waitAfterReload")) {
