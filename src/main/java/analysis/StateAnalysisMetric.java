@@ -35,17 +35,11 @@ public class StateAnalysisMetric implements IMetric {
 	public static final String TOTAL_STATES = "Total states";
 	
 	@Getter private int threshold = 1;
-	
 	@Getter private float score;
-
-	public String getMetricName() {
-		return "State Analysis";
-	}
+	@Getter private final String metricName = "State Analysis";
 
 	public Map<String, Object> apply(Collection<WebsiteResult> bw, Collection<WebsiteResult> tr) {
 		ConcurrentHashMap<String, Object> result = new ConcurrentHashMap<String, Object>();
-		result.put(MISSED_STATES, "");
-		result.put(DUPLICATE_STATES, "");
 		int missedStates = 0;
 		int duplicateStates = 0;
 		int totalStates = 0;
@@ -53,7 +47,6 @@ public class StateAnalysisMetric implements IMetric {
 		for(WebsiteResult benchmarkWebsite : bw) {
 			ConcurrentHashMap<String, String> duplicates = this.retrieveDuplicates(benchmarkWebsite.getId());
 			WebsiteResult testedResult = retrieveByUrl(tr, benchmarkWebsite.getWorkTask().getURL());
-			// match each state
 			List<StateResult> benchmarkStates = new ArrayList<StateResult>(benchmarkWebsite.getStateResults());
 			List<StateResult> testedStates = new ArrayList<StateResult>(testedResult.getStateResults());
 			List<StateResult> remove = new ArrayList<StateResult>();
@@ -151,5 +144,4 @@ public class StateAnalysisMetric implements IMetric {
 		}
 		return removed;
 	}
-
 }

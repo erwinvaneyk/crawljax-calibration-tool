@@ -47,7 +47,8 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	    writer.write("----------------------------\r\n");
 	    writer.write("metrics: \r\n");
 	    printStatistics(analysisReport);
-	   
+	    writer.write("----------------------------\r\n");
+	    writer.write("Score: " + analysisReport.getScore() + "\r\n");
 	}
 	
 	@SuppressWarnings("unchecked")
