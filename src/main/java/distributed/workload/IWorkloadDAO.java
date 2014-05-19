@@ -34,7 +34,7 @@ public interface IWorkloadDAO {
 	 * @param url the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public int submitWork(URL url);
+	public int submitWork(URL url, boolean claim);
 	
 	/**
 	 * Reverts previously checked out or claimed work to the available state.

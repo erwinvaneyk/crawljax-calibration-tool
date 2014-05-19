@@ -143,7 +143,7 @@ public class SuiteRunner {
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
 				url = new URL(rawUrl);
-				workload.submitWork(url);
+				workload.submitWork(url, false);
 			}
 		} catch (IOException e1) {
 			System.out.println(e1.getMessage());

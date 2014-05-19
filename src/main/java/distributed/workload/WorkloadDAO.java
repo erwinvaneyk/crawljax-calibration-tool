@@ -111,15 +111,16 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * @param url the url to be crawled
 	 * @return generated id of the url, if failed: -1
 	 */
-	public int submitWork(URL url) {
+	public int submitWork(URL url, boolean claim) {
 		int ret = -1;
 		Connection conn = connMgr.getConnection();
 		try {
+			String worker = claim ? workerID : "";
 			// Insert a new row containing the url in the workload-table.
 			Statement statement = conn.createStatement();
 			ret = statement.executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
-					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0,\"\")", Statement.RETURN_GENERATED_KEYS);
-			logger.info("Succesfully submitted " + url + " to the server.");
+					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0, \"" + worker + "\")", Statement.RETURN_GENERATED_KEYS);
+			logger.info("Succesfully submitted {} to the server.", url);
 			
 			// Get generated key
 			ResultSet generatedkeys = statement.getGeneratedKeys();

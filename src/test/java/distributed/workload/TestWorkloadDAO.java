@@ -226,7 +226,7 @@ public class TestWorkloadDAO {
 		when(statement.executeUpdate(anyString(), anyInt())).thenReturn(expected);
 		// Run method under inspection
 		WorkloadDAO wldao = new WorkloadDAO(connMgr);
-		assertEquals(wldao.submitWork(url1), expected);
+		assertEquals(wldao.submitWork(url1, true), expected);
 	}
 	
 	@Test
@@ -242,7 +242,7 @@ public class TestWorkloadDAO {
 		when(statement.executeUpdate(anyString(), anyInt())).thenThrow(new SQLException("MOCK SQL ERROR"));
 		// Run method under inspection
 		WorkloadDAO wldao = new WorkloadDAO(connMgr);
-		assertEquals(wldao.submitWork(url1), -1);
+		assertEquals(wldao.submitWork(url1, true), -1);
 	}
 
 	@Test
@@ -252,7 +252,7 @@ public class TestWorkloadDAO {
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		// Run method under inspection
 		WorkloadDAO wldao = new WorkloadDAO(connMgr);
-		wldao.submitWork(url1);		
+		wldao.submitWork(url1, true);		
 	}
 
 	@Test

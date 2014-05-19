@@ -6,20 +6,16 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * ConnectionManager manages a single connection resource to the database. 
  *
  */
+@Slf4j
 public class ConnectionManager implements IConnectionManager {
 	
-	public static final File DEFAULT_SETTINGS_PATH = new File(System.getProperty("user.dir") + "/config/dist.ini");
-	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
-
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private Connection connection;
 	private static Properties settings;
@@ -33,7 +29,7 @@ public class ConnectionManager implements IConnectionManager {
 	 */
 	static {
 		try {
-			//logger.warning("ConnectionManager uses the default paths for the config-files.");
+			//log.warning("ConnectionManager uses the default paths for the config-files.");
 			setup(DEFAULT_SETTINGS_PATH);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -66,7 +62,7 @@ public class ConnectionManager implements IConnectionManager {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		//logger.info("Connection settings loaded. Database-user: " + username);
+		log.debug("Connection settings loaded. Database-user: " + username);
 	}
 	
 	/**
@@ -78,10 +74,10 @@ public class ConnectionManager implements IConnectionManager {
 			if (connection == null || connection.isClosed()) {
 					// Setup connection
 					connection = DriverManager.getConnection(url + database,username,password);
-					logger.debug("Connection established with: " + url + database);
+					log.debug("Connection established with: " + url + database);
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		}
 		return connection;
 	}
@@ -92,11 +88,11 @@ public class ConnectionManager implements IConnectionManager {
 	public void closeConnection() {
 		try {
 			connection.close();
-			logger.debug("Connection with: " + url + database + " closed.");
+			log.debug("Connection with: " + url + database + " closed.");
 		} catch (NullPointerException e) {
-			logger.warn("Connection was already closed");
+			log.warn("Connection was already closed");
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		}
 		connection = null;
 	}
