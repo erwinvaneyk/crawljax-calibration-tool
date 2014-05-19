@@ -12,6 +12,9 @@ import main.java.distributed.results.WebsiteResult;
  */
 public class SpeedMetric implements IMetric {
 
+	float benchmarkDuration;
+	float testDuration;
+	
 	public String getMetricName() {
 		return "Speed difference metric";
 	}
@@ -19,8 +22,6 @@ public class SpeedMetric implements IMetric {
 	public Map<String, Object> apply(
 			Collection<WebsiteResult> benchmarkWebsites,
 			Collection<WebsiteResult> testWebsitesResults) {
-		double benchmarkDuration = 0;
-		double testDuration = 0;
 		for(WebsiteResult baseWebsite : benchmarkWebsites) {
 			benchmarkDuration += baseWebsite.getDuration();
 		}
@@ -28,15 +29,26 @@ public class SpeedMetric implements IMetric {
 			testDuration += testWebsite.getDuration();
 		}
 		Map<String, Object> map = new HashMap<String, Object>();
-		double difference = testDuration - benchmarkDuration;
+		float difference = testDuration - benchmarkDuration;
 		
-		double res = ((difference*-1)/benchmarkDuration) * 100;
+		float res = ((difference*-1)/benchmarkDuration) * 100;
 		DecimalFormat df = new DecimalFormat("#.##");
-		res = Double.valueOf(df.format(res));
+		res = Float.valueOf(df.format(res));
 		String result = String.valueOf(res);
 		map.put("Speed increese: ", result+"%");
 		return map;
 		
+	}
+
+	public float getScore() {
+		float score = (benchmarkDuration - testDuration)/benchmarkDuration;
+		if (score < 0) {
+			return 0;
+		} else if (score > 0.5) {
+			return 1;
+		} else {
+			return (float) 0.5;
+		}
 	}
 
 }
