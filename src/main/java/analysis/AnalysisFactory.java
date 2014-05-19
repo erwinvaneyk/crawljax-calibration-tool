@@ -112,7 +112,7 @@ public class AnalysisFactory {
 				}
 			}
 			// wait until websites have been crawled
-			SuiteRunner.main(new String[]{"-w","-finish"});
+			new SuiteRunner(new String[]{"-w","-finish"});
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
 			return builder.query();

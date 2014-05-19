@@ -10,14 +10,14 @@ public class AnalysisRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis", new int[]{19});
+			Analysis analysis = factory.getAnalysis("analysis", new int[]{40});
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
 			// Output to cmd
 			new AnalysisProcessorCmd().apply(analysis);
 		} catch (AnalysisException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 }

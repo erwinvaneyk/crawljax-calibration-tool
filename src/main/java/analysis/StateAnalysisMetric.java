@@ -32,8 +32,11 @@ public class StateAnalysisMetric implements IMetric {
 	
 	public static final String MISSED_STATES = "Missed states";
 	public static final String DUPLICATE_STATES = "Duplicate states";
+	public static final String TOTAL_STATES = "Total states";
 	
 	@Getter private int threshold = 1;
+	
+	@Getter private float score;
 
 	public String getMetricName() {
 		return "State Analysis";
@@ -43,6 +46,10 @@ public class StateAnalysisMetric implements IMetric {
 		ConcurrentHashMap<String, Object> result = new ConcurrentHashMap<String, Object>();
 		result.put(MISSED_STATES, "");
 		result.put(DUPLICATE_STATES, "");
+		int missedStates = 0;
+		int duplicateStates = 0;
+		int totalStates = 0;
+		
 		for(WebsiteResult benchmarkWebsite : bw) {
 			ConcurrentHashMap<String, String> duplicates = this.retrieveDuplicates(benchmarkWebsite.getId());
 			WebsiteResult testedResult = retrieveByUrl(tr, benchmarkWebsite.getWorkTask().getURL());
@@ -62,11 +69,18 @@ public class StateAnalysisMetric implements IMetric {
 			}
 			if(!testedStates.removeAll(remove));
 				log.error("Failed to remove {} ", remove);
-			result.put("# " + MISSED_STATES, benchmarkStates.size());
-			result.put("# " + DUPLICATE_STATES, testedStates.size());
-			result.put(MISSED_STATES, benchmarkStates);
-			result.put(DUPLICATE_STATES, testedStates);
+			result.put("(" + benchmarkWebsite.getId() + ") " + MISSED_STATES, benchmarkStates);
+			result.put("(" +  benchmarkWebsite.getId() + ") " + DUPLICATE_STATES, testedStates);
+			duplicateStates += testedStates.size();
+			missedStates += benchmarkStates.size();
+			totalStates += benchmarkWebsite.getStateResults().size() + testedResult.getStateResults().size();
 		}
+		result.put("# " + TOTAL_STATES, totalStates);
+		result.put("# " + MISSED_STATES, missedStates);
+		result.put("# " + DUPLICATE_STATES, duplicateStates);
+
+		score = ((float) totalStates - (float) missedStates - (float) duplicateStates)/ (float) totalStates;
+		
 		return result;
 	}
 	

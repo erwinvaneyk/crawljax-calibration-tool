@@ -29,6 +29,8 @@ public class Analysis {
 	
 	@Getter private ImmutableList<IMetric> metrics;
 	
+	@Getter private float score;
+	
 	public Analysis(String title,  Collection<WebsiteResult> benchmarkWebsites, ImmutableList<IMetric> metrics) throws AnalysisException {
 		if (title != null && title != "") this.title = title;
 		if(benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
@@ -53,9 +55,11 @@ public class Analysis {
 		Builder<String, Object> resultBuilder = ImmutableMap.builder();
 		for(IMetric metric : metrics) {
 			log.info("Running metric: " + metric.getMetricName());
-			 Map<String,Object> result = metric.apply(benchmarkWebsites, testWebsitesResults);
+			Map<String,Object> result = metric.apply(benchmarkWebsites, testWebsitesResults);
 			resultBuilder.putAll(result);
+			score = metric.getScore();
 		}
+		score = score / (float) metrics.size();
 		statistics = resultBuilder.build();
 	}
 }

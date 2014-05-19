@@ -27,6 +27,8 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 		    writer.print("----------------------------\r\n");
 		    writer.print("metrics: \r\n");
 		    printStatistics(analysisReport);		    
+		    writer.print("----------------------------\r\n");
+		    writer.print("Score: " + analysisReport.getScore() + "\r\n");
 		    writer.print("============================\r\n");
 		} catch(Exception e) {
 			writer.print("Failed to print report: " + analysisReport + ", because " + e.getMessage());

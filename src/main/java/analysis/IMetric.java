@@ -23,4 +23,6 @@ public interface IMetric {
 	 * @return a map containing as key the section/title and as values the results of the metric.
 	 */
 	public Map<String, Object> apply(Collection<WebsiteResult> benchmarkWebsites, Collection<WebsiteResult> testWebsitesResults);
+	
+	public float getScore();
 }
