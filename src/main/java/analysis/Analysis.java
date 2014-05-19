@@ -53,13 +53,19 @@ public class Analysis {
 		this.testWebsitesResults = testWebsitesResults;
 		// Run metric tests
 		Builder<String, Object> resultBuilder = ImmutableMap.builder();
+		int succesfulMetrics = 0;
 		for(IMetric metric : metrics) {
 			log.info("Running metric: " + metric.getMetricName());
-			Map<String,Object> result = metric.apply(benchmarkWebsites, testWebsitesResults);
-			resultBuilder.putAll(result);
-			score = metric.getScore();
+			try {
+				Map<String,Object> result = metric.apply(benchmarkWebsites, testWebsitesResults);
+				resultBuilder.putAll(result);
+				score = metric.getScore();
+				succesfulMetrics++;
+			} catch(Exception e) {
+				log.error("Error occured while applying metric {}: {}", metric.getMetricName(), e.getMessage());
+			}
 		}
-		score = score / (float) metrics.size();
+		score = score / (float) succesfulMetrics;
 		statistics = resultBuilder.build();
 	}
 }
