@@ -28,7 +28,7 @@ public class SpeedMetric implements IMetric {
 		}
 		Map<String, Object> map = new HashMap<String, Object>();
 		long difference = testDuration - benchmarkDuration;
-		String result = (difference >= 0) ? "+" + String.valueOf(difference) : "-" + String.valueOf(difference);
+		String result = (difference >= 0) ? "+" + String.valueOf(difference) : String.valueOf(difference);
 		map.put("Speed diff", result);
 		return map;
 		

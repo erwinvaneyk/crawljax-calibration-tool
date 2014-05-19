@@ -7,9 +7,10 @@ public class AnalysisRunner {
 			// Build factory
 			AnalysisFactory factory = new AnalysisFactory();
 			factory.addMetric(new SpeedMetric());
+			factory.addMetric(new StateAnalysisMetric(1));
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis", new int[]{2});
+			Analysis analysis = factory.getAnalysis("analysis", new int[]{19});
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);

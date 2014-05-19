@@ -1,12 +1,14 @@
 package main.java.distributed.results;
 
 import lombok.Data;
+import lombok.ToString;
 
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "DomResults")
+@ToString(exclude={"dom","strippedDom","websiteResult","screenshot"})
 @Data public class StateResult {
 	
 	@DatabaseField(canBeNull = false, foreign = true, uniqueCombo = true)

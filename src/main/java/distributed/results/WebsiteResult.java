@@ -2,6 +2,7 @@ package main.java.distributed.results;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import main.java.distributed.workload.WorkTask;
 
 import com.j256.ormlite.dao.*;
@@ -10,6 +11,7 @@ import com.j256.ormlite.table.*;
 
 @DatabaseTable(tableName = "WebsiteResults")
 @RequiredArgsConstructor
+@ToString(exclude={"workTask","jsonResults","stateResults"})
 @Data public class WebsiteResult {
 	
 	@DatabaseField(canBeNull = false, foreignAutoRefresh=true, foreign = true)

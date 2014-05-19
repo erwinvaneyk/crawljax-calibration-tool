@@ -26,7 +26,6 @@ public class AnalysisFactory {
 	
 	@Getter private ImmutableList<IMetric> metrics
     = new ImmutableList.Builder<IMetric>()
-        .add(new StateAnalysisMetric())
         .build();
 	
 	/**
@@ -120,6 +119,5 @@ public class AnalysisFactory {
 		} catch (SQLException e) {
 			throw new AnalysisException("SQL exception caught while re-crawling websiteResults: " + e.getMessage());
 		}
-		
 	}
 }
