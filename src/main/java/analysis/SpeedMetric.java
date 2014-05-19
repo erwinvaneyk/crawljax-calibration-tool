@@ -1,6 +1,5 @@
 package main.java.analysis;
 
-import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +31,8 @@ public class SpeedMetric implements IMetric {
 		float difference = testDuration - benchmarkDuration;
 		
 		float res = ((difference*-1)/benchmarkDuration) * 100;
-		DecimalFormat df = new DecimalFormat("#.##");
-		res = Float.valueOf(df.format(res));
 		String result = String.valueOf(res);
-		map.put("Speed increese: ", result+"%");
+		map.put("Speed increase", result+"%");
 		return map;
 		
 	}

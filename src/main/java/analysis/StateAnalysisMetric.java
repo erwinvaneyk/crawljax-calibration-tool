@@ -68,7 +68,7 @@ public class StateAnalysisMetric implements IMetric {
 			missedStates += benchmarkStates.size();
 			totalStates += benchmarkWebsite.getStateResults().size() + testedResult.getStateResults().size();
 		}
-		result.put("# " + TOTAL_STATES, totalStates);
+		result.put("# " + TOTAL_STATES,"/t" + totalStates);
 		result.put("# " + MISSED_STATES, missedStates);
 		result.put("# " + DUPLICATE_STATES, duplicateStates);
 
