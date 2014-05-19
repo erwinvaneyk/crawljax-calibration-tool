@@ -1,19 +1,21 @@
 package main.java.analysis;
 
-import java.sql.SQLException;
-
 public class AnalysisRunner {
 
 	public static void main(String[] args) {
 		try {
+			// Build factory
+			AnalysisFactory factory = new AnalysisFactory();
+			factory.addMetric(new SpeedMetric());
+			
 			// Generate report
-			AnalysisReport analysis = new AnalysisFactory().getAnalysis("analysis", new int[]{11});
+			Analysis analysis = factory.getAnalysis("analysis", new int[]{2});
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
 			// Output to cmd
 			new AnalysisProcessorCmd().apply(analysis);
-		} catch (SQLException e) {
+		} catch (AnalysisException e) {
 			e.printStackTrace();
 		}
 	}

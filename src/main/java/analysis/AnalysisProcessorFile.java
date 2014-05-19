@@ -1,35 +1,42 @@
 package main.java.analysis;
 
 import java.io.*;
+import java.util.Collection;
+import java.util.Map.Entry;
 
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
 
 @Slf4j
+/**
+ * This processor is responsible for outputting the results of an analysis to a file.
+ */
 public class AnalysisProcessorFile implements IAnalysisProcessor {
 	
-	private static final File DIR_OUTPUT = new File(System.getProperty("user.dir") + "/output/");
+	@Getter @Setter private File outputDir = new File(System.getProperty("user.dir") + "/output/");
 	
-	private AnalysisReport analysisReport;
+	@Getter private File output;
 	
-	public void apply(AnalysisReport analysisReport) {
-		this.analysisReport = analysisReport;
-		Writer writer = null;
+	private Writer writer;
+	
+	public void apply(Analysis analysisReport) {
 		try {
-			File file = new File(DIR_OUTPUT + "/" + analysisReport.getTitle() + ".txt");
-		    writer = new BufferedWriter(new OutputStreamWriter(
+			File file = new File(outputDir + "/" + analysisReport.getTitle() + ".txt");
+			writer = new BufferedWriter(new OutputStreamWriter(
 		          new FileOutputStream(file), "utf-8"));
-		    writeContentsToFile(writer);
+		    writeContentsToFile(analysisReport);
+		    output = file;
 		    log.info("Report written to file: " + file);
-		} catch (IOException ex) {
-			log.error("ERROOORRRRRRR");
+		} catch (Exception ex) {
+			log.error("Error while writing to file: " + ex.getMessage());
 		} finally {
 		   try {writer.close();} catch (Exception ex) {}
 		}
 	}
 	
-	private void writeContentsToFile(Writer writer) throws IOException {
+	private void writeContentsToFile(Analysis analysisReport) throws IOException {
 
 	    writer.write(analysisReport.getTitle() + "\r\n");
 	    writer.write("----------------------------\r\n");
@@ -39,15 +46,25 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	    }
 	    writer.write("----------------------------\r\n");
 	    writer.write("metrics: \r\n");
-	    writer.write("Accuracy:\t" + String.valueOf(analysisReport.getAccuracy()) + "\r\n");
-	    writer.write("Speed diff:\t" + analysisReport.getSpeedDifference() + "\r\n");	    
-	    writer.write("Dupli. states:\t" + analysisReport.getFailedStatesDuplicates().size() + "\r\n");
-	    for(StateResult state : analysisReport.getFailedStatesDuplicates()) {
-	    	writer.write("- (" + state.getWebsiteResult().getId() + ") " + state.getStateId() +  "\r\n");
-	    }
-	    writer.write("Missed states:\t" + analysisReport.getFailedStatesMissed().size() + "\r\n");
-	    for(StateResult state : analysisReport.getFailedStatesMissed()) {
-	    	writer.write("- (" + state.getWebsiteResult().getId() + ") " +  state.getStateId() + "\r\n");
-	    }
+	    printStatistics(analysisReport);
+	   
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void printStatistics(Analysis analysisReport) throws IOException {
+		for(Entry<String, Object> stat : analysisReport.getStatistics().entrySet()) {
+		    if(stat.getValue() instanceof Collection) {
+		    	Collection<StateResult> collection = (Collection<StateResult>) stat.getValue();
+		    	writer.write(stat.getKey() + ":\t\t" + collection.size() + "\r\n");
+		    	for(StateResult value : collection) {
+		    		writer.write("- (" + value.getWebsiteResult().getId() + ")" + value.getStateId()+ "\r\n");
+		    	}
+		    } else if(stat.getValue() instanceof StateResult) { 
+		    	StateResult value = (StateResult) stat.getValue();
+		    	writer.write(stat.getKey() + ":\t\t" + value.getStateId() + "\r\n");
+			} else {
+		    	writer.write(stat.getKey() + ":\t\t" + stat.getValue() + "\r\n");
+		    }
+		}
 	}
 }
