@@ -11,8 +11,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.crawljax.core.state.duplicatedetection.FeatureShingles;
+import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
+import com.crawljax.core.state.duplicatedetection.FeatureType;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlHash32;
+import com.crawljax.core.state.duplicatedetection.Type;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +33,7 @@ public class StateAnalysisMetric implements IMetric {
 	public static final String MISSED_STATES = "Missed states";
 	public static final String DUPLICATE_STATES = "Duplicate states";
 	
-	@Getter private int threshold;
-	
-	public StateAnalysisMetric(int threshold) {
-		this.threshold = threshold;
-	}
+	@Getter private int threshold = 1;
 
 	public String getMetricName() {
 		return "State Analysis";
@@ -51,8 +51,7 @@ public class StateAnalysisMetric implements IMetric {
 			List<StateResult> testedStates = new ArrayList<StateResult>(testedResult.getStateResults());
 			List<StateResult> remove = new ArrayList<StateResult>();
 			for(StateResult testedState : testedStates) {
-				StateResult benchmarkState = retrieveStateByHash(benchmarkStates, testedState.getStrippedDomHash(),threshold);
-				log.warn("{} == {}", testedState.getStateId(), benchmarkState.getStateId());
+				StateResult benchmarkState = retrieveStateByHash(benchmarkStates, testedState,threshold);
 				if(benchmarkState != null) {
 					remove.add(testedState);
 					if(!removeState(benchmarkStates, duplicates, benchmarkState.getStateId())) {
@@ -80,13 +79,24 @@ public class StateAnalysisMetric implements IMetric {
 		return null;
 	}
 	
-	private StateResult retrieveStateByHash(Collection<StateResult> tr, int hash, int threshold) {
+	private StateResult retrieveStateByHash(Collection<StateResult> tr, StateResult hash, int threshold) {
+		StateResult result = null;
+		int minDistance = Integer.MAX_VALUE;
+		List<FeatureType> ft = new ArrayList<FeatureType>();
+		ft.add(new FeatureShingles(1, Type.CHARS));
+		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
 		for(StateResult state : tr) {
-			NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold, null);
-			if(npd.isNearDuplicateHash(hash, state.getStrippedDomHash()))
-				return state;
+			try {
+				int distance = npd.getDistance(
+						npd.generateHash(hash.getDom()), 
+						npd.generateHash(state.getDom()));
+				if(distance <= threshold && distance < minDistance)
+					result = state; minDistance = distance;
+			} catch (FeatureShinglesException e) {
+				e.printStackTrace();
+			}
 		}
-		return null;		
+		return result;		
 	}
 	
 	private ConcurrentHashMap<String, String> retrieveDuplicates(int websiteResultId) {
