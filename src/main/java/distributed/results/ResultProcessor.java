@@ -106,7 +106,7 @@ public class ResultProcessor implements IResultProcessor {
 	private int makeHash(String fileContent) {
 		int hash;
 		try {
-			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent);
+			hash = new NearDuplicateDetectionSingleton().getInstance().generateHash(fileContent);
 		} catch (FeatureShinglesException e) {
 			hash = fileContent.hashCode();
 			log.error(e.getMessage());
