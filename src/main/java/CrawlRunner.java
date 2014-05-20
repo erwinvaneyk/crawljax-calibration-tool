@@ -73,7 +73,7 @@ public class CrawlRunner {
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
-			actionLocalCrawler();
+			actionAnalysis();
 		} else {
 			actionHelp();
 		}
