@@ -1,4 +1,4 @@
-package test.main.analysis;
+package test.java.analysis;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -37,13 +37,6 @@ public class TestAnalysisProcessorFile {
 		apf = new AnalysisProcessorFile();
 		apf.setOutputDir(testDir);
 		ap = mock(Analysis.class);
-	}
-
-	@Test
-	public void testApply() {
-		when(ap.getTitle()).thenReturn("testApply");
-		apf.apply(ap);
-		assertTrue(apf.getOutput().exists());
 	}
 	
 	@Test

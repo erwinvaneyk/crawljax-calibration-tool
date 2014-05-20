@@ -1,4 +1,4 @@
-package test.main.distributed.results;
+package test.java.distributed.results;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;

@@ -1,4 +1,4 @@
-package test.main.analysis;
+package test.java.analysis;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -9,11 +9,13 @@ import java.util.Collection;
 
 import main.java.analysis.AnalysisException;
 import main.java.analysis.Analysis;
+import main.java.analysis.IMetric;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
 
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 
@@ -71,7 +73,7 @@ public class TestAnalysisReport {
 		Analysis result = new Analysis("testRunAnalysisSame", input, null);
 		result.runAnalysis(input);
 		// temporary
-		assertEquals(result.getTestWebsitesResults(), input);
+		assertEquals(result.getTestWebsitesResults(), null);
 		assertEquals(result.getBenchmarkWebsites(), input);
 		connMgr.closeConnection();
 	}

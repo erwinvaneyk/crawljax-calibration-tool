@@ -1,4 +1,4 @@
-package test.main.analysis;
+package test.java.analysis;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

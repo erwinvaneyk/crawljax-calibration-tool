@@ -36,7 +36,12 @@ public class Analysis {
 		if(benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
 			throw new AnalysisException("Error while creating analysisReport, benchmarkWebsites should not be empty.");
 		}
-		this.metrics = metrics;
+		if(metrics == null) {
+			this.metrics = new ImmutableList.Builder<IMetric>().build();
+			log.warn("Metrics should not be null (has been converted to empty though)");
+		} else {
+			this.metrics = metrics;
+		}
 		this.benchmarkWebsites = benchmarkWebsites;
 	}
 	

@@ -1,4 +1,4 @@
-package test.main.analysis;
+package test.java.analysis;
 
 import static org.junit.Assert.*;
 
@@ -22,7 +22,7 @@ public class TestAnalysisFactory {
 	
 	public final static String BenchmarkUrl = "http://demo.crawljax.com"; 
 	public static WebsiteResult benchmarkWebsite;
-	public static int benchmarkWebsiteID = 2;
+	public static int benchmarkWebsiteID = 1;
 	private static ConnectionManagerORM connMgr;
 
 	@BeforeClass
@@ -100,7 +100,7 @@ public class TestAnalysisFactory {
 	}
 
 	@Test
-	public void testCrawlBenchmarkedWebsites() throws AnalysisException {
+	public void testCrawlUpdateWebsites() throws AnalysisException {
 		List<WebsiteResult> input = new ArrayList<WebsiteResult>();
 		input.add(benchmarkWebsite);
 		AnalysisFactory af = new AnalysisFactory();
@@ -108,17 +108,20 @@ public class TestAnalysisFactory {
 		assertNotNull(result);
 		assertEquals(result.size(), 1);
 		assertEquals(result.get(0).getWorkTask().getURL(), benchmarkWebsite.getWorkTask().getURL());
+		af.deleteWebsiteResultFromDB(result);
 	}
 
 	@Test(expected=AnalysisException.class)
-	public void testCrawlBenchmarkedWebsitesNull() throws AnalysisException {
+	public void testCrawlUpdateWebsitesNull() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		af.updateWebsiteResults(null);
+		List<WebsiteResult> result = af.updateWebsiteResults(null);
+		af.deleteWebsiteResultFromDB(result);
 	}
 	
 	@Test(expected=AnalysisException.class)
-	public void testCrawlBenchmarkedWebsitesEmpty() throws AnalysisException {
+	public void testCrawlUpdateWebsitesEmpty() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		af.updateWebsiteResults(new ArrayList<WebsiteResult>());
+		List<WebsiteResult> result = af.updateWebsiteResults(new ArrayList<WebsiteResult>());
+		af.deleteWebsiteResultFromDB(result);
 	}
 }
