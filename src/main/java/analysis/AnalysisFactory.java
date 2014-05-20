@@ -12,7 +12,7 @@ import com.j256.ormlite.stmt.Where;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import main.java.SuiteRunner;
+import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
@@ -112,7 +112,7 @@ public class AnalysisFactory {
 				}
 			}
 			// wait until websites have been crawled
-			new SuiteRunner(new String[]{"-w","-finish"});
+			new CrawlRunner(new String[]{"-w","-finish"});
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
 			return builder.query();
