@@ -68,6 +68,8 @@ public class Analysis {
 				succesfulMetrics++;
 			} catch(Exception e) {
 				log.error("Error occured while applying metric {}: {}", metric.getMetricName(), e.getMessage());
+				resultBuilder.put(metric.getMetricName(), "(error)");
+				
 			}
 		}
 		score = score / (float) succesfulMetrics;

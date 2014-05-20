@@ -41,6 +41,7 @@ public class AnalysisFactory {
 			.addAll(metrics)
 	        .add(metric)
 	        .build();
+		log.info("Metric added to analysis: " + metric.getMetricName());
 	}
 	
 	/**

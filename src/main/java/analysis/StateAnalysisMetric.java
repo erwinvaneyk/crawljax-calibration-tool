@@ -57,24 +57,37 @@ public class StateAnalysisMetric implements IMetric {
 					if(!removeState(benchmarkStates, duplicates, benchmarkState.getStateId())) {
 						log.error("Failed to remove {} ", benchmarkState.getStateId());
 					}
-					log.warn(benchmarkStates.toString());
+					log.debug("benchmarkstates: {}", benchmarkStates);
 				}
 			}
-			if(!testedStates.removeAll(remove));
-				log.error("Failed to remove {} ", remove);
+			if(!testedStates.removeAll(remove))
+				log.error("Failed to removeAll {} ", remove);
+			benchmarkStates = removeDuplicatesFromCollection(benchmarkStates);
 			result.put("(" + benchmarkWebsite.getId() + ") " + MISSED_STATES, benchmarkStates);
 			result.put("(" +  benchmarkWebsite.getId() + ") " + DUPLICATE_STATES, testedStates);
 			duplicateStates += testedStates.size();
 			missedStates += benchmarkStates.size();
 			totalStates += benchmarkWebsite.getStateResults().size() + testedResult.getStateResults().size();
 		}
-		result.put("# " + TOTAL_STATES,"/t" + totalStates);
+		result.put("# " + TOTAL_STATES,"\t" + totalStates);
 		result.put("# " + MISSED_STATES, missedStates);
 		result.put("# " + DUPLICATE_STATES, duplicateStates);
 
 		score = ((float) totalStates - (float) missedStates - (float) duplicateStates)/ (float) totalStates;
-		
 		return result;
+	}
+	
+	private List<StateResult> removeDuplicatesFromCollection(List<StateResult> states) {
+		ArrayList<StateResult> temp = new ArrayList<StateResult>(states);
+		if(states != null && !states.isEmpty()) {
+			StateResult[] arr = states.toArray(new StateResult[0]);
+			ConcurrentHashMap<String, String> duplicates = this.retrieveDuplicates(states.get(0).getWebsiteResult().getId());
+			for(int i = 0; i < arr.length; i++) {
+				this.removeState(temp, duplicates, arr[i].getStateId());
+				temp.add(arr[i]);
+			}
+		}
+		return temp;
 	}
 	
 	private WebsiteResult retrieveByUrl(Collection<WebsiteResult> testWebsitesResults, URL keyword) {
@@ -120,12 +133,12 @@ public class StateAnalysisMetric implements IMetric {
 		return stateIds;
 	}
 	
-	private boolean removeState(List<StateResult> benchmarkStates, ConcurrentHashMap<String,String> duplicates, String removedState) {
+	private boolean removeState(List<StateResult> states, ConcurrentHashMap<String,String> duplicates, String removedState) {
 		boolean removed = false;
-		for(StateResult benchmark : benchmarkStates) {
+		for(StateResult benchmark : states) {
 			log.debug("Comparing {} to {}", removedState, benchmark.getStateId());
 			if(benchmark.getStateId().equals(removedState)) {
-				benchmarkStates.remove(benchmark);
+				states.remove(benchmark);
 				removed = true; break;
 			}
 		}
@@ -135,10 +148,10 @@ public class StateAnalysisMetric implements IMetric {
 				log.debug("Comparing {} to duplicate-entry {}", removedState, duplicate.toString());
 				if(duplicate.getKey().equals(removedState) ) {
 					duplicates.remove(duplicate.getKey());
-					removeState(benchmarkStates, duplicates, duplicate.getValue());
+					removeState(states, duplicates, duplicate.getValue());
 				} else if(duplicate.getValue().equals(removedState)) {
 					duplicates.remove(duplicate.getKey());
-					removeState(benchmarkStates, duplicates, duplicate.getKey());
+					removeState(states, duplicates, duplicate.getKey());
 				}
 			}
 		}

@@ -9,13 +9,11 @@ import java.util.Collection;
 
 import main.java.analysis.AnalysisException;
 import main.java.analysis.Analysis;
-import main.java.analysis.IMetric;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
 
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 

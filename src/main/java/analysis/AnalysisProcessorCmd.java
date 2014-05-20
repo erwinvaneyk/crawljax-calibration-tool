@@ -26,6 +26,11 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 		    }
 		    writer.print("----------------------------\r\n");
 		    writer.print("metrics: \r\n");
+		    for(IMetric metric : analysisReport.getMetrics()) {
+			    writer.print("- " + metric.getMetricName() + " \r\n");
+		    }
+		    writer.print("----------------------------\r\n");
+		    writer.print("results: \r\n");
 		    printStatistics(analysisReport);		    
 		    writer.print("----------------------------\r\n");
 		    writer.print("Score: " + analysisReport.getScore() + "\r\n");
