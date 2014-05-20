@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import com.crawljax.core.CandidateElement;
 import com.crawljax.core.CrawlerContext;
-import com.crawljax.core.plugin.PreStateCrawlingPlugin;
+import com.crawljax.core.plugin.OnNewStatePlugin;
 import com.crawljax.core.state.StateVertex;
-import com.google.common.collect.ImmutableList;
 
-public class StoreDOMPlugin implements PreStateCrawlingPlugin {
+public class StoreDOMPlugin implements OnNewStatePlugin {
 	
 	static final String specificOutputDir = "/strippedDOM/";
 	static final String fileExtension = ".html";
@@ -20,8 +18,7 @@ public class StoreDOMPlugin implements PreStateCrawlingPlugin {
 		return "Chuck Norris";
 	}
 
-	public void preStateCrawling(CrawlerContext context,
-			ImmutableList<CandidateElement> candidateElements,
+	public void onNewState(CrawlerContext context,
 			StateVertex state) {
 		File outputDir = context.getConfig().getOutputDir();
 		File domFile = new File(outputDir + specificOutputDir);

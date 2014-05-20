@@ -28,7 +28,7 @@ public class WorkloadRunner {
 			try {
 				if (!urlvalidator.isValid(arg)) throw new MalformedURLException("invalid url");
 				url = new URL(arg);
-				if(workload.submitWork(url) >= 0) {
+				if(workload.submitWork(url, false) >= 0) {
 					System.out.println("Added: " + arg);
 				} else {
 					System.out.println("Url already exists in the database.");
@@ -68,7 +68,7 @@ public class WorkloadRunner {
 				}
 				
 				// Submit url
-				int id = workload.submitWork(url);
+				int id = workload.submitWork(url, false);
 				if(id >= 0)
 					System.out.println("Added: " + url + " (id: " + id + ")");
 				else 

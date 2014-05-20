@@ -6,10 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import main.java.plugins.StoreDOMPlugin;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
@@ -21,6 +19,7 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
  * Maps key-value entries to a Crawljax-configuration
  *
  */
+@Slf4j
 public class ConfigurationMapper {
 	
 	public static CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
@@ -35,6 +34,7 @@ public class ConfigurationMapper {
 		
 		// arguments
 		for( Entry<String, String> entry : args.entrySet()) {
+			log.info("Configuration pair: {} = {}", entry.getKey(), entry.getValue());
 			convertArgument(builder, entry.getKey(), entry.getValue());
 		}
 		return builder.build();
@@ -52,6 +52,8 @@ public class ConfigurationMapper {
 			builder.setMaximumStates(Integer.parseInt(value));
 		} else if(key.equalsIgnoreCase("t") || key.equalsIgnoreCase("timeout")) {
 			builder.setMaximumRunTime(Long.parseLong(value), TimeUnit.MINUTES);
+		} else if(key.equalsIgnoreCase("threshold")) {
+			builder.setThresholdNearDuplicateDetection(Integer.parseInt(value));
 		} else if(key.equalsIgnoreCase("a") || key.equalsIgnoreCase("crawlHiddenAnchors")) {
 			builder.crawlRules().crawlHiddenAnchors(true);
 		} else if(key.equalsIgnoreCase("waitAfterReload")) {
@@ -64,6 +66,8 @@ public class ConfigurationMapper {
 					builder.setBrowserConfig(new BrowserConfiguration(b, 1));
 				}
 			}
+		} else {
+			log.warn("Undefined key in configuration: {}", key);
 		}
 		// TODO browsertype and parallel
 	}

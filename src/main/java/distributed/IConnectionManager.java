@@ -1,5 +1,6 @@
 package main.java.distributed;
 
+import java.io.File;
 import java.sql.Connection;
 
 /**
@@ -7,6 +8,8 @@ import java.sql.Connection;
  *
  */
 public interface IConnectionManager {
+	
+	public static final File DEFAULT_SETTINGS_PATH = new File(System.getProperty("user.dir") + "/config/dist.ini");
 	
 	/**
 	 * Returns the connection. If not present, create a new connection.

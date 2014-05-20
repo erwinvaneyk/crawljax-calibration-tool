@@ -6,13 +6,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
 
 import main.java.distributed.IConnectionManager;
 
@@ -20,12 +20,19 @@ import main.java.distributed.IConnectionManager;
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
 public class ResultProcessor implements IResultProcessor {
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
-
+	final Logger log = LoggerFactory.getLogger(this.getClass());
+	
+	private static final String PATH_RESULTS_JSON = "result.json"; 
+	private static final String PATH_RESULTS_DOM = "doms";  
+	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM"; 
+	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
+	
 	private IConnectionManager con;
-
+	private UploadResult upload;
+	
 	public ResultProcessor(IConnectionManager conn) {
 		this.con = conn;
+		this.upload = new UploadResult(conn);
 	}
 	
 	/**
@@ -35,12 +42,12 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException 
 	 */
 	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException {
-		this.uploadJson(id, dir, duration);
-		this.uploadDom(id, dir);
-		this.uploadStrippedDom(id, dir);
-		this.uploadScreenshot(id, dir);
+		int websiteID = this.uploadJson(id, dir, duration);
+		this.uploadDom(websiteID, dir);
+		this.uploadStrippedDom(websiteID, dir);
+		this.uploadScreenshot(websiteID, dir);
 				
-		this.removeDir(dir);
+		//this.removeDir(dir);
 		
 		con.closeConnection();
 	}
@@ -52,9 +59,10 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param duration The duration of the crawl
 	 * @throws ResultProcessorException
 	 */
-	public void uploadJson(int id, String dir, long duration) throws ResultProcessorException {
-		File jsonFile = this.findFile(dir, "result.json");
-		this.uploadJson(id, jsonFile, duration);
+	public int uploadJson(int id, String dir, long duration) throws ResultProcessorException {
+		File jsonFile = this.findFile(dir, PATH_RESULTS_JSON);
+		String fileContent = this.readFile(jsonFile);
+		return upload.uploadJson(id, fileContent, duration);
 	}
 	
 	/**
@@ -63,13 +71,16 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The output directory
 	 * @throws ResultProcessorException
 	 */
-	public void uploadDom(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "doms");
+	public void uploadDom(int websiteId, String dir) throws ResultProcessorException {
+		File dirOfMap = this.findFile(dir,PATH_RESULTS_DOM);
 		File[] files = dirOfMap.listFiles();
 		
-		logger.info(files.length +" domstates found");
+		log.info(files.length +" domstates found");
 		for (int i = 0; i < files.length; i++) {
-			this.uploadDomAction(id, files[i]);
+			String fileContent = this.readFile(files[i]);
+			String stateId = this.getStateId(files[i]);
+
+			upload.uploadDomAction(websiteId, fileContent, stateId);
 		}
 	}
 	
@@ -80,15 +91,29 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "strippedDOM");
+		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 		
-		logger.info(files.length +" stripped dom-states found");
+		log.info(files.length +" stripped dom-states found");
 		for (int i = 0; i < files.length; i++) {
-			this.uploadStrippedDom(id, files[i]);
+			String fileContent = this.readFile(files[i]);
+			String stateId = this.getStateId(files[i]);
+			int hashStrippedDom = this.makeHash(fileContent);
+			upload.uploadStrippedDom(id, fileContent, stateId, hashStrippedDom);
 		}
 	}
 	
+	private int makeHash(String fileContent) {
+		int hash;
+		try {
+			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent);
+		} catch (FeatureShinglesException e) {
+			hash = fileContent.hashCode();
+			log.error(e.getMessage());
+			e.printStackTrace();
+		}
+		return hash;
+	}
 	/**
 	 * Upload only the screenshot of every state to the database.
 	 * @param id The id of the website
@@ -96,25 +121,36 @@ public class ResultProcessor implements IResultProcessor {
 	 * @throws ResultProcessorException
 	 */
 	public void uploadScreenshot(int id, String dir) throws ResultProcessorException {
-		File dirOfMap = this.findFile(dir, "screenshots");
+		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
 		File[] files = dirOfMap.listFiles();
 		
-		logger.info(files.length +" screenshots found");
+		log.info(files.length +" screenshots found");
 		for (int i = 0; i < files.length; i++) {
-			this.uploadScreenshotAction(id, files[i]);
+			String stateId = this.getStateId(files[i]);
+			try {
+				FileInputStream fr = new FileInputStream(files[i]);
+				
+				upload.uploadScreenshotAction(id, fr, stateId);
+				fr.close();
+			} catch (FileNotFoundException e) {
+				log.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
+				e.printStackTrace();
+			} catch (IOException e) {
+				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
+			}
 		}
 	}
 	
 	private void removeDir(String dir) {
 		try {
 			FileUtils.deleteDirectory(new File(dir));
-			logger.debug("Output directory removed.");
+			log.debug("Output directory removed.");
 		} catch (IOException e) {
-			logger.error("IOException while removing the output directory: " + e.getMessage());
+			log.error("IOException while removing the output directory: " + e.getMessage());
 		}
 	}
 	
-	private File findFile(final String dir, String file) throws ResultProcessorException  {
+	public File findFile(final String dir, String file) throws ResultProcessorException  {
 		File directory = new File(dir);
 		File[] files = directory.listFiles();
 
@@ -133,188 +169,13 @@ public class ResultProcessor implements IResultProcessor {
 		}
 	}
 
-	private void uploadJson(int id, final File f, long duration) throws ResultProcessorException {
-		BufferedReader bufr = null;
-		try {
-			String fileContent = "";
-			String line;
-			bufr = new BufferedReader(new FileReader(f));
-			
-			while ((line = bufr.readLine()) != null) {
-				fileContent += line;
-			}
-
-			if (this.tableContainsJson(id)) {
-				logger.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
-			} else {
-				String sql = "INSERT INTO TestResults(id,JsonResults,duration) VALUES(?,?,?)";
-				PreparedStatement statement = con.getConnection().prepareStatement(sql);
-				
-				statement.setInt(1, id);
-				statement.setString(2, fileContent);
-				statement.setFloat(3, duration);
-				int insert = statement.executeUpdate();	
-				
-				if (insert == 1) {
-					logger.info("The result.json file is sent to the database");
-				} else {
-					logger.warn("The result.json file is NOT sent to the database");
-					throw new ResultProcessorException("Can not insert the json-file");
-				}
-			}
-		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
-			throw new ResultProcessorException("SQLException during the upload of the json-file");
-		} catch (FileNotFoundException e) {
-			logger.error("FileNotFoundException: " + e.getMessage());
-			throw new ResultProcessorException("FileNotFoundException: the json-file cannot be found");
-		} catch (IOException e) {
-			logger.error("IOException: " + e.getMessage());
-			throw new ResultProcessorException("IOException during the upload of the json-file");
-		} finally {
-			try {
-				bufr.close();
-			} catch (IOException e) {
-				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
-				
-			}
-		}
-	}
-	
-	private void uploadDomAction(int id, final File f) throws ResultProcessorException {
-		try {
-			String fileContent = this.readFile(f);
-			String stateId = getStateId(f);
-
-			if (!this.tableContainsTuple(id, stateId)) {
-				this.makeTuple(id, f);
-			}
-			this.insertInTuple("Dom", fileContent, id, stateId);
-			
-		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
-			throw new ResultProcessorException("SQLException during the upload of the json-file");
-		}
-	}
-	
-	private int insertInTuple(String column, String content, int websiteId, String stateId) throws SQLException {
-		String update  = "UPDATE DomResults SET " + column + " = ? WHERE WebsiteId = ? AND StateId = ?";
-		PreparedStatement statement = con.getConnection().prepareStatement(update);
-		
-		statement.setString(1, content);
-		statement.setInt(2, websiteId);
-		statement.setString(3, stateId);
-		
-		return statement.executeUpdate();
-	}
-	
-	private void uploadStrippedDom(int id, final File f) throws ResultProcessorException {
-		try {
-			String fileContent = this.readFile(f);
-			String stateId = getStateId(f);
-		
-			if (!this.tableContainsTuple(id, stateId)) {
-				this.makeTuple(id, f);
-			}
-			int update = this.insertInTuple("StrippedDOM", fileContent, id, stateId);
-			
-			if(update != 1) {
-				logger.warn("A problem while inserting a screenshot into the database.");
-			}
-		} catch (SQLException e) {
-			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
-			throw new ResultProcessorException("IOException during the upload of a screenshot");
-		}
-	}
-	
-	private void uploadScreenshotAction(int id, final File f) throws ResultProcessorException {
-		FileInputStream fr = null;
-		try {
-			fr = new FileInputStream(f);
-			String stateId = getStateId(f);
-			
-			if (!stateId.contains("small")) {
-				if (!this.tableContainsTuple(id, stateId)) {
-					this.makeTuple(id, f);
-				}
-				String sql = "UPDATE DomResults SET Screenshot = ? WHERE WebsiteId = ? AND StateId = ?";
-				PreparedStatement prepStat = con.getConnection().prepareStatement(sql);
-				
-				prepStat.setBinaryStream(1, fr);
-				prepStat.setInt(2, id);
-				prepStat.setString(3, stateId);
-				
-				int result = prepStat.executeUpdate();
-				if(result != 1) {
-					logger.warn("A problem while inserting a screenshot into the database.");
-				}
-			}
-		} catch (FileNotFoundException e) {
-			logger.error("IOException during upload screenshot " + id + ". Message: " + e.getMessage());
-			throw new ResultProcessorException(e.getMessage());
-		} catch (SQLException e) {
-			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
-			throw new ResultProcessorException("IOException during the upload of a screenshot");
-		} finally {
-			try {
-				fr.close();
-			} catch (IOException e) {
-				logger.error("IOException while closing file " + f.getName() + ". Message: " + e.getMessage());
-			}
-		}
-	}
-	
-	private String getStateId(File f) {
+	public String getStateId(File f) {
 		String fileName = f.getName();
 		int indexOfExtension = fileName.lastIndexOf(".");
 		return fileName.substring(0, indexOfExtension);
 	}
 	
-	private boolean tableContainsTuple(int id, String stateId) throws ResultProcessorException {
-		boolean res = false;
-		
-		try {
-			String select = "SELECT * FROM DomResults WHERE WebsiteId = ? AND StateId = ?";
-			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
-			selectSt.setInt(1, id);
-			selectSt.setString(2, stateId);
-			
-			ResultSet resSet = selectSt.executeQuery();
-			if (resSet.next()) {
-				res = true;
-			} else {
-				res = false;
-			}
-		} catch (SQLException e) {
-			logger.error("SQLException: It is not possible to check if the table contains a tuple with id=" + id + " and StateId=" + stateId + ". Message: " + e.getMessage());
-			throw new ResultProcessorException("SQLException during the search of excisting tuple");
-		}
-		return res;
-	}
-	
-	private boolean tableContainsJson(int id) {
-		boolean res = false;
-		
-		try {
-			String select = "SELECT * FROM TestResults WHERE id = ?";
-			PreparedStatement selectSt = con.getConnection().prepareStatement(select);
-			selectSt.setInt(1, id);
-			
-			ResultSet resSet = selectSt.executeQuery();
-			
-			if (resSet.next()) {
-				res = true;
-			} else {
-				res = false;
-			}
-		} catch (SQLException e) {
-			logger.error("SQLException: It is not possible to check if the table contains a the Json with id=" + id + ". Message: " + e.getMessage());
-		}
-		
-		return res;
-	}
-	
-	private String readFile(File f) throws ResultProcessorException {
+	public String readFile(File f) throws ResultProcessorException {
 		String fileContent = "";
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(f));;
@@ -328,26 +189,5 @@ public class ResultProcessor implements IResultProcessor {
 			throw new ResultProcessorException("Could not read file " + f.getName());
 		}
 		return fileContent;
-	}
-	
-	private void makeTuple(int id, final File f) throws ResultProcessorException {
-		try {
-			String stateId = getStateId(f);
-
-			String sql = "INSERT INTO DomResults(WebsiteId,StateId) VALUES(?,?)";
-			PreparedStatement statement = (PreparedStatement) con.getConnection().prepareStatement(sql);
-			
-			statement.setInt(1, id);
-			statement.setString(2, stateId);
-			
-			int result = statement.executeUpdate();	
-			if(result != 1) {
-				logger.info("A problem while insterted a dom in the database");
-			}
-		
-		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
-			throw new ResultProcessorException("SQLException: can not make new tupe with id=" + id + " and StateId=" + getStateId(f));
-		}
 	}
 }

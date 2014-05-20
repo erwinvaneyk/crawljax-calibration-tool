@@ -15,6 +15,13 @@ import org.apache.commons.cli.Options;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
+import main.java.analysis.Analysis;
+import main.java.analysis.AnalysisException;
+import main.java.analysis.AnalysisFactory;
+import main.java.analysis.AnalysisProcessorCmd;
+import main.java.analysis.AnalysisProcessorFile;
+import main.java.analysis.SpeedMetric;
+import main.java.analysis.StateAnalysisMetric;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
@@ -30,7 +37,8 @@ import main.java.distributed.workload.WorkloadRunner;
 
 import com.crawljax.cli.JarRunner;
 
-public class SuiteRunner {
+public class CrawlRunner {
+	String[] additionalArgs = null;
 
 	public static void main(String[] args) {
 		// Header
@@ -41,15 +49,14 @@ public class SuiteRunner {
 		System.out.println("---------------------------------");
 		
 		// Do stuff
-		new SuiteRunner(args);
+		new CrawlRunner(args);
 		// Finish up.
 		System.out.println("Finished.");
 	}
 	
-	public SuiteRunner(String[] args) {
+	public CrawlRunner(String[] args) {
 		// Parse Args
 		String arg = "";
-		String[] additionalArgs = null;
 		if (args.length > 0) {
 			arg = args[0];
 			additionalArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -64,6 +71,8 @@ public class SuiteRunner {
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
+			actionLocalCrawler();
+		} else if (arg.equals("-a") || arg.equals("--analyse")) {
 			actionLocalCrawler();
 		} else {
 			actionHelp();
@@ -96,6 +105,7 @@ public class SuiteRunner {
 				while(workTasks.isEmpty()) {
 					workTasks = workload.retrieveWork(1);
 					if (workTasks.isEmpty()) {
+						if(additionalArgs.length >= 1 && additionalArgs[0].equals("-finish")) return;
 						Thread.sleep(1000 * 10); // sleep 10 seconds
 					}
 				}
@@ -103,13 +113,13 @@ public class SuiteRunner {
 				for (WorkTask task : workTasks) {
 					try {
 						List<String> sections = new ArrayList<String>();
-						sections.add(task.getUrl().getHost());
+						sections.add(task.getURL().getHost());
 						sections.add(ConfigurationIni.INI_SECTION_COMMON);
 						Map<String, String> args = config.getConfiguration(sections);
-						File dir = CrawlManager.generateOutputDir(task.getUrl());
+						File dir = CrawlManager.generateOutputDir(task.getURL());
 						// Crawl
 						long timeStart = new Date().getTime();
-						boolean hasNoError = suite.runCrawler(task.getUrl(), dir, args);
+						boolean hasNoError = suite.runCrawler(task.getURL(), dir, args);
 						if(!hasNoError) {
 							throw new Exception("Crawljax returned an error code");
 						}
@@ -119,11 +129,11 @@ public class SuiteRunner {
 							System.out.println(e.getMessage());
 						}
 						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getUrl() + " completed");
+						System.out.println("crawl: " + task.getURL() + " completed");
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
 						workload.revertWork(task.getId());						
-						System.out.println("crawl: " + task.getUrl() + " failed. Claim reverted.");
+						System.out.println("crawl: " + task.getURL() + " failed. Claim reverted.");
 					}
 				}
 			}
@@ -142,7 +152,7 @@ public class SuiteRunner {
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
 				url = new URL(rawUrl);
-				workload.submitWork(url);
+				workload.submitWork(url, false);
 			}
 		} catch (IOException e1) {
 			System.out.println(e1.getMessage());
@@ -176,5 +186,24 @@ public class SuiteRunner {
 	private void actionDistributor(String[] args) {
 		System.out.println("Distributor CLI:");
 		WorkloadRunner.main(args);
+	}
+	
+	private void actionAnalysis() {
+		try {
+			// Build factory
+			AnalysisFactory factory = new AnalysisFactory();
+			factory.addMetric(new SpeedMetric());
+			factory.addMetric(new StateAnalysisMetric());
+			
+			// Generate report
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{20});
+
+			// Generate file
+			new AnalysisProcessorFile().apply(analysis);
+			// Output to cmd
+			new AnalysisProcessorCmd().apply(analysis);
+		} catch (AnalysisException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }

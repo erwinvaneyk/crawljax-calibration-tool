@@ -3,21 +3,20 @@ package main.java.distributed;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.SQLException;
 import java.util.Properties;
+
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * ConnectionManager manages a single connection resource to the database. 
- *
- */
 @Slf4j
-public class ConnectionManager implements IConnectionManager {
+public class ConnectionManagerORM extends ConnectionManager implements IConnectionManager {
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 	
-	private Connection connection;
+	private JdbcConnectionSource connection;
 	private static Properties settings;
 	private static String url;
 	private static String database;
@@ -64,36 +63,18 @@ public class ConnectionManager implements IConnectionManager {
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);
 	}
-	
-	/**
-	 * Returns the connection. If not present, create a new connection.
-	 * @return the active connection
-	 */
-	public Connection getConnection() {
-		try {
-			if (connection == null || connection.isClosed()) {
-					// Setup connection
-					connection = DriverManager.getConnection(url + database,username,password);
-					log.debug("Connection established with: " + url + database);
-			}
-		} catch (SQLException e) {
-			log.error(e.getMessage());
+
+	public ConnectionSource getConnectionORM() throws SQLException {
+		if (connection == null || !connection.isOpen()) {
+			connection = new JdbcConnectionSource(url + database,username,password);
 		}
 		return connection;
 	}
 	
-	/**
-	 * Closes the connection.
-	 */
 	public void closeConnection() {
-		try {
-			connection.close();
-			log.debug("Connection with: " + url + database + " closed.");
-		} catch (NullPointerException e) {
-			log.warn("Connection was already closed");
-		} catch (SQLException e) {
-			log.error(e.getMessage());
-		}
-		connection = null;
+		super.closeConnection();
+		connection.closeQuietly();		
 	}
+	
+	
 }
