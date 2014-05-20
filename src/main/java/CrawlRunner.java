@@ -15,6 +15,13 @@ import org.apache.commons.cli.Options;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
+import main.java.analysis.Analysis;
+import main.java.analysis.AnalysisException;
+import main.java.analysis.AnalysisFactory;
+import main.java.analysis.AnalysisProcessorCmd;
+import main.java.analysis.AnalysisProcessorFile;
+import main.java.analysis.SpeedMetric;
+import main.java.analysis.StateAnalysisMetric;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
@@ -30,7 +37,7 @@ import main.java.distributed.workload.WorkloadRunner;
 
 import com.crawljax.cli.JarRunner;
 
-public class SuiteRunner {
+public class CrawlRunner {
 	String[] additionalArgs = null;
 
 	public static void main(String[] args) {
@@ -42,12 +49,12 @@ public class SuiteRunner {
 		System.out.println("---------------------------------");
 		
 		// Do stuff
-		new SuiteRunner(args);
+		new CrawlRunner(args);
 		// Finish up.
 		System.out.println("Finished.");
 	}
 	
-	public SuiteRunner(String[] args) {
+	public CrawlRunner(String[] args) {
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -64,6 +71,8 @@ public class SuiteRunner {
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
+			actionLocalCrawler();
+		} else if (arg.equals("-a") || arg.equals("--analyse")) {
 			actionLocalCrawler();
 		} else {
 			actionHelp();
@@ -177,5 +186,24 @@ public class SuiteRunner {
 	private void actionDistributor(String[] args) {
 		System.out.println("Distributor CLI:");
 		WorkloadRunner.main(args);
+	}
+	
+	private void actionAnalysis() {
+		try {
+			// Build factory
+			AnalysisFactory factory = new AnalysisFactory();
+			factory.addMetric(new SpeedMetric());
+			factory.addMetric(new StateAnalysisMetric());
+			
+			// Generate report
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{20});
+
+			// Generate file
+			new AnalysisProcessorFile().apply(analysis);
+			// Output to cmd
+			new AnalysisProcessorCmd().apply(analysis);
+		} catch (AnalysisException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }
