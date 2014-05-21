@@ -152,7 +152,7 @@ public class StateAnalysisMetric implements IMetric {
 		int minDistance = Integer.MAX_VALUE;
 		// Configure a NearestDuplicateDetection for comparing the states 
 		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, Type.CHARS));
+		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
 		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
 		
 		for(StateResult state : states) {

@@ -30,6 +30,7 @@ import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
+import main.java.distributed.results.UploadResult;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -93,7 +94,7 @@ public class CrawlRunner {
 	private void actionWorker() {
 		try {
 			IConnectionManager conn = new ConnectionManager();
-			IResultProcessor resultprocessor = new ResultProcessor(conn);
+			IResultProcessor resultprocessor = new ResultProcessor(new UploadResult(conn));
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
