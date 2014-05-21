@@ -196,7 +196,7 @@ public class CrawlRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{20});
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
 
 			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
