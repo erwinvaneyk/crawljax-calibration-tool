@@ -13,10 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
+import com.crawljax.core.state.duplicatedetection.FeatureSizeType;
 import com.crawljax.core.state.duplicatedetection.FeatureType;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlHash32;
-import com.crawljax.core.state.duplicatedetection.Type;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +103,7 @@ public class StateAnalysisMetric implements IMetric {
 		StateResult result = null;
 		int minDistance = Integer.MAX_VALUE;
 		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, Type.CHARS));
+		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
 		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
 		for(StateResult state : tr) {
 			try {

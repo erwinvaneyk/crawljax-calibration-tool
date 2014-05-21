@@ -27,12 +27,10 @@ public class ResultProcessor implements IResultProcessor {
 	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM"; 
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
 	
-	private IConnectionManager con;
 	private UploadResult upload;
 	
-	public ResultProcessor(IConnectionManager conn) {
-		this.con = conn;
-		this.upload = new UploadResult(conn);
+	public ResultProcessor(UploadResult upload) {
+		this.upload = upload;
 	}
 	
 	/**
@@ -49,7 +47,7 @@ public class ResultProcessor implements IResultProcessor {
 				
 		//this.removeDir(dir);
 		
-		con.closeConnection();
+		upload.closeConnection();
 	}
 	
 	/**
@@ -106,7 +104,7 @@ public class ResultProcessor implements IResultProcessor {
 	private int makeHash(String fileContent) {
 		int hash;
 		try {
-			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent);
+			hash = new NearDuplicateDetectionSingleton().getInstance().generateHash(fileContent);
 		} catch (FeatureShinglesException e) {
 			hash = fileContent.hashCode();
 			log.error(e.getMessage());
