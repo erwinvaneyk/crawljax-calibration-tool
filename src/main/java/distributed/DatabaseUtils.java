@@ -1,16 +1,26 @@
-package main.java.distributed.workload;
+package main.java.distributed;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map.Entry;
 
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.IConnectionManager;
+import main.java.CrawlManager;
+import main.java.distributed.configuration.ConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationIni;
+import main.java.distributed.configuration.IConfigurationDAO;
+import main.java.distributed.workload.IWorkloadDAO;
+import main.java.distributed.workload.WorkloadDAO;
 
 public class DatabaseUtils {
 	
@@ -74,8 +84,31 @@ public class DatabaseUtils {
 		return succes;
 	}
 	
-	public static void main(String[] args) {
-		DatabaseUtils test = new DatabaseUtils(new ConnectionManager());
-		test.deleteAllResultsById(87);
+	public void actionFlushWebsitesFile() {
+		try {
+			IWorkloadDAO workload = new WorkloadDAO(con);
+			CrawlManager suite = new CrawlManager();
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
+			URL url;
+			String rawUrl;
+			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
+				url = new URL(rawUrl);
+				workload.submitWork(url, false);
+			}
+		} catch (IOException e1) {
+			System.out.println(e1.getMessage());
+		}
+		System.out.println("File flushed to server.");
+	}
+	
+	public void actionFlushSettingsFile() {
+		IConfigurationDAO conf = new ConfigurationDAO(con);
+		Ini ini = new ConfigurationIni().getIni();
+
+		for (Section section : ini.values()) {
+			for (Entry<String, String> el : section.entrySet()) {
+				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
+			}
+		}
 	}
 }
