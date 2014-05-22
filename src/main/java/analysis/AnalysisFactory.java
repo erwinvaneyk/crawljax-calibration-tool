@@ -108,7 +108,7 @@ public class AnalysisFactory {
 			Where<WebsiteResult, String> where = builder.where();
 			for(WebsiteResult baseWebsite : benchmarkedWebsites) {
 				log.debug("Work to submit: {}", baseWebsite.getWorkTask());
-				int newId = workload.submitWork(baseWebsite.getWorkTask().getURL(), true);
+				int newId = workload.submitWork(baseWebsite.getWorkTask().getURL(), false);
 				if(newId > -1) {
 					where.eq("workTask_id",newId);
 					log.info("Work submitted: {} (id: {})",  baseWebsite.getWorkTask().getURL(), newId);
