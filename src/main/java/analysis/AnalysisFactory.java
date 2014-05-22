@@ -2,6 +2,7 @@ package main.java.analysis;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -16,6 +17,7 @@ import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
+import main.java.distributed.workload.DatabaseUtils;
 import main.java.distributed.workload.WorkloadDAO;
 
 /**
@@ -55,6 +57,8 @@ public class AnalysisFactory {
 		Analysis analyse = new Analysis(title, benchmarkedWebsites, metrics);
 		analyse.runAnalysis(testWebsites);
 		log.debug("Results have been analysed");
+		removeWebsiteResultsFromDB(testWebsites);
+		log.debug("Removed results from database");
 		return analyse;
 	}
 	
@@ -129,5 +133,11 @@ public class AnalysisFactory {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	private void removeWebsiteResultsFromDB(Collection<WebsiteResult> websites) {
+		for(WebsiteResult website : websites) {
+			new DatabaseUtils(new ConnectionManager()).deleteAllResultsById(website.getId());
+		}
 	}
 }

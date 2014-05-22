@@ -1,4 +1,4 @@
-package main.java.plugins;
+package main.java.crawljax.plugins;
 
 import java.io.File;
 import java.io.FileNotFoundException;
