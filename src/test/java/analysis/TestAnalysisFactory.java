@@ -2,7 +2,6 @@ package test.java.analysis;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import main.java.analysis.AnalysisException;
@@ -97,31 +96,5 @@ public class TestAnalysisFactory {
 	public void testRetrieveWebsiteResultsByIdEmpty() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
 		af.retrieveWebsiteResultsById(new int[]{});
-	}
-
-	@Test
-	public void testCrawlUpdateWebsites() throws AnalysisException {
-		List<WebsiteResult> input = new ArrayList<WebsiteResult>();
-		input.add(benchmarkWebsite);
-		AnalysisFactory af = new AnalysisFactory();
-		List<WebsiteResult> result = af.updateWebsiteResults(input);
-		assertNotNull(result);
-		assertEquals(result.size(), 1);
-		assertEquals(result.get(0).getWorkTask().getURL(), benchmarkWebsite.getWorkTask().getURL());
-		af.deleteWebsiteResultFromDB(result);
-	}
-
-	@Test(expected=AnalysisException.class)
-	public void testCrawlUpdateWebsitesNull() throws AnalysisException {
-		AnalysisFactory af = new AnalysisFactory();
-		List<WebsiteResult> result = af.updateWebsiteResults(null);
-		af.deleteWebsiteResultFromDB(result);
-	}
-	
-	@Test(expected=AnalysisException.class)
-	public void testCrawlUpdateWebsitesEmpty() throws AnalysisException {
-		AnalysisFactory af = new AnalysisFactory();
-		List<WebsiteResult> result = af.updateWebsiteResults(new ArrayList<WebsiteResult>());
-		af.deleteWebsiteResultFromDB(result);
 	}
 }

@@ -2,13 +2,11 @@ package main.java.analysis;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
@@ -17,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
-import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
-import main.java.distributed.workload.WorkTask;
 import main.java.distributed.workload.WorkloadDAO;
 
 /**
@@ -120,32 +116,18 @@ public class AnalysisFactory {
 			new CrawlRunner(new String[]{"-w","-finish"});
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
-			return builder.query();
+			List<WebsiteResult> retrieveTestedWebsites = builder.query();
+			while(retrieveTestedWebsites.size() < benchmarkedWebsites.size()) {
+				Thread.sleep(1000 * 10);
+				log.info("Waiting for crawling to finish...");
+				retrieveTestedWebsites = builder.query();
+			}
+			return retrieveTestedWebsites;
 		} catch (SQLException e) {
 			throw new AnalysisException("SQL exception caught while re-crawling websiteResults: " + e.getMessage());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-	}
-	
-	public void deleteWebsiteResultFromDB(WebsiteResult wr) {
-		try {
-			ConnectionManagerORM connPool = new ConnectionManagerORM();
-			Dao<WebsiteResult, String> websiteResultDAO = DaoManager.createDao(connPool.getConnectionORM(), WebsiteResult.class);
-			Dao<StateResult, String> stateResultDAO = DaoManager.createDao(connPool.getConnectionORM(), StateResult.class);
-			Dao<WorkTask, String> workTaskDAO = DaoManager.createDao(connPool.getConnectionORM(), WorkTask.class);
-			websiteResultDAO.delete(wr);
-			stateResultDAO.delete(wr.getStateResults());
-			DeleteBuilder<StateResult, String> delete = stateResultDAO.deleteBuilder();
-			delete.where().eq("websiteResult_id", wr.getId());
-			delete.delete();
-			workTaskDAO.delete(wr.getWorkTask());
-		} catch (SQLException e) {
-			log.error("Failed to remove WebsiteResult from DB: {}", e.getMessage());
-		}
-	}
-	
-	public void deleteWebsiteResultFromDB(Collection<WebsiteResult> collectionWr) {
-		for(WebsiteResult wr : collectionWr) {
-			deleteWebsiteResultFromDB(wr);
-		}
+		return null;
 	}
 }
