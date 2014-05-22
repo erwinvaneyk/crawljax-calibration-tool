@@ -2,18 +2,14 @@ package main.java;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
 
 import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisException;
@@ -24,6 +20,7 @@ import main.java.analysis.AnalysisProcessorFile;
 import main.java.analysis.SpeedMetric;
 import main.java.analysis.StateAnalysisMetric;
 import main.java.distributed.ConnectionManager;
+import main.java.distributed.DatabaseUtils;
 import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.ConfigurationIni;
@@ -41,6 +38,7 @@ import com.crawljax.cli.JarRunner;
 
 public class CrawlRunner {
 	String[] additionalArgs = null;
+	DatabaseUtils dbUtils;
 
 	public static void main(String[] args) {
 		// Header
@@ -57,6 +55,7 @@ public class CrawlRunner {
 	}
 	
 	public CrawlRunner(String[] args) {
+		dbUtils = new DatabaseUtils(new ConnectionManager());
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -67,9 +66,9 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			actionFlushWebsitesFile();
+			dbUtils.actionFlushWebsitesFile();
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			actionFlushSettingsFile();
+			dbUtils.actionFlushSettingsFile();
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
@@ -142,36 +141,6 @@ public class CrawlRunner {
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted; worker stopped.");
 		} 
-	}
-
-	private void actionFlushWebsitesFile() {
-		try {
-			IConnectionManager conn = new ConnectionManager();
-			IWorkloadDAO workload = new WorkloadDAO(conn);
-			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
-			URL url;
-			String rawUrl;
-			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
-				url = new URL(rawUrl);
-				workload.submitWork(url, false);
-			}
-		} catch (IOException e1) {
-			System.out.println(e1.getMessage());
-		}
-		System.out.println("File flushed to server.");
-	}
-	
-	private void actionFlushSettingsFile() {
-		IConnectionManager conn = new ConnectionManager();
-		IConfigurationDAO conf = new ConfigurationDAO(conn);
-		Ini ini = new ConfigurationIni().getIni();
-
-		for (Section section : ini.values()) {
-			for (Entry<String, String> el : section.entrySet()) {
-				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
-			}
-		}
 	}
 	
 	private void actionLocalCrawler() {

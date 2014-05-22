@@ -17,12 +17,11 @@ import org.junit.Test;
 public class TestDatabaseUtils {
 	
 	ConnectionManager con;
-	Statement st;
 	
 	@Before
 	public void insertNewResult() throws SQLException {
 		con = new ConnectionManager();
-		st = con.getConnection().createStatement();
+		Statement st = con.getConnection().createStatement();
 		
 		String makeWorload = "INSERT INTO workload VALUES (-1, 'http://test.nl', '', 0)";
 		String makeWebsiteResults = "INSERT INTO WebsiteResults VALUES (-2, -1, 'json', 10)";
@@ -49,6 +48,8 @@ public class TestDatabaseUtils {
 	
 	public void testIfCorrectlyInserted(String table, String column, int id, int expected) throws SQLException {
 		String getDomResultBeforeDeletion = "SELECT COUNT(*) FROM " + table + " WHERE " + column + "=" + id;
+		Statement st = con.getConnection().createStatement();
+		
 		ResultSet resset = st.executeQuery(getDomResultBeforeDeletion);
 		int countBefore = -1;
 		while (resset.next()) {
