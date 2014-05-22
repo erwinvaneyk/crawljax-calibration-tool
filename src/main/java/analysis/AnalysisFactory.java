@@ -17,7 +17,7 @@ import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
-import main.java.distributed.workload.DatabaseUtils;
+import main.java.distributed.DatabaseUtils;
 import main.java.distributed.workload.WorkloadDAO;
 
 /**
