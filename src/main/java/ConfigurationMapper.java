@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
-import main.java.plugins.StoreDOMPlugin;
+import main.java.crawljax.plugins.StoreDOMPlugin;
 
 import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
