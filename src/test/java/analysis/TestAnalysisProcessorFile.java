@@ -1,13 +1,10 @@
 package test.java.analysis;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import java.io.File;
-import java.io.IOException;
 
 import main.java.analysis.AnalysisProcessorFile;
-import main.java.analysis.Analysis;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -17,8 +14,6 @@ import org.junit.Test;
 public class TestAnalysisProcessorFile {
 	
 	private AnalysisProcessorFile apf;
-	
-	private Analysis ap;
 	
 	private static File testDir = new File(System.getProperty("user.dir") + "/output/temp/");
 
@@ -36,7 +31,6 @@ public class TestAnalysisProcessorFile {
 	public void setUp() throws Exception {
 		apf = new AnalysisProcessorFile();
 		apf.setOutputDir(testDir);
-		ap = mock(Analysis.class);
 	}
 	
 	@Test

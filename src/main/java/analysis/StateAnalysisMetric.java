@@ -31,12 +31,12 @@ public class StateAnalysisMetric implements IMetric {
 	
 	@Getter private float score = 1; // stub
 
-	private static final String MISSED_STATES 					= "Missed states";
-	private static final String DUPLICATE_STATES 				= "Duplicate states";
-	private static final String TOTAL_BENCHMARK_STATES 			= "Total benchmark states";
-	private static final String TOTAL_TESTED_STATES 			= "Total tested states";
-	private static final String TOTAL_BENCHMARK_UNIQUE_STATES 	= "Total unique benchmark states";
-	private static final String MISSED_UNIQUE_STATES 			= "Missed unique states";
+	public static final String MISSED_STATES 					= "Missed states";
+	public static final String DUPLICATE_STATES 				= "Duplicate states";
+	public static final String TOTAL_BENCHMARK_STATES 			= "Total benchmark states";
+	public static final String TOTAL_TESTED_STATES 				= "Total tested states";
+	public static final String TOTAL_BENCHMARK_UNIQUE_STATES 	= "Total unique benchmark states";
+	public static final String MISSED_UNIQUE_STATES 			= "Missed unique states";
 	
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two 'similar' states.
@@ -74,12 +74,12 @@ public class StateAnalysisMetric implements IMetric {
 			result.put("(" +  benchmarkWebsite.getId() + ") " + DUPLICATE_STATES, testedStates);
 		}
 		// Store the results of all the websites
-		result.put("# " + TOTAL_BENCHMARK_STATES,totalBenchmarkStates);
-		result.put("# " + MISSED_STATES, missedStates);
-		result.put("# " + MISSED_UNIQUE_STATES, missedUniqueStates);
-		result.put("# " + TOTAL_TESTED_STATES, totalTestedStates);
-		result.put("# " + TOTAL_BENCHMARK_UNIQUE_STATES, totalUniqueBenchmarkStates);
-		result.put("# " + DUPLICATE_STATES, duplicateStates);
+		result.put(TOTAL_BENCHMARK_STATES,totalBenchmarkStates);
+		result.put(MISSED_STATES, missedStates);
+		result.put(MISSED_UNIQUE_STATES, missedUniqueStates);
+		result.put(TOTAL_TESTED_STATES, totalTestedStates);
+		result.put(TOTAL_BENCHMARK_UNIQUE_STATES, totalUniqueBenchmarkStates);
+		result.put(DUPLICATE_STATES, duplicateStates);
 		return result;
 	}
 	
@@ -103,7 +103,7 @@ public class StateAnalysisMetric implements IMetric {
 				}
 				iterator.remove();
 			} else {
-				log.warn("State {} could not be matched to a benchmark-state -> duplicate", benchmarkState);
+				log.warn("State {} could not be matched to benchmark-state -> duplicate", benchmarkState);
 			}
 		}
 	}

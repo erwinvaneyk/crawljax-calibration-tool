@@ -19,6 +19,7 @@ import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisException;
 import main.java.analysis.AnalysisFactory;
 import main.java.analysis.AnalysisProcessorCmd;
+import main.java.analysis.AnalysisProcessorCsv;
 import main.java.analysis.AnalysisProcessorFile;
 import main.java.analysis.SpeedMetric;
 import main.java.analysis.StateAnalysisMetric;
@@ -199,8 +200,8 @@ public class CrawlRunner {
 			// Generate report
 			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
 
-			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
+			new AnalysisProcessorCsv("test").apply(analysis);
 			// Output to cmd
 			new AnalysisProcessorCmd().apply(analysis);
 		} catch (AnalysisException e) {

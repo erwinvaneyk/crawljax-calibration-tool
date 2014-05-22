@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
 
-import main.java.distributed.IConnectionManager;
-
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */

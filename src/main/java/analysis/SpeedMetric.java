@@ -10,9 +10,11 @@ import main.java.distributed.results.WebsiteResult;
  * This metric measures the speed difference between two crawls.
  */
 public class SpeedMetric implements IMetric {
+	
+	public static final String SPEED_INCREASE 			= "Speed increase";
 
-	float benchmarkDuration;
-	float testDuration;
+	private float benchmarkDuration;
+	private float testDuration;
 	
 	public String getMetricName() {
 		return "Speed difference metric";
@@ -32,7 +34,7 @@ public class SpeedMetric implements IMetric {
 		
 		float res = ((difference*-1)/benchmarkDuration) * 100;
 		String result = String.valueOf(res);
-		map.put("Speed increase", result+"%");
+		map.put(SPEED_INCREASE, result+"%");
 		return map;
 		
 	}

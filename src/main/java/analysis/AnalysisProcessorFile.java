@@ -17,26 +17,31 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	
 	@Getter @Setter private File outputDir = new File(System.getProperty("user.dir") + "/output/");
 	
-	@Getter private File output;
+	@Getter protected File output;
 	
-	private Writer writer;
 	
 	public void apply(Analysis analysisReport) {
 		try {
-			File file = new File(outputDir + "/" + analysisReport.getTitle() + ".txt");
-			writer = new BufferedWriter(new OutputStreamWriter(
-		          new FileOutputStream(file), "utf-8"));
-		    writeContentsToFile(analysisReport);
-		    output = file;
-		    log.info("Report written to file: " + file);
-		} catch (Exception ex) {
-			log.error("Error while writing to file: " + ex.getMessage());
-		} finally {
-		   try {writer.close();} catch (Exception ex) {}
+			Writer writer = openOrCreateFile(new File(outputDir + "/" + analysisReport.getTitle() + ".txt"), false);
+			writeContentsToFile(analysisReport, writer);
+			closeFile(writer);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
-	private void writeContentsToFile(Analysis analysisReport) throws IOException {
+	protected Writer openOrCreateFile(File file, boolean append) throws IOException {
+		Writer writer = new FileWriter(file, append);
+	    output = file;
+	    log.info("Report written to file: " + file);
+		return writer;
+	}
+	
+	protected void closeFile(Writer writer) throws IOException {
+		writer.close();
+	}
+	
+	private void writeContentsToFile(Analysis analysisReport, Writer writer) throws IOException {
 
 	    writer.write(analysisReport.getTitle() + "\r\n");
 	    writer.write("----------------------------\r\n");
@@ -46,13 +51,13 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	    }
 	    writer.write("----------------------------\r\n");
 	    writer.write("metrics: \r\n");
-	    printStatistics(analysisReport);
+	    printStatistics(analysisReport, writer);
 	    writer.write("----------------------------\r\n");
 	    writer.write("Score: " + analysisReport.getScore() + "\r\n");
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void printStatistics(Analysis analysisReport) throws IOException {
+	private void printStatistics(Analysis analysisReport, Writer writer) throws IOException {
 		for(Entry<String, Object> stat : analysisReport.getStatistics().entrySet()) {
 		    if(stat.getValue() instanceof Collection) {
 		    	Collection<StateResult> collection = (Collection<StateResult>) stat.getValue();

@@ -75,4 +75,12 @@ public class Analysis {
 		score = score / (float) succesfulMetrics;
 		statistics = resultBuilder.build();
 	}
+	
+	public boolean hasMetric(Class<?> classname) {
+		for(IMetric metric : metrics) {
+			if(metric.getClass().equals(classname))
+				return true;				
+		}
+		return false;
+	}
 }
