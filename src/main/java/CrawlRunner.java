@@ -88,7 +88,7 @@ public class CrawlRunner {
 		options.addOption("d","distributor", false, "Runs the commandline interface of the distributor.");
 		options.addOption("l","local", false, "Do not use server-functionality. Read the website-file and crawl all.");
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("Cryptotrader CLI", options);
+		formatter.printHelp("Crawljax-testing-suite CLI", options);
 	}
 
 	private void actionWorker() {

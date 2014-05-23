@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.crawljax.core.state.duplicatedetection.*;
+import org.apache.commons.lang.StringUtils;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -41,7 +41,7 @@ public class StateAnalysisMetric implements IMetric {
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two 'similar' states.
 	 */
-	private int thresholdNearestState = 1;
+	private int thresholdNearestState = 50;
 
 	/**
 	 * Apply will go through the StateResults of each WebsiteResult, trying to match each StateResult of the 
@@ -149,25 +149,16 @@ public class StateAnalysisMetric implements IMetric {
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states, @NonNull StateResult source, int threshold) {
 		StateResult result = null;
-		int minDistance = Integer.MAX_VALUE;
-		// Configure a NearestDuplicateDetection for comparing the states 
-		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
-		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
-		
+		int minDistance = Integer.MAX_VALUE;		
 		for(StateResult state : states) {
-			try {
-				// For each state, calculate the distance from the source to the state.
-				int distance = npd.getDistance(
-						npd.generateHash(source.getDom()), 
-						npd.generateHash(state.getDom()));
-				// If the distance is better than the previous distance, hold current state. 
-				if(distance <= threshold && distance < minDistance) {
-					result = state; 
-					minDistance = distance;
-				}
-			} catch (FeatureShinglesException e) {
-				log.error("Error while retrieve nearest state: {}", e.getMessage());
+			// For each state, calculate the distance from the source to the state.
+			int distance = StringUtils.getLevenshteinDistance(source.getDom(),state.getDom());
+			log.warn("Comparing {} to {} with a threshold {} has a distance {}. ", 
+					source.getStateId(), state.getStateId(), threshold, distance);
+			// If the distance is better than the previous distance, hold current state. 
+			if(distance <= threshold && distance < minDistance) {
+				result = state; 
+				minDistance = distance;
 			}
 		}
 		return result;		
