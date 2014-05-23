@@ -14,6 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.crawljax.domcomparators.DomStripper;
+import com.crawljax.domcomparators.HeadStripper;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +44,7 @@ public class StateAnalysisMetric implements IMetric {
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two 'similar' states.
 	 */
-	private int thresholdNearestState = 50;
+	private int thresholdNearestState = 20;
 
 	/**
 	 * Apply will go through the StateResults of each WebsiteResult, trying to match each StateResult of the 
@@ -149,10 +152,11 @@ public class StateAnalysisMetric implements IMetric {
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states, @NonNull StateResult source, int threshold) {
 		StateResult result = null;
-		int minDistance = Integer.MAX_VALUE;		
+		int minDistance = Integer.MAX_VALUE;	
+		DomStripper stripper = new HeadStripper();
 		for(StateResult state : states) {
 			// For each state, calculate the distance from the source to the state.
-			int distance = StringUtils.getLevenshteinDistance(source.getDom(),state.getDom());
+			int distance = StringUtils.getLevenshteinDistance(stripper.apply(source.getDom()),stripper.apply(state.getDom()));
 			log.debug("Comparing {} to {} with a threshold {} has a distance {}. ", 
 					source.getStateId(), state.getStateId(), threshold, distance);
 			// If the distance is better than the previous distance, hold current state. 
