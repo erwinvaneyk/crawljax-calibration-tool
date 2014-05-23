@@ -3,7 +3,7 @@ package main.java.analysis;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Map;
+import java.util.Collection;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -53,15 +53,23 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements IAnal
 	}
 	
 	private void writeContents(Writer writer, Analysis analysisReport) throws IOException {
-		Map<String,Object> stats = analysisReport.getStatistics();
+		Collection<Statistic> stats = analysisReport.getStatistics();
 		writer.write(analysisReport.getTitle() 
-				+ SEPERATOR + stats.get(StateAnalysisMetric.TOTAL_BENCHMARK_STATES)
-				+ SEPERATOR + stats.get(StateAnalysisMetric.TOTAL_BENCHMARK_UNIQUE_STATES)
-				+ SEPERATOR + stats.get(StateAnalysisMetric.TOTAL_TESTED_STATES)
-				+ SEPERATOR + stats.get(StateAnalysisMetric.MISSED_STATES)
-				+ SEPERATOR + stats.get(StateAnalysisMetric.MISSED_UNIQUE_STATES)
-				+ SEPERATOR + stats.get(StateAnalysisMetric.DUPLICATE_STATES) + "\r\n"
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.TOTAL_BENCHMARK_STATES).getValue()
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.TOTAL_BENCHMARK_UNIQUE_STATES).getValue()
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.TOTAL_TESTED_STATES).getValue()
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.MISSED_STATES).getValue()
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.MISSED_UNIQUE_STATES).getValue()
+				+ SEPERATOR + findStatisticByName(stats, StateAnalysisMetric.DUPLICATE_STATES).getValue() + "\r\n"
 				);
+	}
+	
+	private Statistic findStatisticByName(Collection<Statistic> stats, String name) {
+		for(Statistic stat : stats) {
+			if(stat.getName().equals(name))
+				return stat;
+		}
+		return null;
 	}
 
 }

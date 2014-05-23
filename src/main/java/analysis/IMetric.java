@@ -1,7 +1,6 @@
 package main.java.analysis;
 
 import java.util.Collection;
-import java.util.Map;
 
 import main.java.distributed.results.WebsiteResult;
 
@@ -22,7 +21,7 @@ public interface IMetric {
 	 * @param testWebsitesResults the websiteResults of the test crawl
 	 * @return a map containing as key the section/title and as values the results of the metric.
 	 */
-	public Map<String, Object> apply(Collection<WebsiteResult> benchmarkWebsites, Collection<WebsiteResult> testWebsitesResults);
+	public Collection<Statistic> apply(Collection<WebsiteResult> benchmarkWebsites, Collection<WebsiteResult> testWebsitesResults);
 	
 	public float getScore();
 }

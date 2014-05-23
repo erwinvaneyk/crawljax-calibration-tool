@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,9 +49,9 @@ public class StateAnalysisMetric implements IMetric {
 	 * Apply will go through the StateResults of each WebsiteResult, trying to match each StateResult of the 
 	 * benchmark-results to one of the 
 	 */
-	public Map<String, Object> apply(Collection<WebsiteResult> bw, Collection<WebsiteResult> tr) {
+	public Collection<Statistic> apply(Collection<WebsiteResult> bw, Collection<WebsiteResult> tr) {
 		// Initialize needed variables
-		ConcurrentHashMap<String, Object> result = new ConcurrentHashMap<String, Object>();
+		Collection<Statistic> result = new ArrayList<Statistic>();
 		int missedStates = 0, duplicateStates = 0, missedUniqueStates = 0, 
 				totalBenchmarkStates = 0, totalTestedStates = 0, totalUniqueBenchmarkStates = 0;
 		
@@ -73,16 +72,18 @@ public class StateAnalysisMetric implements IMetric {
 			totalTestedStates += testedWebsite.getStateResults().size();
 			totalUniqueBenchmarkStates += removeDuplicatesFromCollection(
 					new ArrayList<StateResult>(benchmarkWebsite.getStateResults()), benchmarkWebsite.getId()).size();
-			result.put("(" + benchmarkWebsite.getId() + ") " + MISSED_UNIQUE_STATES, benchmarkMissedUniqueStates);
-			result.put("(" +  benchmarkWebsite.getId() + ") " + DUPLICATE_STATES, testedStates);
+			result.add(new Statistic("(" + benchmarkWebsite.getId() + ") " + MISSED_UNIQUE_STATES,
+					String.valueOf(benchmarkMissedUniqueStates.size()),benchmarkMissedUniqueStates));
+			result.add(new Statistic("(" +  benchmarkWebsite.getId() + ") " + DUPLICATE_STATES, 
+					String.valueOf(testedStates.size()), testedStates));
 		}
 		// Store the results of all the websites
-		result.put(TOTAL_BENCHMARK_STATES,totalBenchmarkStates);
-		result.put(MISSED_STATES, missedStates);
-		result.put(MISSED_UNIQUE_STATES, missedUniqueStates);
-		result.put(TOTAL_TESTED_STATES, totalTestedStates);
-		result.put(TOTAL_BENCHMARK_UNIQUE_STATES, totalUniqueBenchmarkStates);
-		result.put(DUPLICATE_STATES, duplicateStates);
+		result.add(new Statistic(TOTAL_BENCHMARK_STATES, String.valueOf(totalBenchmarkStates)));
+		result.add(new Statistic(MISSED_STATES, String.valueOf(missedStates)));
+		result.add(new Statistic(MISSED_UNIQUE_STATES, String.valueOf(missedUniqueStates)));
+		result.add(new Statistic(TOTAL_TESTED_STATES, String.valueOf(totalTestedStates)));
+		result.add(new Statistic(TOTAL_BENCHMARK_UNIQUE_STATES, String.valueOf(totalUniqueBenchmarkStates)));
+		result.add(new Statistic(DUPLICATE_STATES, String.valueOf(duplicateStates)));
 		return result;
 	}
 	
@@ -106,7 +107,7 @@ public class StateAnalysisMetric implements IMetric {
 				}
 				iterator.remove();
 			} else {
-				log.warn("State {} could not be matched to benchmark-state -> duplicate", benchmarkState);
+				log.warn("State {} could not be matched to benchmark-state -> duplicate", testState);
 			}
 		}
 	}
@@ -157,7 +158,7 @@ public class StateAnalysisMetric implements IMetric {
 		for(StateResult state : states) {
 			// For each state, calculate the distance from the source to the state.
 			int distance = StringUtils.getLevenshteinDistance(stripper.apply(source.getDom()),stripper.apply(state.getDom()));
-			log.debug("Comparing {} to {} with a threshold {} has a distance {}. ", 
+			log.info("Comparing {} to {} with a threshold {} has a distance {}. ", 
 					source.getStateId(), state.getStateId(), threshold, distance);
 			// If the distance is better than the previous distance, hold current state. 
 			if(distance <= threshold && distance < minDistance) {
@@ -165,6 +166,7 @@ public class StateAnalysisMetric implements IMetric {
 				minDistance = distance;
 			}
 		}
+		log.info("Result: {}. ", result); 
 		return result;		
 	}
 	

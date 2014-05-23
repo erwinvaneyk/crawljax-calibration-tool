@@ -1,8 +1,7 @@
 package main.java.analysis;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import main.java.distributed.results.WebsiteResult;
 
@@ -20,7 +19,7 @@ public class SpeedMetric implements IMetric {
 		return "Speed difference metric";
 	}
 
-	public Map<String, Object> apply(
+	public Collection<Statistic> apply(
 			Collection<WebsiteResult> benchmarkWebsites,
 			Collection<WebsiteResult> testWebsitesResults) {
 		for(WebsiteResult baseWebsite : benchmarkWebsites) {
@@ -29,13 +28,13 @@ public class SpeedMetric implements IMetric {
 		for(WebsiteResult testWebsite : testWebsitesResults) {
 			testDuration += testWebsite.getDuration();
 		}
-		Map<String, Object> map = new HashMap<String, Object>();
 		float difference = testDuration - benchmarkDuration;
 		
 		float res = ((difference*-1)/benchmarkDuration) * 100;
 		String result = String.valueOf(res);
-		map.put(SPEED_INCREASE, result+"%");
-		return map;
+		Collection<Statistic> ret = new ArrayList<Statistic>();
+		ret.add(new Statistic(SPEED_INCREASE,result + "%"));
+		return ret;
 		
 	}
 

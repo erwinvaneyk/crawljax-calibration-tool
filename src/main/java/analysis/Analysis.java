@@ -1,11 +1,8 @@
 package main.java.analysis;
 
 import java.util.Collection;
-import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +22,7 @@ public class Analysis {
 	@Getter private Collection<WebsiteResult> testWebsitesResults;
 	
 	// Metrics
-	@Getter private ImmutableMap<String, Object> statistics;
+	@Getter private ImmutableList<Statistic> statistics;
 	
 	@Getter private ImmutableList<IMetric> metrics;
 	
@@ -57,18 +54,17 @@ public class Analysis {
 		}
 		this.testWebsitesResults = testWebsitesResults;
 		// Run metric tests
-		Builder<String, Object> resultBuilder = ImmutableMap.builder();
+		com.google.common.collect.ImmutableList.Builder<Statistic> resultBuilder = ImmutableList.builder();
 		int succesfulMetrics = 0;
 		for(IMetric metric : metrics) {
 			log.info("Running metric: " + metric.getMetricName());
 			try {
-				Map<String,Object> result = metric.apply(benchmarkWebsites, testWebsitesResults);
-				resultBuilder.putAll(result);
+				Collection<Statistic> result = metric.apply(benchmarkWebsites, testWebsitesResults);
+				resultBuilder.addAll(result);
 				score = metric.getScore();
 				succesfulMetrics++;
 			} catch(Exception e) {
 				log.error("Error occured while applying metric {}: {}", metric.getMetricName(), e.getMessage());
-				resultBuilder.put(metric.getMetricName(), "(error)");
 				e.printStackTrace();				
 			}
 		}

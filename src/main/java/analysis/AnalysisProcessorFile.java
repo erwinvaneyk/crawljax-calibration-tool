@@ -1,12 +1,8 @@
 package main.java.analysis;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.Map.Entry;
-
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
 
 @Slf4j
@@ -56,21 +52,14 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 	    writer.write("Score: " + analysisReport.getScore() + "\r\n");
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void printStatistics(Analysis analysisReport, Writer writer) throws IOException {
-		for(Entry<String, Object> stat : analysisReport.getStatistics().entrySet()) {
-		    if(stat.getValue() instanceof Collection) {
-		    	Collection<StateResult> collection = (Collection<StateResult>) stat.getValue();
-		    	writer.write(stat.getKey() + ":\t\t" + collection.size() + "\r\n");
-		    	for(StateResult value : collection) {
-		    		writer.write("- (" + value.getWebsiteResult().getId() + ")" + value.getStateId()+ "\r\n");
+		for(Statistic stat : analysisReport.getStatistics()) {
+			writer.write(stat.getName() + ":\t\t" + stat.getValue());
+			if(stat.hasDetails()) {
+				for(Object value : stat.getDetails()) {
+		    		writer.write("- " + value.toString()+ "\r\n");
 		    	}
-		    } else if(stat.getValue() instanceof StateResult) { 
-		    	StateResult value = (StateResult) stat.getValue();
-		    	writer.write(stat.getKey() + ":\t\t" + value.getStateId() + "\r\n");
-			} else {
-		    	writer.write(stat.getKey() + ":\t\t" + stat.getValue() + "\r\n");
-		    }
+			}
 		}
 	}
 }
