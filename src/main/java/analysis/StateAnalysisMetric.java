@@ -153,7 +153,7 @@ public class StateAnalysisMetric implements IMetric {
 		for(StateResult state : states) {
 			// For each state, calculate the distance from the source to the state.
 			int distance = StringUtils.getLevenshteinDistance(source.getDom(),state.getDom());
-			log.warn("Comparing {} to {} with a threshold {} has a distance {}. ", 
+			log.debug("Comparing {} to {} with a threshold {} has a distance {}. ", 
 					source.getStateId(), state.getStateId(), threshold, distance);
 			// If the distance is better than the previous distance, hold current state. 
 			if(distance <= threshold && distance < minDistance) {
