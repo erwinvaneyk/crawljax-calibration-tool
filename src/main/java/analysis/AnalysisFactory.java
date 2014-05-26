@@ -49,10 +49,10 @@ public class AnalysisFactory {
 	 * @return A completed analysisReport
 	 * @throws AnalysisException
 	 */
-	public Analysis getAnalysis(String title, int[] websiteids) throws AnalysisException {
+	public Analysis getAnalysis(String title, int[] websiteids, boolean helpWorking) throws AnalysisException {
 		List<WebsiteResult> benchmarkedWebsites = retrieveWebsiteResultsById(websiteids);
 		if(benchmarkedWebsites.isEmpty()) log.warn("No websiteResults found for websiteids: " + Arrays.toString(websiteids));
-		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites);
+		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites, helpWorking);
 		log.debug("Benchmarked websites have been crawled");
 		Analysis analyse = new Analysis(title, benchmarkedWebsites, metrics);
 		analyse.runAnalysis(testWebsites);
@@ -96,7 +96,7 @@ public class AnalysisFactory {
 	 * @return a list of websiteResults resulting from the recrawl
 	 * @throws AnalysisException Invalid parameters or an sql exception occured
 	 */
-	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites) throws AnalysisException {
+	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites, boolean helpWorking) throws AnalysisException {
 		if(benchmarkedWebsites == null || benchmarkedWebsites.isEmpty()) {
 			throw new AnalysisException("Invalid number benchmarkedWebsites provided; should be > 0.");
 		}
@@ -117,7 +117,9 @@ public class AnalysisFactory {
 				}
 			}
 			// wait until websites have been crawled
-			new CrawlRunner(new String[]{"-w","-finish"});
+			if (helpWorking) {
+				new CrawlRunner(new String[]{"-w","-finish"});
+			}
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
 			List<WebsiteResult> retrieveTestedWebsites = builder.query();

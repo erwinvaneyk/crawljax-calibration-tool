@@ -25,7 +25,7 @@ public class ThresholdRunner {
 				// update setting
 				config.updateConfiguration("common", "threshold", String.valueOf(i), 6);
 				// run crawler
-				Analysis analysis = factory.getAnalysis("threshold-" + i,websiteIds);
+				Analysis analysis = factory.getAnalysis("threshold-" + i,websiteIds, true);
 				// Generate report
 				new AnalysisProcessorCsv(filename).apply(analysis);
 			} catch (AnalysisException e) {

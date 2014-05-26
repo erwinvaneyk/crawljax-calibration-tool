@@ -74,7 +74,9 @@ public class CrawlRunner {
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
-			actionAnalysis();
+			actionAnalysis(true);
+		} else if (arg.equals("-c") || arg.equals("--controler")) {
+			actionAnalysis(false);
 		} else {
 			actionHelp();
 		}
@@ -87,6 +89,7 @@ public class CrawlRunner {
 		options.addOption("s","settings", false, "Flushes setting-file to the server. Nothing is crawled.");
 		options.addOption("d","distributor", false, "Runs the commandline interface of the distributor.");
 		options.addOption("l","local", false, "Do not use server-functionality. Read the website-file and crawl all.");
+		options.addOption("c", "controller", false, "Run the analysis only as  controller, so that system will not help crawling");
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("Crawljax-testing-suite CLI", options);
 	}
@@ -159,7 +162,7 @@ public class CrawlRunner {
 		WorkloadRunner.main(args);
 	}
 	
-	private void actionAnalysis() {
+	private void actionAnalysis(boolean helpCrawling) {
 		try {
 			// Build factory
 			AnalysisFactory factory = new AnalysisFactory();
@@ -167,7 +170,7 @@ public class CrawlRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{2}, helpCrawling);
 
 			new AnalysisProcessorFile().apply(analysis);
 			new AnalysisProcessorCsv("test").apply(analysis);
