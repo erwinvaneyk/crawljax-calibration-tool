@@ -38,7 +38,7 @@ public class ThresholdRunner {
 				// update setting
 				config.updateConfiguration("common", "threshold", String.valueOf(i), 6);
 				// run crawler
-				results.add(factory.getAnalysis("threshold-" + i,websiteIds));
+				results.add(factory.getAnalysis("threshold-" + i,websiteIds, false));
 			} catch (AnalysisException e) {
 				e.printStackTrace();
 			}
