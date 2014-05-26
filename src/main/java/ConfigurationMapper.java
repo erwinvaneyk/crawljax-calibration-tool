@@ -13,6 +13,7 @@ import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
+import com.crawljax.core.state.duplicatedetection.*;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
 
 /**
@@ -34,16 +35,21 @@ public class ConfigurationMapper {
 		
 		// arguments
 		for( Entry<String, String> entry : args.entrySet()) {
+			try {
 			log.info("Configuration pair: {} = {}", entry.getKey(), entry.getValue());
-			convertArgument(builder, entry.getKey(), entry.getValue());
+				convertArgument(builder, entry.getKey(), entry.getValue());
+			} catch (Exception e) {
+				log.error("Failed to map pair {} = {}. ({})",entry.getKey(), entry.getValue(), e.getMessage());
+			} 
 		}
 		return builder.build();
 	}
 	
-	private static void convertArgument(CrawljaxConfigurationBuilder builder,String key,String value) {
+	private static void convertArgument(CrawljaxConfigurationBuilder builder,String key,String value) 
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		assert builder != null;
 		assert key != null;
-		assert value != null;
+		assert value != null;	
 		
 		// Standard settings
 		if(key.equalsIgnoreCase("d") || key.equalsIgnoreCase("depth")) {
@@ -60,6 +66,16 @@ public class ConfigurationMapper {
 			builder.crawlRules().waitAfterReloadUrl(Long.parseLong(value), TimeUnit.MILLISECONDS);
 		} else if(key.equalsIgnoreCase("waitAfterEvent")) {
 			builder.crawlRules().waitAfterEvent(Long.parseLong(value), TimeUnit.MILLISECONDS);
+		} else if(key.equalsIgnoreCase("feature")) {
+			String[] parts = value.split(";");
+			assert parts.length >= 3;
+			if(parts[0].equalsIgnoreCase("FeatureShingles")) {
+				Integer index = Integer.valueOf(parts[2]);
+				FeatureSizeType fst = FeatureSizeType.values()[index];
+				FeatureShingles ft = new FeatureShingles(Integer.valueOf(parts[1]), fst);
+				NearDuplicateDetectionSingleton.addFeature(ft);
+				log.info("Feature added: {}", ft);
+			}
 		} else if(key.equalsIgnoreCase("b") || key.equalsIgnoreCase("browser")) {
 			for (BrowserType b : BrowserType.values()) {
 				if (b.name().equalsIgnoreCase(value)) {
