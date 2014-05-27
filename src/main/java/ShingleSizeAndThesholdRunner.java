@@ -21,7 +21,7 @@ public class ShingleSizeAndThesholdRunner {
 		
 		for (int i=1; i<3; i++) {
 			config.updateConfiguration("common", "feature", "FeatureShingles;" + String.valueOf(i) + ";"+ String.valueOf(type), 6);
-			List<Analysis> results = runner.analyseThresholds(0, 4, websiteIds);
+			List<Analysis> results = runner.analyseThresholds(0.0, 4.0, 0.1, websiteIds);
 			for(Analysis analysis : results) {
 				new AnalysisProcessorCsv(filename + type + "-" + i).apply(analysis);
 			}

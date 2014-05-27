@@ -10,19 +10,19 @@ import main.java.distributed.configuration.ConfigurationDAO;
 
 public class ThresholdRunner {
 	
-	private static String filename = "3wordsShingle";
+	private static String filename = "2wordsShingleBroder";
 	
 	private static int[] websiteIds = new int[]{1,2,15,48,51,53};
 
 	public static void main(String[] args) {
 		ThresholdRunner tr = new ThresholdRunner();
-		List<Analysis> results = tr.analyseThresholds(1, 1, websiteIds);
+		List<Analysis> results = tr.analyseThresholds(0.8, 0.8, 0.05, websiteIds);
 		for(Analysis analysis : results) {
 			new AnalysisProcessorCsv(filename).apply(analysis);
 		}
 	}
 	
-	public List<Analysis> analyseThresholds(int from, int to, int[] websiteids) {
+	public List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
 		assert from <= to;
 		assert websiteids.length > 0;
 		ConfigurationDAO config = new ConfigurationDAO(new ConnectionManager());
@@ -33,12 +33,12 @@ public class ThresholdRunner {
 		factory.addMetric(new StateAnalysisMetric());
 		List<Analysis> results = new ArrayList<Analysis>();
 		
-		for(int i = from; i <= to; i++) {
+		for(double i = from; i <= to; i+=step) {
 			try {
 				// update setting
 				config.updateConfiguration("common", "threshold", String.valueOf(i), 6);
 				// run crawler
-				results.add(factory.getAnalysis("threshold-" + i,websiteids, false));
+				results.add(factory.getAnalysis("threshold-" + i,websiteids, true));
 
 			} catch (AnalysisException e) {
 				e.printStackTrace();

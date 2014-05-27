@@ -59,7 +59,7 @@ public class ConfigurationMapper {
 		} else if(key.equalsIgnoreCase("t") || key.equalsIgnoreCase("timeout")) {
 			builder.setMaximumRunTime(Long.parseLong(value), TimeUnit.MINUTES);
 		} else if(key.equalsIgnoreCase("threshold")) {
-			builder.setThresholdNearDuplicateDetection(Integer.parseInt(value));
+			builder.setThresholdNearDuplicateDetection(Double.parseDouble(value));
 		} else if(key.equalsIgnoreCase("a") || key.equalsIgnoreCase("crawlHiddenAnchors")) {
 			builder.crawlRules().crawlHiddenAnchors(true);
 		} else if(key.equalsIgnoreCase("waitAfterReload")) {

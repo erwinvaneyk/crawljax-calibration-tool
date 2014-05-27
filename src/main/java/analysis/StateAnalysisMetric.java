@@ -161,13 +161,13 @@ public class StateAnalysisMetric implements IMetric {
 		for(StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
-				int distance = npd.getDistance(
+				double distance = npd.getDistance(
 						npd.generateHash(source.getDom()), 
 						npd.generateHash(state.getDom()));
 				// If the distance is better than the previous distance, hold current state. 
 				if(distance <= threshold && distance < minDistance) {
 					result = state; 
-					minDistance = distance;
+					minDistance = (int) distance;
 				}
 			} catch (FeatureShinglesException e) {
 				log.error("Error while retrieve nearest state: {}", e.getMessage());
