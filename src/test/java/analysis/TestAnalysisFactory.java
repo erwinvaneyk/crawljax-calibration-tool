@@ -36,27 +36,10 @@ public class TestAnalysisFactory {
 		connMgr.closeConnection();
 	}
 
-	@Test
-	public void testGetAnalysisValid() throws AnalysisException {
-		AnalysisFactory af = new AnalysisFactory();
-		Analysis res = af.getAnalysis("testGetAnalysis", new int[]{benchmarkWebsite.getId()}, true);
-		assertNotNull(res);
-		assertNotNull(res.getTitle());
-		assertNotNull(res.getBenchmarkWebsites());
-		assertEquals(res.getBenchmarkWebsites().size(),1);
-		assertTrue(res.getBenchmarkWebsites().contains(benchmarkWebsite));
-	}
-	
-	@Test
+	@Test(expected=NullPointerException.class)
 	public void testGetAnalysisTitleNull() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		Analysis res = af.getAnalysis(null, new int[]{benchmarkWebsite.getId()}, true);
-		assertNotNull(res);
-		assertNotNull(res.getTitle());
-		assertEquals(res.getTitle(), "");
-		assertNotNull(res.getBenchmarkWebsites());
-		assertEquals(res.getBenchmarkWebsites().size(),1);
-		assertTrue(res.getBenchmarkWebsites().contains(benchmarkWebsite));
+		af.getAnalysis(null, new int[]{benchmarkWebsite.getId()}, true);
 	}
 	
 	@Test(expected=AnalysisException.class)

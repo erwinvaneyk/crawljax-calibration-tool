@@ -101,8 +101,6 @@ public class CrawlRunner {
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
-
-			System.out.println("Started client crawler/worker.");
 			while (true) {
 				// Get worktasks
 				List<WorkTask> workTasks = workload.retrieveWork(1);

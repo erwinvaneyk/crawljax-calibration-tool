@@ -22,8 +22,8 @@ public class AnalysisProcessorFile implements IAnalysisProcessor {
 			writeContentsToFile(analysisReport, writer);
 			closeFile(writer);
 		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			log.error("Error while creating file: {}", e.getMessage());
+		} 
 	}
 	
 	protected Writer openOrCreateFile(File file, boolean append) throws IOException {
