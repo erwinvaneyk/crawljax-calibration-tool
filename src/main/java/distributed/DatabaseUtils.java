@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
@@ -110,5 +111,27 @@ public class DatabaseUtils {
 				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
 			}
 		}
+	}
+	
+	/**
+	 * Retrieves the duplicate-mapping for a given websiteResultID.
+	 * @param websiteResultId the websiteResultID for which the mapping should be retrieved
+	 * @return map with tuples defining duplicates, using a format <WebsiteResultID, WebsiteResultID>,
+	 * 			if an error occurd or nothing was found, return an empty map.
+	 */
+	public ConcurrentHashMap<String, String> retrieveDuplicatesMap(int websiteResultId) {
+		ConcurrentHashMap<String, String> stateIds = new ConcurrentHashMap<String, String>();
+		try {
+			// Retrieve the duplicate mapping from the database.
+			// TODO hide database-details
+			Connection conn = new ConnectionManager().getConnection();
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  benchmarkSite WHERE websiteId = " + websiteResultId);
+			while (res.next()) {
+				stateIds.put(res.getString("stateIdFirst"),res.getString("stateIdSecond"));
+			}
+		} catch (SQLException e) {
+			log.error("SQL exception while retrieving duplicates: " + e.getMessage());
+		}
+		return stateIds;
 	}
 }
