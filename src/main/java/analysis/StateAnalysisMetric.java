@@ -15,6 +15,7 @@ import com.crawljax.core.state.duplicatedetection.*;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.results.StateResult;
@@ -28,7 +29,9 @@ public class StateAnalysisMetric implements IMetric {
 
 	@Getter private final String metricName = "State Analysis Metric";
 	
-	@Getter private float score = 1; // stub
+	@Getter private float score = -1; // stub
+	
+	@Getter @Setter NearDuplicateDetection nearDuplicateDetection;
 
 	public static final String MISSED_STATES 					= "Missed states";
 	public static final String DUPLICATE_STATES 				= "Duplicate states";
@@ -40,9 +43,15 @@ public class StateAnalysisMetric implements IMetric {
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two 'similar' states.
 	 */
-
 	private int thresholdNearestState = 1;
 
+	public StateAnalysisMetric() {
+		// Configure a NearestDuplicateDetection for comparing the states 
+		List<FeatureType> ft = new ArrayList<FeatureType>();
+		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
+		nearDuplicateDetection = new NearDuplicateDetectionCrawlHash32(thresholdNearestState,ft);
+	}
+	
 	/**
 	 * Apply will go through the StateResults of each WebsiteResult, trying to match each StateResult of the 
 	 * benchmark-results to one of the 
@@ -151,12 +160,8 @@ public class StateAnalysisMetric implements IMetric {
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states, @NonNull StateResult source, int threshold) {
 		StateResult result = null;
-
 		int minDistance = Integer.MAX_VALUE;
-		// Configure a NearestDuplicateDetection for comparing the states 
-		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
-		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
+		NearDuplicateDetection npd = getNearDuplicateDetection();
 		
 		for(StateResult state : states) {
 			try {

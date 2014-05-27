@@ -38,7 +38,7 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 
 	private void printStatistics(Analysis analysisReport) {
 		for(Statistic stat : analysisReport.getStatistics()) {
-			writer.print(stat.getName() + ":\t\t" + stat.getValue());
+			writer.print(stat.getName() + ":\t\t" + stat.getValue() + "\r\n");
 			if(stat.hasDetails()) {
 				for(Object value : stat.getDetails()) {
 		    		writer.print("- " + value.toString()+ "\r\n");

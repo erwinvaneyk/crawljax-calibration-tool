@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import main.java.crawljax.plugins.StoreDOMPlugin;
 
@@ -18,12 +19,18 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 
 /**
  * Maps key-value entries to a Crawljax-configuration
- *
  */
 @Slf4j
 public class ConfigurationMapper {
 	
-	public static CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
+	/**
+	 * Sets up the crawljax-configuration for a given website, outputDir and additional args
+	 * @param website the website to be crawled
+	 * @param outputDir the output-folder
+	 * @param args the additional args
+	 * @return a crawljaxConfiguration for website, outputDir and additional args.
+	 */
+	public CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
 
 		CrawljaxConfigurationBuilder builder = CrawljaxConfiguration.builderFor(website.toString());
 		builder.setOutputDirectory(outputDir);
@@ -45,11 +52,14 @@ public class ConfigurationMapper {
 		return builder.build();
 	}
 	
-	private static void convertArgument(CrawljaxConfigurationBuilder builder,String key,String value) 
-			throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		assert builder != null;
-		assert key != null;
-		assert value != null;	
+	/**
+	 * Converts a key=value representation to the relevant setting in Crawljax
+	 * @param builder the Crawljax-builder to be changed
+	 * @param key string key
+	 * @param value string value
+	 */
+	private void convertArgument(@NonNull CrawljaxConfigurationBuilder builder,@NonNull String key,@NonNull String value) 
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException {	
 		
 		// Standard settings
 		if(key.equalsIgnoreCase("d") || key.equalsIgnoreCase("depth")) {
@@ -85,6 +95,5 @@ public class ConfigurationMapper {
 		} else {
 			log.warn("Undefined key in configuration: {}", key);
 		}
-		// TODO browsertype and parallel
 	}
 }
