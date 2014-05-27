@@ -1,8 +1,7 @@
-package test.main.distributed.results;
+package test.java.distributed.results;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +17,7 @@ import java.sql.SQLException;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
+import main.java.distributed.results.UploadResult;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -64,13 +64,20 @@ public class TestResultProcessor {
 		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenReturn(statement);
+		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(statement);
+		assertEquals(statement, conn.prepareStatement("SELECT * FROM workload", 5));
+		
 		when(statement.executeUpdate()).thenReturn(updateSucces);
+		assertEquals(updateSucces, statement.executeUpdate());
+		
+		when(statement.getGeneratedKeys()).thenReturn(resultset);
+		
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
-		ResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadResults(1, "TestDir", 10L);
+		UploadResult upload = new UploadResult(connMgr);
+		ResultProcessor resProc = new ResultProcessor(upload);
+		resProc.uploadResults(1, "TestDir", 10);
 	}
 	
 	/**
@@ -198,39 +205,17 @@ public class TestResultProcessor {
 		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenThrow(new SQLException());
-		when(statement.executeUpdate(anyString())).thenReturn(1);
-		when(statement.executeQuery()).thenReturn(resultset);
-		when(resultset.next()).thenReturn(false);
-		// Method under inspection
-		ResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadResults(1, "TestDir", 10L);
-	}
-	
-	/**
-	 * Test a SQLException in the sql-statement
-	 * @throws SQLException
-	 * @throws ResultProcessorException
-	 */
-	@Test (expected = ResultProcessorException.class)
-	public void testiets() throws SQLException, ResultProcessorException {
-		makeFileStructure();
+		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(new SQLException());
 		
-		// Mock objects
-		ConnectionManager connMgr = mock(ConnectionManager.class);
-		Connection conn = mock(Connection.class);
-		PreparedStatement statement = mock(PreparedStatement.class);
-		ResultSet resultset = mock(ResultSet.class);
-		// Mock methods
-		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString())).thenThrow(new SQLException());
-		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeUpdate()).thenReturn(1);
+		
+		when(statement.getGeneratedKeys()).thenReturn(resultset);
+		
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
-		ResultProcessor resProc = new ResultProcessor(connMgr);
-		resProc.uploadResults(1, "TestDir", 10L);
+		UploadResult upload = new UploadResult(connMgr);
+		ResultProcessor resProc = new ResultProcessor(upload);
+		resProc.uploadResults(1, "TestDir", 10);
 	}
-	
-	
 }

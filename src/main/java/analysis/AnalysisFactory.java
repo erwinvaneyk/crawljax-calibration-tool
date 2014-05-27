@@ -2,6 +2,7 @@ package main.java.analysis;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -16,6 +17,7 @@ import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
+import main.java.distributed.DatabaseUtils;
 import main.java.distributed.workload.WorkloadDAO;
 
 /**
@@ -37,6 +39,7 @@ public class AnalysisFactory {
 			.addAll(metrics)
 	        .add(metric)
 	        .build();
+		log.info("Metric added to analysis: " + metric.getMetricName());
 	}
 	
 	/**
@@ -46,14 +49,16 @@ public class AnalysisFactory {
 	 * @return A completed analysisReport
 	 * @throws AnalysisException
 	 */
-	public Analysis getAnalysis(String title, int[] websiteids) throws AnalysisException {
+	public Analysis getAnalysis(String title, int[] websiteids, boolean helpWorking) throws AnalysisException {
 		List<WebsiteResult> benchmarkedWebsites = retrieveWebsiteResultsById(websiteids);
 		if(benchmarkedWebsites.isEmpty()) log.warn("No websiteResults found for websiteids: " + Arrays.toString(websiteids));
-		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites);
+		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites, helpWorking);
 		log.debug("Benchmarked websites have been crawled");
 		Analysis analyse = new Analysis(title, benchmarkedWebsites, metrics);
 		analyse.runAnalysis(testWebsites);
 		log.debug("Results have been analysed");
+		removeWebsiteResultsFromDB(testWebsites);
+		log.debug("Removed results from database");
 		return analyse;
 	}
 	
@@ -91,7 +96,7 @@ public class AnalysisFactory {
 	 * @return a list of websiteResults resulting from the recrawl
 	 * @throws AnalysisException Invalid parameters or an sql exception occured
 	 */
-	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites) throws AnalysisException {
+	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites, boolean helpWorking) throws AnalysisException {
 		if(benchmarkedWebsites == null || benchmarkedWebsites.isEmpty()) {
 			throw new AnalysisException("Invalid number benchmarkedWebsites provided; should be > 0.");
 		}
@@ -103,7 +108,7 @@ public class AnalysisFactory {
 			Where<WebsiteResult, String> where = builder.where();
 			for(WebsiteResult baseWebsite : benchmarkedWebsites) {
 				log.debug("Work to submit: {}", baseWebsite.getWorkTask());
-				int newId = workload.submitWork(baseWebsite.getWorkTask().getURL(), true);
+				int newId = workload.submitWork(baseWebsite.getWorkTask().getURL(), false);
 				if(newId > -1) {
 					where.eq("workTask_id",newId);
 					log.info("Work submitted: {} (id: {})",  baseWebsite.getWorkTask().getURL(), newId);
@@ -112,12 +117,29 @@ public class AnalysisFactory {
 				}
 			}
 			// wait until websites have been crawled
-			new CrawlRunner(new String[]{"-w","-finish"});
+			if (helpWorking) {
+				new CrawlRunner(new String[]{"-w","-finish"});
+			}
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
-			return builder.query();
+			List<WebsiteResult> retrieveTestedWebsites = builder.query();
+			while(retrieveTestedWebsites.size() < benchmarkedWebsites.size()) {
+				Thread.sleep(1000 * 10);
+				log.info("Waiting for crawling to finish...");
+				retrieveTestedWebsites = builder.query();
+			}
+			return retrieveTestedWebsites;
 		} catch (SQLException e) {
 			throw new AnalysisException("SQL exception caught while re-crawling websiteResults: " + e.getMessage());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private void removeWebsiteResultsFromDB(Collection<WebsiteResult> websites) {
+		for(WebsiteResult website : websites) {
+			new DatabaseUtils(new ConnectionManager()).deleteAllResultsById(website.getId());
 		}
 	}
 }

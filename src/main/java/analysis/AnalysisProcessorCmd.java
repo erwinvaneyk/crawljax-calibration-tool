@@ -1,10 +1,6 @@
 package main.java.analysis;
 
 import java.io.PrintStream;
-import java.util.Collection;
-import java.util.Map.Entry;
-
-import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
 
 /**
@@ -26,6 +22,11 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 		    }
 		    writer.print("----------------------------\r\n");
 		    writer.print("metrics: \r\n");
+		    for(IMetric metric : analysisReport.getMetrics()) {
+			    writer.print("- " + metric.getMetricName() + " \r\n");
+		    }
+		    writer.print("----------------------------\r\n");
+		    writer.print("results: \r\n");
 		    printStatistics(analysisReport);		    
 		    writer.print("----------------------------\r\n");
 		    writer.print("Score: " + analysisReport.getScore() + "\r\n");
@@ -35,20 +36,14 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void printStatistics(Analysis analysisReport) {
-		for(Entry<String, Object> stat : analysisReport.getStatistics().entrySet()) {
-		    if(stat.getValue() instanceof Collection) {
-		    	writer.print(stat.getKey() + ": \r\n");
-		    	for(StateResult value : (Collection<StateResult>) stat.getValue()) {
-		    		writer.print("- " + value.getStateId()+ "\r\n");
+		for(Statistic stat : analysisReport.getStatistics()) {
+			writer.print(stat.getName() + ":\t\t" + stat.getValue() + "\r\n");
+			if(stat.hasDetails()) {
+				for(Object value : stat.getDetails()) {
+		    		writer.print("- " + value.toString()+ "\r\n");
 		    	}
-		    } else if(stat.getValue() instanceof StateResult) { 
-		    	StateResult value = (StateResult) stat.getValue();
-		    	writer.print(stat.getKey() + ":\t\t" + value.getStateId() + "\r\n");
-			} else {
-		    	writer.print(stat.getKey() + ":\t\t" + stat.getValue() + "\r\n");
-		    }
+			}
 		}
 	}
 

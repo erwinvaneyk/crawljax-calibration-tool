@@ -2,27 +2,25 @@ package main.java;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
 
 import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisException;
 import main.java.analysis.AnalysisFactory;
 import main.java.analysis.AnalysisProcessorCmd;
+import main.java.analysis.AnalysisProcessorCsv;
 import main.java.analysis.AnalysisProcessorFile;
 import main.java.analysis.SpeedMetric;
 import main.java.analysis.StateAnalysisMetric;
 import main.java.distributed.ConnectionManager;
+import main.java.distributed.DatabaseUtils;
 import main.java.distributed.IConnectionManager;
 import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.ConfigurationIni;
@@ -30,6 +28,7 @@ import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
+import main.java.distributed.results.UploadResult;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -39,6 +38,7 @@ import com.crawljax.cli.JarRunner;
 
 public class CrawlRunner {
 	String[] additionalArgs = null;
+	DatabaseUtils dbUtils;
 
 	public static void main(String[] args) {
 		// Header
@@ -55,6 +55,7 @@ public class CrawlRunner {
 	}
 	
 	public CrawlRunner(String[] args) {
+		dbUtils = new DatabaseUtils(new ConnectionManager());
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -65,15 +66,17 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			actionFlushWebsitesFile();
+			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			actionFlushSettingsFile();
+			dbUtils.actionFlushSettingsFile();
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
-			actionLocalCrawler();
+			actionAnalysis(true);
+		} else if (arg.equals("-c") || arg.equals("--controler")) {
+			actionAnalysis(false);
 		} else {
 			actionHelp();
 		}
@@ -86,19 +89,18 @@ public class CrawlRunner {
 		options.addOption("s","settings", false, "Flushes setting-file to the server. Nothing is crawled.");
 		options.addOption("d","distributor", false, "Runs the commandline interface of the distributor.");
 		options.addOption("l","local", false, "Do not use server-functionality. Read the website-file and crawl all.");
+		options.addOption("c", "controller", false, "Run the analysis only as  controller, so that system will not help crawling");
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("Cryptotrader CLI", options);
+		formatter.printHelp("Crawljax-testing-suite CLI", options);
 	}
 
 	private void actionWorker() {
 		try {
 			IConnectionManager conn = new ConnectionManager();
-			IResultProcessor resultprocessor = new ResultProcessor(conn);
+			IResultProcessor resultprocessor = new ResultProcessor(new UploadResult(conn));
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
-
-			System.out.println("Started client crawler/worker.");
 			while (true) {
 				// Get worktasks
 				List<WorkTask> workTasks = workload.retrieveWork(1);
@@ -141,36 +143,6 @@ public class CrawlRunner {
 			System.out.println("Sleep interrupted; worker stopped.");
 		} 
 	}
-
-	private void actionFlushWebsitesFile() {
-		try {
-			IConnectionManager conn = new ConnectionManager();
-			IWorkloadDAO workload = new WorkloadDAO(conn);
-			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
-			URL url;
-			String rawUrl;
-			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
-				url = new URL(rawUrl);
-				workload.submitWork(url, false);
-			}
-		} catch (IOException e1) {
-			System.out.println(e1.getMessage());
-		}
-		System.out.println("File flushed to server.");
-	}
-	
-	private void actionFlushSettingsFile() {
-		IConnectionManager conn = new ConnectionManager();
-		IConfigurationDAO conf = new ConfigurationDAO(conn);
-		Ini ini = new ConfigurationIni().getIni();
-
-		for (Section section : ini.values()) {
-			for (Entry<String, String> el : section.entrySet()) {
-				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
-			}
-		}
-	}
 	
 	private void actionLocalCrawler() {
 		System.out.println("Started local crawler");
@@ -188,7 +160,7 @@ public class CrawlRunner {
 		WorkloadRunner.main(args);
 	}
 	
-	private void actionAnalysis() {
+	private void actionAnalysis(boolean helpCrawling) {
 		try {
 			// Build factory
 			AnalysisFactory factory = new AnalysisFactory();
@@ -196,10 +168,10 @@ public class CrawlRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{20});
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{2}, helpCrawling);
 
-			// Generate file
 			new AnalysisProcessorFile().apply(analysis);
+			new AnalysisProcessorCsv("test").apply(analysis);
 			// Output to cmd
 			new AnalysisProcessorCmd().apply(analysis);
 		} catch (AnalysisException e) {

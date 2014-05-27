@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
 
-import main.java.distributed.IConnectionManager;
-
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
@@ -27,12 +25,10 @@ public class ResultProcessor implements IResultProcessor {
 	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM"; 
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
 	
-	private IConnectionManager con;
 	private UploadResult upload;
 	
-	public ResultProcessor(IConnectionManager conn) {
-		this.con = conn;
-		this.upload = new UploadResult(conn);
+	public ResultProcessor(UploadResult upload) {
+		this.upload = upload;
 	}
 	
 	/**
@@ -49,7 +45,7 @@ public class ResultProcessor implements IResultProcessor {
 				
 		//this.removeDir(dir);
 		
-		con.closeConnection();
+		upload.closeConnection();
 	}
 	
 	/**
