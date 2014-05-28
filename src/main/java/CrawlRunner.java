@@ -74,9 +74,7 @@ public class CrawlRunner {
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
-			actionAnalysis(true);
-		} else if (arg.equals("-c") || arg.equals("--controler")) {
-			actionAnalysis(false);
+			actionAnalysis();
 		} else {
 			actionHelp();
 		}
@@ -162,7 +160,7 @@ public class CrawlRunner {
 		WorkloadRunner.main(args);
 	}
 	
-	private void actionAnalysis(boolean helpCrawling) {
+	private void actionAnalysis() {
 		try {
 			// Build factory
 			AnalysisFactory factory = new AnalysisFactory();
@@ -170,7 +168,7 @@ public class CrawlRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{2}, helpCrawling);
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
 
 			new AnalysisProcessorFile().apply(analysis);
 			new AnalysisProcessorCsv("test").apply(analysis);

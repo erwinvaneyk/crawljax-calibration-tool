@@ -13,7 +13,6 @@ import com.j256.ormlite.stmt.Where;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import main.java.CrawlRunner;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
@@ -24,7 +23,7 @@ import main.java.distributed.workload.WorkloadDAO;
  * The AnalysisFactory is responsible for properly constructing an analysis from benchmarks. *
  */
 @Slf4j
-public class AnalysisFactory {
+public class AnalysisFactory implements IAnalysisFactory {
 	
 	@Getter private ImmutableList<IMetric> metrics
     = new ImmutableList.Builder<IMetric>()
@@ -49,10 +48,10 @@ public class AnalysisFactory {
 	 * @return A completed analysisReport
 	 * @throws AnalysisException
 	 */
-	public Analysis getAnalysis(String title, int[] websiteids, boolean helpWorking) throws AnalysisException {
+	public Analysis getAnalysis(String title, int[] websiteids) throws AnalysisException {
 		List<WebsiteResult> benchmarkedWebsites = retrieveWebsiteResultsById(websiteids);
 		if(benchmarkedWebsites.isEmpty()) log.warn("No websiteResults found for websiteids: " + Arrays.toString(websiteids));
-		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites, helpWorking);
+		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites);
 		log.debug("Benchmarked websites have been crawled");
 		Analysis analyse = new Analysis(title, benchmarkedWebsites, metrics);
 		analyse.runAnalysis(testWebsites);
@@ -96,7 +95,7 @@ public class AnalysisFactory {
 	 * @return a list of websiteResults resulting from the recrawl
 	 * @throws AnalysisException Invalid parameters or an sql exception occured
 	 */
-	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites, boolean helpWorking) throws AnalysisException {
+	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites) throws AnalysisException {
 		if(benchmarkedWebsites == null || benchmarkedWebsites.isEmpty()) {
 			throw new AnalysisException("Invalid number benchmarkedWebsites provided; should be > 0.");
 		}
@@ -117,9 +116,6 @@ public class AnalysisFactory {
 				}
 			}
 			// wait until websites have been crawled
-			if (helpWorking) {
-				new CrawlRunner(new String[]{"-w","-finish"});
-			}
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
 			List<WebsiteResult> retrieveTestedWebsites = builder.query();

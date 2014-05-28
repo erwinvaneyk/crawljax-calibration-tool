@@ -28,6 +28,8 @@ public class StateAnalysisMetric implements IMetric {
 
 	@Getter private final String metricName = "State Analysis Metric";
 	
+	NearDuplicateDetection npd;
+	
 	@Getter private float score = 1; // stub
 
 	public static final String MISSED_STATES 					= "Missed states";
@@ -43,6 +45,15 @@ public class StateAnalysisMetric implements IMetric {
 
 	private int thresholdNearestState = 1;
 
+	public StateAnalysisMetric() {
+		// Configure a NearestDuplicateDetection for comparing the states 
+		List<FeatureType> ft = new ArrayList<FeatureType>();
+		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
+		HashGenerator hasher = new XxHashGeneratorFactory().getInstance();
+		npd = new NearDuplicateDetectionCrawlHash32(thresholdNearestState,ft, hasher);
+	}
+	
+	
 	/**
 	 * Apply will go through the StateResults of each WebsiteResult, trying to match each StateResult of the 
 	 * benchmark-results to one of the 
@@ -151,13 +162,7 @@ public class StateAnalysisMetric implements IMetric {
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states, @NonNull StateResult source, int threshold) {
 		StateResult result = null;
-
 		int minDistance = Integer.MAX_VALUE;
-		// Configure a NearestDuplicateDetection for comparing the states 
-		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, FeatureSizeType.CHARS));
-		NearDuplicateDetection npd = new NearDuplicateDetectionCrawlHash32(threshold,ft);
-		
 		for(StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
@@ -169,7 +174,7 @@ public class StateAnalysisMetric implements IMetric {
 					result = state; 
 					minDistance = (int) distance;
 				}
-			} catch (FeatureShinglesException e) {
+			} catch (FeatureException e) {
 				log.error("Error while retrieve nearest state: {}", e.getMessage());
 			}
 		}

@@ -13,6 +13,7 @@ import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
+import com.crawljax.core.state.NDDStateVertexFactory;
 import com.crawljax.core.state.duplicatedetection.*;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
 
@@ -32,6 +33,7 @@ public class ConfigurationMapper {
 		builder.addPlugin(new CrawlOverview());
 		builder.addPlugin(new StoreDOMPlugin());
 		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.FIREFOX, 1));
+		builder.setStateVertexFactory(new NDDStateVertexFactory());
 		
 		// arguments
 		for( Entry<String, String> entry : args.entrySet()) {
@@ -71,7 +73,7 @@ public class ConfigurationMapper {
 			assert parts.length >= 3;
 			if(parts[0].equalsIgnoreCase("FeatureShingles")) {
 				Integer index = Integer.valueOf(parts[2]);
-				FeatureSizeType fst = FeatureSizeType.values()[index];
+				FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
 				FeatureShingles ft = new FeatureShingles(Integer.valueOf(parts[1]), fst);
 				NearDuplicateDetectionSingleton.addFeature(ft);
 				log.info("Feature added: {}", ft);

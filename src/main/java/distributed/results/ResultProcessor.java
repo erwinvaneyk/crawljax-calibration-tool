@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.crawljax.core.state.duplicatedetection.FeatureShinglesException;
+import com.crawljax.core.state.duplicatedetection.FeatureException;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
 
 /**
@@ -103,7 +103,7 @@ public class ResultProcessor implements IResultProcessor {
 		int hash;
 		try {
 			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent)[0];
-		} catch (FeatureShinglesException e) {
+		} catch (FeatureException e) {
 			hash = fileContent.hashCode();
 			log.error(e.getMessage());
 			e.printStackTrace();

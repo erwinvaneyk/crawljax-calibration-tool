@@ -39,7 +39,7 @@ public class TestAnalysisFactory {
 	@Test
 	public void testGetAnalysisValid() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		Analysis res = af.getAnalysis("testGetAnalysis", new int[]{benchmarkWebsite.getId()}, true);
+		Analysis res = af.getAnalysis("testGetAnalysis", new int[]{benchmarkWebsite.getId()});
 		assertNotNull(res);
 		assertNotNull(res.getTitle());
 		assertNotNull(res.getBenchmarkWebsites());
@@ -50,7 +50,7 @@ public class TestAnalysisFactory {
 	@Test
 	public void testGetAnalysisTitleNull() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		Analysis res = af.getAnalysis(null, new int[]{benchmarkWebsite.getId()}, true);
+		Analysis res = af.getAnalysis(null, new int[]{benchmarkWebsite.getId()});
 		assertNotNull(res);
 		assertNotNull(res.getTitle());
 		assertEquals(res.getTitle(), "");
@@ -62,19 +62,19 @@ public class TestAnalysisFactory {
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisIDsNull() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		af.getAnalysis("TestGetAnalysisIDsNull", null, true);
+		af.getAnalysis("TestGetAnalysisIDsNull", null);
 	}
 	
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisBothNull() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		af.getAnalysis("TestGetAnalysisBothNull", null, true);
+		af.getAnalysis("TestGetAnalysisBothNull", null);
 	}
 	
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisIDsEmpty() throws AnalysisException {
 		AnalysisFactory af = new AnalysisFactory();
-		af.getAnalysis("testGetAnalysisIDsEmpty", new int[]{}, true);
+		af.getAnalysis("testGetAnalysisIDsEmpty", new int[]{});
 	}
 
 	@Test
