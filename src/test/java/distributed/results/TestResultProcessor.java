@@ -29,15 +29,13 @@ import org.slf4j.LoggerFactory;
 
 public class TestResultProcessor {
 	
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/**
-	 * Make the directory 'TestDir' and mock the connection-objects
-	 * @throws IOException
-	 * @throws SQLException 
+	 * Make the directory 'TestDir'
 	 */
 	@Before
-	public void makeTestDirAndMockObjects() {
+	public void makeTestDir() {
 		new File("TestDir").mkdir();
 		logger.debug("Test directory setup.");
 	}

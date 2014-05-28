@@ -56,6 +56,7 @@ public class CrawlRunner {
 	
 	public CrawlRunner(String[] args) {
 		dbUtils = new DatabaseUtils(new ConnectionManager());
+		ConfigurationIni config = new ConfigurationIni();
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -66,9 +67,9 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			dbUtils.actionFlushWebsitesFile();
+			dbUtils.actionFlushWebsitesFile("/websites.txt");
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile();
+			dbUtils.actionFlushSettingsFile(config.getSettingsFile());
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {

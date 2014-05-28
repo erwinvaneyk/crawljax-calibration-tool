@@ -84,11 +84,15 @@ public class DatabaseUtils {
 		return succes;
 	}
 	
-	public void actionFlushWebsitesFile() {
+	/**
+	 * Sent a file, which contains websites, to the database.
+	 * @param fileName The location of the file which content will be sent to the database
+	 */
+	public void actionFlushWebsitesFile(String fileName) {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO(con);
 			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + fileName));
 			URL url;
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
@@ -101,9 +105,9 @@ public class DatabaseUtils {
 		System.out.println("File flushed to server.");
 	}
 	
-	public void actionFlushSettingsFile() {
+	public void actionFlushSettingsFile(String fileName) {
 		IConfigurationDAO conf = new ConfigurationDAO(con);
-		Ini ini = new ConfigurationIni().getIni();
+		Ini ini = new ConfigurationIni(fileName).getIni();
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {

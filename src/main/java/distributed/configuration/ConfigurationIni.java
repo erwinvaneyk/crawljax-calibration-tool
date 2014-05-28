@@ -16,23 +16,36 @@ public class ConfigurationIni implements IConfigurationDAO {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "/config";
-	public static final String DEFAULT_SETTINGS_INI = "/settings.ini";
 	public static final String INI_SECTION_COMMON = "common";
-	
+	private String settingsIniFile;
 
 	private static Ini ini;
 	
-	static {
+	
+	public ConfigurationIni(String fileName) {
+		this.settingsIniFile = fileName;
 		try {
-			ini = new Ini(new FileReader(DEFAULT_SETTINGS_DIR + DEFAULT_SETTINGS_INI));
+			ini = new Ini(new FileReader(DEFAULT_SETTINGS_DIR + this.settingsIniFile));
 			if (ini.containsKey(INI_SECTION_COMMON))
 				LoggerFactory.getLogger(ConfigurationIni.class).warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
+	public ConfigurationIni() {
+		this.settingsIniFile = "/settings.ini";
+		try {
+			ini = new Ini(new FileReader(DEFAULT_SETTINGS_DIR + this.settingsIniFile));
+			if (ini.containsKey(INI_SECTION_COMMON))
+				LoggerFactory.getLogger(ConfigurationIni.class).warn("Common section could not be found in INI-file");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public String getSettingsFile() {
+		return this.settingsIniFile;
+	}
 	/**
 	 * Add/replace additional setting to a existing settings-build.
 	 * @param args the argument-set to which the settings are added.
