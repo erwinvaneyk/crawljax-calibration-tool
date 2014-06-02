@@ -119,9 +119,10 @@ public class AnalysisFactory implements IAnalysisFactory {
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
 			List<WebsiteResult> retrieveTestedWebsites = builder.query();
+			if(retrieveTestedWebsites.size() < benchmarkedWebsites.size())
+				log.info("Waiting for crawling to finish...");
 			while(retrieveTestedWebsites.size() < benchmarkedWebsites.size()) {
 				Thread.sleep(1000 * 10);
-				log.info("Waiting for crawling to finish...");
 				retrieveTestedWebsites = builder.query();
 			}
 			return retrieveTestedWebsites;

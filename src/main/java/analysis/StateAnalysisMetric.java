@@ -180,7 +180,6 @@ public class StateAnalysisMetric implements IMetric {
 				log.error("Error while retrieve nearest state: {}", e.getMessage());
 			}
 		}
-		log.info("Result: {}. ", result); 
 		return result;		
 	}
 	

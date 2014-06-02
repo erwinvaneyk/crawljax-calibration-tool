@@ -28,13 +28,9 @@ public class ResultProcessor implements IResultProcessor {
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
 	
 	private UploadResult upload;
-
-	private NearDuplicateDetection hasher;
 	
 	public ResultProcessor(UploadResult upload) {
 		this.upload = upload;
-		this.hasher =  Guice.createInjector(new DuplicateDetectionModule()).getInstance(
-				NearDuplicateDetection.class);
 	}
 	
 	/**
@@ -100,21 +96,11 @@ public class ResultProcessor implements IResultProcessor {
 		for (int i = 0; i < files.length; i++) {
 			String fileContent = this.readFile(files[i]);
 			String stateId = this.getStateId(files[i]);
-			int hashStrippedDom = this.makeHash(fileContent);
+			int hashStrippedDom = 0; //stub
 			upload.uploadStrippedDom(id, fileContent, stateId, hashStrippedDom);
 		}
 	}
 	
-	private int makeHash(String fileContent) {
-		int hash;
-		try {
-			hash = hasher.generateHash(fileContent)[0];
-		} catch (FeatureException e) {
-			hash = fileContent.hashCode();
-			log.error("Failed to generate hash, because: " + e.getMessage());
-		}
-		return hash;
-	}
 	/**
 	 * Upload only the screenshot of every state to the database.
 	 * @param id The id of the website
