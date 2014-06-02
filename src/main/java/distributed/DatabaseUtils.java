@@ -24,8 +24,8 @@ import main.java.distributed.workload.WorkloadDAO;
 
 public class DatabaseUtils {
 	
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	IConnectionManager con;
-	final Logger log = LoggerFactory.getLogger(this.getClass());
 	
 	public DatabaseUtils(IConnectionManager con) {
 		this.con = con;
@@ -47,9 +47,9 @@ public class DatabaseUtils {
 			int workTaskId = 0;
 			while (resultWorkTask.next()) {
 				workTaskId = resultWorkTask.getInt(1);
-				log.info("workTaskId={}", workTaskId);
+				LOGGER.info("workTaskId={}", workTaskId);
 			}
-			log.info("Deleting the results of websiteId: " + id + ", workTaksId: " + workTaskId + "...");
+			LOGGER.info("Deleting the results of websiteId: " + id + ", workTaksId: " + workTaskId + "...");
 			
 			boolean deleteDomResult = this.deleteById("DomResults", "websiteResult_id", id, connection);
 			boolean deleteWebsiteResults = this.deleteById("WebsiteResults", "id", id, connection);
@@ -57,11 +57,11 @@ public class DatabaseUtils {
 			
 			con.closeConnection();
 			if (deleteDomResult && deleteWebsiteResults && deleteWorkTask) {
-				log.info("Succesfull deleted the results of id={}", id);
+				LOGGER.info("Succesfull deleted the results of id={}", id);
 				result = true;
 			}
 		} catch (SQLException e) {
-			log.info("SQLException while deleting the results of id={}", id);
+			LOGGER.info("SQLException while deleting the results of id={}", id);
 			e.printStackTrace();
 		}
 		
@@ -78,8 +78,8 @@ public class DatabaseUtils {
 		if (deleteDom > 0) {
 			succes = true;
 		} else {
-			log.info(""+deleteDom);;
-			log.warn("The {} of id={} can not be deleted.", table, id);
+			LOGGER.info(""+deleteDom);;
+			LOGGER.warn("The {} of id={} can not be deleted.", table, id);
 		}
 		return succes;
 	}

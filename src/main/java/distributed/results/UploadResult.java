@@ -27,7 +27,7 @@ public class UploadResult {
 	private static final String COLUMN_DURATION = "duration";
 	
 	
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private IConnectionManager con;
 	public UploadResult(IConnectionManager con) {
 		this.con = con;
@@ -37,21 +37,21 @@ public class UploadResult {
 		int ret = -1;
 		try {
 			if (this.tableContainsJson(id)) {
-				logger.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
+				LOGGER.warn("There already excist a result.json file of this website_id in the database, so this result.json will be discarded");
 			} else {
 				String sql = "INSERT INTO " + TABLE_WEBSITE_RESULTS + "(" + COLUMN_ID_WORKTASK 
 						+ "," + COLUMN_RESULTS_JSON + "," + COLUMN_DURATION + ") VALUES(?,?,?)";
 				PreparedStatement statement = con.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 				
 				statement.setInt(1, id);
-				statement.setString(2, fileContent);
+				statement.setString(2, null);
 				statement.setFloat(3, duration);
 				int insert = statement.executeUpdate();	
 				
 				if (insert == 1) {
-					logger.info("The result.json file is sent to the database");
+					LOGGER.info("The result.json file is sent to the database");
 				} else {
-					logger.warn("The result.json file is NOT sent to the database");
+					LOGGER.warn("The result.json file is NOT sent to the database");
 					throw new ResultProcessorException("Can not insert the json-file");
 				}
 				
@@ -62,7 +62,7 @@ public class UploadResult {
 		        }
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
+			LOGGER.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
 		} 
 		return ret;
@@ -77,7 +77,7 @@ public class UploadResult {
 			this.insertInTuple(COLUMN_DOM, fileContent, id, stateId);
 			
 		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
+			LOGGER.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the upload of the json-file");
 		}
 	}
@@ -105,10 +105,10 @@ public class UploadResult {
 			int updateSt = statement.executeUpdate();
 			
 			if(updateSt != 1) {
-				logger.warn("A problem while inserting a screenshot into the database.");
+				LOGGER.warn("A problem while inserting a screenshot into the database.");
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException during upload of stripped-dom " + id + ". Message: " + e.getMessage());
+			LOGGER.error("SQLException during upload of stripped-dom " + id + ". Message: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of a stripped-dom");
 		}
 	}
@@ -129,11 +129,11 @@ public class UploadResult {
 				
 				int result = prepStat.executeUpdate();
 				if(result != 1) {
-					logger.warn("A problem while inserting a screenshot into the database.");
+					LOGGER.warn("A problem while inserting a screenshot into the database.");
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
+			LOGGER.error("SQLException during upload screenshot " + id + ". Message: " + e.getMessage());
 			throw new ResultProcessorException("IOException during the upload of a screenshot");
 		}
 	}
@@ -148,11 +148,11 @@ public class UploadResult {
 			
 			int result = statement.executeUpdate();	
 			if(result != 1) {
-				logger.info("A problem while insterted a dom in the database");
+				LOGGER.info("A problem while insterted a dom in the database");
 			}
 		
 		} catch (SQLException e) {
-			logger.error("SQLException: " + e.getMessage());
+			LOGGER.error("SQLException: " + e.getMessage());
 			throw new ResultProcessorException("SQLException: can not make new tupe with id=" + id + " and StateId=" + stateId);
 		}
 	}
@@ -173,7 +173,7 @@ public class UploadResult {
 				res = false;
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException: It is not possible to check if the table contains a the Json with id=" + id + ". Message: " + e.getMessage());
+			LOGGER.error("SQLException: It is not possible to check if the table contains a the Json with id=" + id + ". Message: " + e.getMessage());
 		}
 		
 		return res;
@@ -195,7 +195,7 @@ public class UploadResult {
 				res = false;
 			}
 		} catch (SQLException e) {
-			logger.error("SQLException: It is not possible to check if the table contains a tuple with id=" + id + " and StateId=" + stateId + ". Message: " + e.getMessage());
+			LOGGER.error("SQLException: It is not possible to check if the table contains a tuple with id=" + id + " and StateId=" + stateId + ". Message: " + e.getMessage());
 			throw new ResultProcessorException("SQLException during the search of excisting tuple");
 		}
 		return res;
