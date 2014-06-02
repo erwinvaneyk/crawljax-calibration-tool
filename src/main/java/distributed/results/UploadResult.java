@@ -88,7 +88,7 @@ public class UploadResult {
 				this.makeTuple(id, stateId);
 			}
 			
-			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=?, " + " WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
+			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=? WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
 			PreparedStatement statement = con.getConnection().prepareStatement(update, Statement.RETURN_GENERATED_KEYS);
 			
 			statement.setString(1, fileContent);
