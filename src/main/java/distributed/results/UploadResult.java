@@ -18,7 +18,6 @@ public class UploadResult {
 	private static final String COLUMN_ID_STATE = "stateId";
 	private static final String COLUMN_DOM = "dom";
 	private static final String COLUMN_STRIPPEDDOM = "strippedDom";
-	private static final String COLUMN_STRIPPEDDOMHASH = "strippedDomHash";
 	private static final String COLUMN_SCREENSHOT = "screenshot";
 	
 	private static final String TABLE_WEBSITE_RESULTS = "WebsiteResults";
@@ -83,24 +82,18 @@ public class UploadResult {
 	}
 	
 	
-	public void uploadStrippedDom(int id, String fileContent, String stateId, int hashStrippedDom) throws ResultProcessorException {
+	public void uploadStrippedDom(int id, String fileContent, String stateId) throws ResultProcessorException {
 		try {
-			String hashBits = Integer.toBinaryString(hashStrippedDom);
-			while (hashBits.length() != 32) {
-				hashBits = "0" + hashBits;
-			}
-	
 			if (!this.tableContainsTuple(id, stateId)) {
 				this.makeTuple(id, stateId);
 			}
 			
-			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=?, " + COLUMN_STRIPPEDDOMHASH + "=? WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
+			String update  = "UPDATE " + TABLE_STATE_RESULTS + " SET " + COLUMN_STRIPPEDDOM + "=?, " + " WHERE " + COLUMN_ID_WEBSITE + "=? AND " + COLUMN_ID_STATE + "=?";
 			PreparedStatement statement = con.getConnection().prepareStatement(update, Statement.RETURN_GENERATED_KEYS);
 			
 			statement.setString(1, fileContent);
-			statement.setString(2, hashBits);
-			statement.setInt(3, id);
-			statement.setString(4, stateId);
+			statement.setInt(2, id);
+			statement.setString(3, stateId);
 			
 			int updateSt = statement.executeUpdate();
 			

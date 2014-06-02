@@ -2,6 +2,8 @@ package main.java;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +26,11 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 @Slf4j
 public class ConfigurationMapper {
 	
+	private static List<FeatureType> features;
+
 	public static CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
 
+		features = new ArrayList<FeatureType>();
 		CrawljaxConfigurationBuilder builder = CrawljaxConfiguration.builderFor(website.toString());
 		builder.setOutputDirectory(outputDir);
 
@@ -44,6 +49,7 @@ public class ConfigurationMapper {
 				log.error("Failed to map pair {} = {}. ({})",entry.getKey(), entry.getValue(), e.getMessage());
 			} 
 		}
+		builder.setFeaturesNearDuplicateDetection(features);
 		return builder.build();
 	}
 	
@@ -75,8 +81,8 @@ public class ConfigurationMapper {
 				Integer index = Integer.valueOf(parts[2]);
 				FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
 				FeatureShingles ft = new FeatureShingles(Integer.valueOf(parts[1]), fst);
-				NearDuplicateDetectionSingleton.addFeature(ft);
-				log.info("Feature added: {}", ft);
+				features.add(ft); 
+				log.info("Feature added: {}", ft);			
 			}
 		} else if(key.equalsIgnoreCase("b") || key.equalsIgnoreCase("browser")) {
 			for (BrowserType b : BrowserType.values()) {

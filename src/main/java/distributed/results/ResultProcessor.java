@@ -11,8 +11,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureException;
-import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
+import com.google.inject.Guice;
 
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
@@ -94,22 +96,10 @@ public class ResultProcessor implements IResultProcessor {
 		for (File file : files) {
 			String fileContent = this.readFile(file);
 			String stateId = this.getStateId(file);
-			int hashStrippedDom = this.makeHash(fileContent);
-			upload.uploadStrippedDom(id, fileContent, stateId, hashStrippedDom);
+			upload.uploadStrippedDom(id, fileContent, stateId);
 		}
 	}
 	
-	private int makeHash(String fileContent) {
-		int hash;
-		try {
-			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent)[0];
-		} catch (FeatureException e) {
-			hash = fileContent.hashCode();
-			LOGGER.error(e.getMessage());
-			e.printStackTrace();
-		}
-		return hash;
-	}
 	/**
 	 * Upload only the screenshot of every state to the database.
 	 * @param id The id of the website

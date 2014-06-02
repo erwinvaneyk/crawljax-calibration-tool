@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.crawljax.core.state.duplicatedetection.*;
+import com.google.inject.Guice;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -49,7 +50,8 @@ public class StateAnalysisMetric implements IMetric {
 		// Configure a NearestDuplicateDetection for comparing the states 
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		HashGenerator hasher = new XxHashGeneratorFactory().getInstance();
+		HashGenerator hasher = Guice.createInjector(
+				new DuplicateDetectionModule()).getInstance(HashGenerator.class);
 		npd = new NearDuplicateDetectionCrawlHash32(thresholdNearestState,ft, hasher);
 	}
 	
@@ -178,7 +180,6 @@ public class StateAnalysisMetric implements IMetric {
 				log.error("Error while retrieve nearest state: {}", e.getMessage());
 			}
 		}
-		log.info("Result: {}. ", result); 
 		return result;		
 	}
 	
