@@ -11,8 +11,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureException;
-import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionSingleton;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
+import com.google.inject.Guice;
 
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
@@ -26,9 +28,13 @@ public class ResultProcessor implements IResultProcessor {
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
 	
 	private UploadResult upload;
+
+	private NearDuplicateDetection hasher;
 	
 	public ResultProcessor(UploadResult upload) {
 		this.upload = upload;
+		this.hasher =  Guice.createInjector(new DuplicateDetectionModule()).getInstance(
+				NearDuplicateDetection.class);
 	}
 	
 	/**
@@ -102,11 +108,10 @@ public class ResultProcessor implements IResultProcessor {
 	private int makeHash(String fileContent) {
 		int hash;
 		try {
-			hash = NearDuplicateDetectionSingleton.getInstance().generateHash(fileContent)[0];
+			hash = hasher.generateHash(fileContent)[0];
 		} catch (FeatureException e) {
 			hash = fileContent.hashCode();
-			log.error(e.getMessage());
-			e.printStackTrace();
+			log.error("Failed to generate hash, because: " + e.getMessage());
 		}
 		return hash;
 	}
