@@ -9,26 +9,31 @@ import com.j256.ormlite.dao.*;
 import com.j256.ormlite.field.*;
 import com.j256.ormlite.table.*;
 
+/**
+ * The WebsiteResult-class stores a single website-result from a crawl. It stores the json-results, id and
+ * additionally the crawl-duration. It cannot exist without a related websiteResult.
+ */
 @DatabaseTable(tableName = "WebsiteResults")
 @RequiredArgsConstructor
-@ToString(exclude={"workTask","jsonResults","stateResults"})
-@Data public class WebsiteResult {
-	
-	@DatabaseField(canBeNull = false, foreignAutoRefresh=true, foreign = true)
-    private WorkTask workTask;
-	
-	 @DatabaseField(generatedId = true)
-    private int id;
-	
+@ToString(exclude = { "workTask", "jsonResults", "stateResults" })
+@Data
+public class WebsiteResult {
+
+	@DatabaseField(canBeNull = false, foreignAutoRefresh = true, foreign = true)
+	private WorkTask workTask;
+
+	@DatabaseField(generatedId = true)
+	private int id;
+
 	@DatabaseField
 	private final String jsonResults;
-	
+
 	@DatabaseField
 	private final float duration;
-	
+
 	@ForeignCollectionField(eager = true)
-    private ForeignCollection<StateResult> stateResults;
-	
+	private ForeignCollection<StateResult> stateResults;
+
 	public WebsiteResult() {
 		jsonResults = null;
 		duration = 0;
@@ -44,7 +49,7 @@ import com.j256.ormlite.table.*;
 			return false;
 		WebsiteResult other = (WebsiteResult) obj;
 		if (Float.floatToIntBits(duration) != Float
-				.floatToIntBits(other.duration))
+		        .floatToIntBits(other.duration))
 			return false;
 		if (id != other.id)
 			return false;
@@ -55,17 +60,4 @@ import com.j256.ormlite.table.*;
 			return false;
 		return true;
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Float.floatToIntBits(duration);
-		result = prime * result + id;
-		result = prime * result
-				+ ((jsonResults == null) ? 0 : jsonResults.hashCode());
-		return result;
-	}
-	
-	
 }

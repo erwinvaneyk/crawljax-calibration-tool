@@ -13,27 +13,34 @@ import main.java.distributed.results.WebsiteResult;
  * Data model of an analysis, which contains the tested websites, metrics and results.
  */
 public class Analysis {
-	
-	// Setup
-	@Getter private String title = "";
-	
-	@Getter private final Collection<WebsiteResult> benchmarkWebsites;
-	
-	@Getter private Collection<WebsiteResult> testWebsitesResults;
-	
-	// Metrics
-	@Getter private ImmutableList<Statistic> statistics;
-	
-	@Getter private ImmutableList<IMetric> metrics;
-	
-	@Getter private float score;
-	
-	public Analysis(String title,  Collection<WebsiteResult> benchmarkWebsites, ImmutableList<IMetric> metrics) throws AnalysisException {
-		if (title != null && title != "") this.title = title;
-		if(benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
-			throw new AnalysisException("Error while creating analysisReport, benchmarkWebsites should not be empty.");
+
+	@Getter
+	private String title = "";
+
+	@Getter
+	private final Collection<WebsiteResult> benchmarkWebsites;
+
+	@Getter
+	private Collection<WebsiteResult> testWebsitesResults;
+
+	@Getter
+	private ImmutableList<Statistic> statistics;
+
+	@Getter
+	private ImmutableList<IMetric> metrics;
+
+	@Getter
+	private float score = 0;
+
+	public Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
+	        ImmutableList<IMetric> metrics) {
+		if (title != null && title != "")
+			this.title = title;
+		if (benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
+			throw new AnalysisException(
+			        "Error while creating analysisReport, benchmarkWebsites should not be empty.");
 		}
-		if(metrics == null) {
+		if (metrics == null) {
 			this.metrics = new ImmutableList.Builder<IMetric>().build();
 			log.warn("Metrics should not be null (has been converted to empty though)");
 		} else {
@@ -41,41 +48,48 @@ public class Analysis {
 		}
 		this.benchmarkWebsites = benchmarkWebsites;
 	}
-	
+
 	/**
 	 * Runs all installed metrics against benchmarks and the test-results.
-	 * @param testWebsitesResults the recrawled websiteResults, equivalent to the benchmarks.
-	 * @throws AnalysisException 
+	 * 
+	 * @param testWebsitesResults
+	 *            the recrawled websiteResults, equivalent to the benchmarks.
 	 */
-	public void runAnalysis(Collection<WebsiteResult> testWebsitesResults) throws AnalysisException {
-		assert benchmarkWebsites != null && !benchmarkWebsites.isEmpty();
-		if(testWebsitesResults == null || testWebsitesResults.size() != benchmarkWebsites.size()) {
-			throw new AnalysisException("Error while creating analysisReport, testWebsitesResults should not be empty.");
-		}
+	public void runAnalysis(Collection<WebsiteResult> testWebsitesResults) {
 		this.testWebsitesResults = testWebsitesResults;
-		// Run metric tests
-		com.google.common.collect.ImmutableList.Builder<Statistic> resultBuilder = ImmutableList.builder();
-		int succesfulMetrics = 0;
-		for(IMetric metric : metrics) {
+		if (testWebsitesResults == null || testWebsitesResults.size() != benchmarkWebsites.size()) {
+			throw new AnalysisException(
+			        "Error while creating analysisReport, testWebsitesResults should not be empty.");
+		}
+		runMetrics(testWebsitesResults);
+	}
+
+	private ImmutableList<Statistic> runMetrics(Collection<WebsiteResult> websiteResults) {
+		ImmutableList.Builder<Statistic> resultBuilder = ImmutableList.builder();
+		for (IMetric metric : metrics) {
 			log.info("Running metric: " + metric.getMetricName());
 			try {
-				Collection<Statistic> result = metric.apply(benchmarkWebsites, testWebsitesResults);
+				// ignore/abort metrics, which throw any exception.
+				Collection<Statistic> result = metric.apply(benchmarkWebsites, websiteResults);
 				resultBuilder.addAll(result);
-				score = metric.getScore();
-				succesfulMetrics++;
-			} catch(Exception e) {
-				log.error("Error occured while applying metric {}: {}", metric.getMetricName(), e.getMessage());
-				e.printStackTrace();				
+			} catch (Exception e) {
+				log.error("Error occured while applying metric {}: {}", metric.getMetricName(),
+				        e.getMessage());
 			}
 		}
-		score = score / (float) succesfulMetrics;
 		statistics = resultBuilder.build();
+		return statistics;
 	}
-	
+
+	/**
+	 * Checks if the current analysis has a metric.
+	 * @param classname the class of the metric.
+	 * @return true if the analysis contains the metric, otherwise false.
+	 */
 	public boolean hasMetric(Class<?> classname) {
-		for(IMetric metric : metrics) {
-			if(metric.getClass().equals(classname))
-				return true;				
+		for (IMetric metric : metrics) {
+			if (metric.getClass().equals(classname))
+				return true;
 		}
 		return false;
 	}

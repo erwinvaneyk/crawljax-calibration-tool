@@ -11,8 +11,11 @@ import com.j256.ormlite.support.ConnectionSource;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * ConnectionManager, which besides regular connections also supports connections compatible with ORMLite.
+ */
 @Slf4j
-public class ConnectionManagerORM extends ConnectionManager implements IConnectionManager {
+public class ConnectionManagerORM extends ConnectionManager {
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 	
@@ -28,7 +31,6 @@ public class ConnectionManagerORM extends ConnectionManager implements IConnecti
 	 */
 	static {
 		try {
-			//log.warning("ConnectionManager uses the default paths for the config-files.");
 			setup(DEFAULT_SETTINGS_PATH);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -54,16 +56,17 @@ public class ConnectionManagerORM extends ConnectionManager implements IConnecti
 		// Load driver
 		try {
 			Class.forName(DRIVER).newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);
 	}
 
+	/**
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
 	public ConnectionSource getConnectionORM() throws SQLException {
 		if (connection == null || !connection.isOpen()) {
 			connection = new JdbcConnectionSource(url + database,username,password);

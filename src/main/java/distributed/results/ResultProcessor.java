@@ -7,29 +7,24 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
-import com.crawljax.core.state.duplicatedetection.FeatureException;
-import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
-import com.google.inject.Guice;
+import org.apache.commons.io.FileUtils;
 
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
+@Slf4j
 public class ResultProcessor implements IResultProcessor {
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String PATH_RESULTS_JSON = "result.json"; 
 	private static final String PATH_RESULTS_DOM = "doms";  
 	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM"; 
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots"; 
 	
-	private UploadResult upload;
+	private ResultDAO upload;
 	
-	public ResultProcessor(UploadResult upload) {
+	public ResultProcessor(ResultDAO upload) {
 		this.upload = upload;
 	}
 	
@@ -39,7 +34,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The directory that contains the output of the crawl
 	 * @throws ResultProcessorException 
 	 */
-	public void uploadResults(int id, String dir, long duration) throws ResultProcessorException {
+	public void uploadResults(int id, File dir, long duration) {
 		int websiteID = this.uploadJson(id, dir, duration);
 		this.uploadDom(websiteID, dir);
 		this.uploadStrippedDom(websiteID, dir);
@@ -57,7 +52,7 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param duration The duration of the crawl
 	 * @throws ResultProcessorException
 	 */
-	public int uploadJson(int id, String dir, long duration) throws ResultProcessorException {
+	public int uploadJson(int id, File dir, long duration) {
 		File jsonFile = this.findFile(dir, PATH_RESULTS_JSON);
 		String fileContent = this.readFile(jsonFile);
 		return upload.uploadJson(id, fileContent, duration);
@@ -69,11 +64,11 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The output directory
 	 * @throws ResultProcessorException
 	 */
-	public void uploadDom(int websiteId, String dir) throws ResultProcessorException {
+	public void uploadDom(int websiteId, File dir) {
 		File dirOfMap = this.findFile(dir,PATH_RESULTS_DOM);
 		File[] files = dirOfMap.listFiles();
 		
-		LOGGER.info(files.length +" domstates found");
+		log.info(files.length +" domstates found");
 		for (File file : files) {
 			String fileContent = this.readFile(file);
 			String stateId = this.getStateId(file);
@@ -88,11 +83,11 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The output directory
 	 * @throws ResultProcessorException
 	 */
-	public void uploadStrippedDom(int id, String dir) throws ResultProcessorException {
+	public void uploadStrippedDom(int id, File dir) throws ResultProcessorException {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 		
-		LOGGER.info(files.length +" stripped dom-states found");
+		log.info(files.length +" stripped dom-states found");
 		for (File file : files) {
 			String fileContent = this.readFile(file);
 			String stateId = this.getStateId(file);
@@ -106,12 +101,9 @@ public class ResultProcessor implements IResultProcessor {
 	 * @param dir The output directory
 	 * @throws ResultProcessorException
 	 */
-	public void uploadScreenshot(int id, String dir) throws ResultProcessorException {
+	public void uploadScreenshot(int id, File dir) throws ResultProcessorException {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
-		File[] files = dirOfMap.listFiles();
-		
-		LOGGER.info(files.length +" screenshots found");
-		for (File file : files) {
+		for (File file : dirOfMap.listFiles()) {
 			String stateId = this.getStateId(file);
 			try {
 				FileInputStream fr = new FileInputStream(file);
@@ -119,52 +111,49 @@ public class ResultProcessor implements IResultProcessor {
 				upload.uploadScreenshotAction(id, fr, stateId);
 				fr.close();
 			} catch (FileNotFoundException e) {
-				LOGGER.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
+				log.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
 				e.printStackTrace();
 			} catch (IOException e) {
-				LOGGER.warn("Can not close FileInputStream by uploading state{}.", stateId);
+				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
 			}
 		}
 	}
 	
-	private void removeDir(String dir) {
+	@SuppressWarnings("unused")
+    private void removeDir(String dir) {
 		try {
 			FileUtils.deleteDirectory(new File(dir));
-			LOGGER.debug("Output directory removed.");
+			log.debug("Output directory removed.");
 		} catch (IOException e) {
-			LOGGER.error("IOException while removing the output directory: " + e.getMessage());
+			log.error("IOException while removing the output directory: " + e.getMessage());
 		}
 	}
 	
-	public File findFile(final String dir, String file) throws ResultProcessorException  {
-		File directory = new File(dir);
-		File[] files = directory.listFiles();
-
+	private File findFile(File dir, String file) {
 		File result = null;
-
-		for (File fileOfDir : files) {
+		for (File fileOfDir : dir.listFiles()) {
 			if (fileOfDir.getName().contains(file)) {
 				result = fileOfDir;
 			}
 		}
-		
-		if (result == null) {
-			throw new ResultProcessorException("The file \"" + file + "\" cannot be found in the given output directory \"" + dir + "\"");
-		} else {
-			return result;
-		}
+		return result;
 	}
 
-	public String getStateId(File f) {
+	private String getStateId(File f) {
 		String fileName = f.getName();
 		int indexOfExtension = fileName.lastIndexOf(".");
 		return fileName.substring(0, indexOfExtension);
 	}
 	
-	public String readFile(File f) throws ResultProcessorException {
+	/**
+	 * Reads and returns all contents from a given file.
+	 * @param file the relevant file
+	 * @return contents of file
+	 */
+	private String readFile(File file) throws ResultProcessorException {
 		String fileContent = "";
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(f));;
+			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
 			
 			while ((line = br.readLine()) != null) {
@@ -172,7 +161,7 @@ public class ResultProcessor implements IResultProcessor {
 			}
 			br.close();
 		} catch(IOException e) {
-			throw new ResultProcessorException("Could not read file " + f.getName());
+			throw new ResultProcessorException("Could not read file " + file.getName());
 		}
 		return fileContent;
 	}

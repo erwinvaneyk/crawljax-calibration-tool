@@ -12,11 +12,11 @@ public class ThresholdRunner {
 	
 	private static String filename = "2wordsShingleBroder";
 	
-	private static int[] websiteIds = new int[]{1,2,15,48,51,53};
+	private static int[] websiteIds = new int[]{1,};
 
 	public static void main(String[] args) {
 		ThresholdRunner tr = new ThresholdRunner();
-		List<Analysis> results = tr.analyseThresholds(0.8, 0.8, 0.05, websiteIds);
+		List<Analysis> results = tr.analyseThresholds(1, 1, 1, websiteIds);
 		for(Analysis analysis : results) {
 			new AnalysisProcessorCsv(filename).apply(analysis);
 		}

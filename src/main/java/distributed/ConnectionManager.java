@@ -55,11 +55,7 @@ public class ConnectionManager implements IConnectionManager {
 		// Load driver
 		try {
 			Class.forName(DRIVER).newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);

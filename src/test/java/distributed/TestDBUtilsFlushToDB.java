@@ -14,9 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.IConnectionManager;
@@ -24,9 +23,8 @@ import main.java.distributed.IConnectionManager;
 /**
  * Integration test for the database utils.
  */
+@Slf4j
 public class TestDBUtilsFlushToDB {
-
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private IConnectionManager con = new ConnectionManager();
 	private DatabaseUtils dbUtils = new DatabaseUtils(con);
 	
@@ -61,10 +59,10 @@ public class TestDBUtilsFlushToDB {
 			websiteFile.println("http://andTheLastOne.pl");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("FileNotFoundException while making the stub website-file");
+			log.error("FileNotFoundException while making the stub website-file");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("UnsupportedEncodingException while making the the stub website-file");
+			log.error("UnsupportedEncodingException while making the the stub website-file");
 			System.exit(1);
 		}
 	}
@@ -99,7 +97,7 @@ public class TestDBUtilsFlushToDB {
 	public void testFlushSettings() throws SQLException, IOException {
 		this.makeSettingsFile();
 		
-		dbUtils.actionFlushSettingsFile("/testFlushSettings.txt");
+		dbUtils.actionFlushSettingsFile(new File("/testFlushSettings.txt"));
 		// Test if succesful
 		this.checkIfCorrectlyInserted("notExists", "common", "99");
 		this.checkIfCorrectlyInserted("something", "demo.crawljax.com", "-9");
@@ -120,10 +118,10 @@ public class TestDBUtilsFlushToDB {
 			websiteFile.println("something = -9");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("FileNotFoundException while making the stub settings-file");
+			log.error("FileNotFoundException while making the stub settings-file");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("UnsupportedEncodingException while making the the stub settings-file");
+			log.error("UnsupportedEncodingException while making the the stub settings-file");
 			System.exit(1);
 		}
 	}

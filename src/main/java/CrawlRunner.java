@@ -28,7 +28,7 @@ import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.results.UploadResult;
+import main.java.distributed.results.ResultDAO;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -96,7 +96,7 @@ public class CrawlRunner {
 	private void actionWorker() {
 		try {
 			IConnectionManager conn = new ConnectionManager();
-			IResultProcessor resultprocessor = new ResultProcessor(new UploadResult(conn));
+			IResultProcessor resultprocessor = new ResultProcessor(new ResultDAO(conn));
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
@@ -127,7 +127,7 @@ public class CrawlRunner {
 							throw new Exception("Crawljax returned an error code");
 						}
 						try {
-							resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
+							resultprocessor.uploadResults(task.getId(), dir, new Date().getTime() - timeStart);
 						} catch(ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}

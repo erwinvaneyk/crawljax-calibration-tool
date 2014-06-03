@@ -8,19 +8,13 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
 
 import org.apache.commons.validator.routines.UrlValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.crawljax.core.CrawljaxRunner;
 import com.crawljax.core.ExitNotifier.ExitStatus;
@@ -30,9 +24,8 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
  * SuiteManager is responsible for running the actual crawler. Therefore it 
  * deals with the arguments needed by the CrawlJax CLI and websites to be crawled.
  */
+@Slf4j
 public class CrawlManager {
-
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	static final File DEFAULT_OUTPUT_DIR = new File(System.getProperty("user.dir") + "/output");
 	static final String ARG_WEBSITE = "website";
@@ -53,10 +46,10 @@ public class CrawlManager {
 			if(urlValidator.isValid(line))
 				websiteQueue.add(new URL(line).toString());
 			else
-				LOGGER.warn("Website: {} is an invalid url. Ignoring website.", line);
+				log.warn("Website: {} is an invalid url. Ignoring website.", line);
 		}
 		br.close();
-		LOGGER.info("Website-queue loaded.");
+		log.info("Website-queue loaded.");
 	}
 
 	/**
@@ -105,7 +98,7 @@ public class CrawlManager {
 		CrawljaxRunner runner = new CrawljaxRunner(config);
 		runner.call();
 		ExitStatus reason = runner.getReason();
-		LOGGER.debug("Finished crawling {}. Reason: {}", args.get(ARG_WEBSITE), reason.toString());
+		log.debug("Finished crawling {}. Reason: {}", args.get(ARG_WEBSITE), reason.toString());
 		return (!reason.equals(ExitStatus.ERROR));
 	}
 	

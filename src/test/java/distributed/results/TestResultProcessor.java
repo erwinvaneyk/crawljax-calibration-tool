@@ -14,22 +14,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.results.UploadResult;
+import main.java.distributed.results.ResultDAO;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-
+@Slf4j
 public class TestResultProcessor {
-	
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	/**
 	 * Make the directory 'TestDir'
@@ -37,7 +34,7 @@ public class TestResultProcessor {
 	@Before
 	public void makeTestDir() {
 		new File("TestDir").mkdir();
-		LOGGER.debug("Test directory setup.");
+		log.debug("Test directory setup.");
 	}
 	
 	/**
@@ -48,9 +45,9 @@ public class TestResultProcessor {
 	public void removeFileStructure() {
 		try {
 			FileUtils.deleteDirectory(new File("TestDir"));
-			LOGGER.debug("Test directory removed.");
+			log.debug("Test directory removed.");
 		} catch (IOException e) {
-			LOGGER.error("IOException while removing the TestDir directory: " + e.getMessage());
+			log.error("IOException while removing the TestDir directory: " + e.getMessage());
 		}
 	}
 	
@@ -73,9 +70,9 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
-		UploadResult upload = new UploadResult(connMgr);
+		ResultDAO upload = new ResultDAO(connMgr);
 		ResultProcessor resProc = new ResultProcessor(upload);
-		resProc.uploadResults(1, "TestDir", 10);
+		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 	
 	/**
@@ -91,10 +88,10 @@ public class TestResultProcessor {
 			json.println("For the class ResultProcessor.java");
 			json.close();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("FileNotFoundException while adding the stub Json-file to the test directory");
+			log.error("FileNotFoundException while adding the stub Json-file to the test directory");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("UnsupportedEncodingException while making the the stub Json-file");
+			log.error("UnsupportedEncodingException while making the the stub Json-file");
 			System.exit(1);
 		}
 	}
@@ -113,7 +110,7 @@ public class TestResultProcessor {
 			screenshot.write(imageBin);
 			screenshot.close();
 		} catch (IOException e) {
-			LOGGER.error("IOException while making the screenshot stub file");
+			log.error("IOException while making the screenshot stub file");
 			System.exit(1);
 		}
 	}
@@ -127,10 +124,10 @@ public class TestResultProcessor {
 			dom.println("For the " + sd);
 			dom.close();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("FileNotFoundException while adding the stub " + sd + "-file to the test directory");
+			log.error("FileNotFoundException while adding the stub " + sd + "-file to the test directory");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
+			log.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
 			System.exit(1);
 		}
 	}
@@ -212,8 +209,8 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
-		UploadResult upload = new UploadResult(connMgr);
+		ResultDAO upload = new ResultDAO(connMgr);
 		ResultProcessor resProc = new ResultProcessor(upload);
-		resProc.uploadResults(1, "TestDir", 10);
+		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 }
