@@ -26,7 +26,7 @@ import main.java.distributed.IConnectionManager;
  */
 public class TestDBUtilsFlushToDB {
 
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private IConnectionManager con = new ConnectionManager();
 	private DatabaseUtils dbUtils = new DatabaseUtils(con);
 	
@@ -61,10 +61,10 @@ public class TestDBUtilsFlushToDB {
 			websiteFile.println("http://andTheLastOne.pl");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			logger.error("FileNotFoundException while making the stub website-file");
+			LOGGER.error("FileNotFoundException while making the stub website-file");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			logger.error("UnsupportedEncodingException while making the the stub website-file");
+			LOGGER.error("UnsupportedEncodingException while making the the stub website-file");
 			System.exit(1);
 		}
 	}
@@ -120,10 +120,10 @@ public class TestDBUtilsFlushToDB {
 			websiteFile.println("something = -9");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			logger.error("FileNotFoundException while making the stub settings-file");
+			LOGGER.error("FileNotFoundException while making the stub settings-file");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			logger.error("UnsupportedEncodingException while making the the stub settings-file");
+			LOGGER.error("UnsupportedEncodingException while making the the stub settings-file");
 			System.exit(1);
 		}
 	}

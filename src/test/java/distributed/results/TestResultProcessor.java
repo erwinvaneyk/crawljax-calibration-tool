@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class TestResultProcessor {
 	
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	/**
 	 * Make the directory 'TestDir'
@@ -37,7 +37,7 @@ public class TestResultProcessor {
 	@Before
 	public void makeTestDir() {
 		new File("TestDir").mkdir();
-		logger.debug("Test directory setup.");
+		LOGGER.debug("Test directory setup.");
 	}
 	
 	/**
@@ -48,9 +48,9 @@ public class TestResultProcessor {
 	public void removeFileStructure() {
 		try {
 			FileUtils.deleteDirectory(new File("TestDir"));
-			logger.debug("Test directory removed.");
+			LOGGER.debug("Test directory removed.");
 		} catch (IOException e) {
-			logger.error("IOException while removing the TestDir directory: " + e.getMessage());
+			LOGGER.error("IOException while removing the TestDir directory: " + e.getMessage());
 		}
 	}
 	
@@ -91,10 +91,10 @@ public class TestResultProcessor {
 			json.println("For the class ResultProcessor.java");
 			json.close();
 		} catch (FileNotFoundException e) {
-			logger.error("FileNotFoundException while adding the stub Json-file to the test directory");
+			LOGGER.error("FileNotFoundException while adding the stub Json-file to the test directory");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			logger.error("UnsupportedEncodingException while making the the stub Json-file");
+			LOGGER.error("UnsupportedEncodingException while making the the stub Json-file");
 			System.exit(1);
 		}
 	}
@@ -113,7 +113,7 @@ public class TestResultProcessor {
 			screenshot.write(imageBin);
 			screenshot.close();
 		} catch (IOException e) {
-			logger.error("IOException while making the screenshot stub file");
+			LOGGER.error("IOException while making the screenshot stub file");
 			System.exit(1);
 		}
 	}
@@ -127,10 +127,10 @@ public class TestResultProcessor {
 			dom.println("For the " + sd);
 			dom.close();
 		} catch (FileNotFoundException e) {
-			logger.error("FileNotFoundException while adding the stub " + sd + "-file to the test directory");
+			LOGGER.error("FileNotFoundException while adding the stub " + sd + "-file to the test directory");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
-			logger.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
+			LOGGER.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
 			System.exit(1);
 		}
 	}

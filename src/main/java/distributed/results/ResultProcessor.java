@@ -20,7 +20,7 @@ import com.google.inject.Guice;
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
 public class ResultProcessor implements IResultProcessor {
-	final Logger log = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String PATH_RESULTS_JSON = "result.json"; 
 	private static final String PATH_RESULTS_DOM = "doms";  
@@ -73,10 +73,10 @@ public class ResultProcessor implements IResultProcessor {
 		File dirOfMap = this.findFile(dir,PATH_RESULTS_DOM);
 		File[] files = dirOfMap.listFiles();
 		
-		log.info(files.length +" domstates found");
-		for (int i = 0; i < files.length; i++) {
-			String fileContent = this.readFile(files[i]);
-			String stateId = this.getStateId(files[i]);
+		LOGGER.info(files.length +" domstates found");
+		for (File file : files) {
+			String fileContent = this.readFile(file);
+			String stateId = this.getStateId(file);
 
 			upload.uploadDomAction(websiteId, fileContent, stateId);
 		}
@@ -92,12 +92,11 @@ public class ResultProcessor implements IResultProcessor {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 		
-		log.info(files.length +" stripped dom-states found");
-		for (int i = 0; i < files.length; i++) {
-			String fileContent = this.readFile(files[i]);
-			String stateId = this.getStateId(files[i]);
-			int hashStrippedDom = 0; //stub
-			upload.uploadStrippedDom(id, fileContent, stateId, hashStrippedDom);
+		LOGGER.info(files.length +" stripped dom-states found");
+		for (File file : files) {
+			String fileContent = this.readFile(file);
+			String stateId = this.getStateId(file);
+			upload.uploadStrippedDom(id, fileContent, stateId);
 		}
 	}
 	
@@ -111,19 +110,19 @@ public class ResultProcessor implements IResultProcessor {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
 		File[] files = dirOfMap.listFiles();
 		
-		log.info(files.length +" screenshots found");
-		for (int i = 0; i < files.length; i++) {
-			String stateId = this.getStateId(files[i]);
+		LOGGER.info(files.length +" screenshots found");
+		for (File file : files) {
+			String stateId = this.getStateId(file);
 			try {
-				FileInputStream fr = new FileInputStream(files[i]);
+				FileInputStream fr = new FileInputStream(file);
 				
 				upload.uploadScreenshotAction(id, fr, stateId);
 				fr.close();
 			} catch (FileNotFoundException e) {
-				log.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
+				LOGGER.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
 				e.printStackTrace();
 			} catch (IOException e) {
-				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
+				LOGGER.warn("Can not close FileInputStream by uploading state{}.", stateId);
 			}
 		}
 	}
@@ -131,9 +130,9 @@ public class ResultProcessor implements IResultProcessor {
 	private void removeDir(String dir) {
 		try {
 			FileUtils.deleteDirectory(new File(dir));
-			log.debug("Output directory removed.");
+			LOGGER.debug("Output directory removed.");
 		} catch (IOException e) {
-			log.error("IOException while removing the output directory: " + e.getMessage());
+			LOGGER.error("IOException while removing the output directory: " + e.getMessage());
 		}
 	}
 	
@@ -143,9 +142,9 @@ public class ResultProcessor implements IResultProcessor {
 
 		File result = null;
 
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].getName().contains(file)) {
-				result = files[i];
+		for (File fileOfDir : files) {
+			if (fileOfDir.getName().contains(file)) {
+				result = fileOfDir;
 			}
 		}
 		

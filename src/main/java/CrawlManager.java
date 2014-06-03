@@ -32,7 +32,7 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
  */
 public class CrawlManager {
 
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	static final File DEFAULT_OUTPUT_DIR = new File(System.getProperty("user.dir") + "/output");
 	static final String ARG_WEBSITE = "website";
@@ -53,10 +53,10 @@ public class CrawlManager {
 			if(urlValidator.isValid(line))
 				websiteQueue.add(new URL(line).toString());
 			else
-				logger.warn("Website: " + line + " is an invalid url. Ignoring website.");
+				LOGGER.warn("Website: {} is an invalid url. Ignoring website.", line);
 		}
 		br.close();
-		logger.info("Website-queue loaded.");
+		LOGGER.info("Website-queue loaded.");
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class CrawlManager {
 		CrawljaxRunner runner = new CrawljaxRunner(config);
 		runner.call();
 		ExitStatus reason = runner.getReason();
-		logger.debug("Finished crawling " + args.get(ARG_WEBSITE) + ". Reason: " + reason.toString());
+		LOGGER.debug("Finished crawling {}. Reason: {}", args.get(ARG_WEBSITE), reason.toString());
 		return (!reason.equals(ExitStatus.ERROR));
 	}
 	
