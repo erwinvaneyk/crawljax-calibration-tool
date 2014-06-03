@@ -50,9 +50,7 @@ public class StateAnalysisMetric implements IMetric {
 		// Configure a NearestDuplicateDetection for comparing the states 
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		HashGenerator hasher = Guice.createInjector(
-				new DuplicateDetectionModule()).getInstance(HashGenerator.class);
-		npd = new NearDuplicateDetectionCrawlHash32(thresholdNearestState,ft, hasher);
+		npd = Guice.createInjector(new DuplicateDetectionModule(thresholdNearestState, ft)).getInstance(NearDuplicateDetection.class);
 	}
 	
 	
