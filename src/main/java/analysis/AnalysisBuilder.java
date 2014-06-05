@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -46,6 +47,7 @@ public class AnalysisBuilder implements IAnalysisBuilder {
 		log.info("Metric added to analysis: " + metric.getMetricName());
 	}
 	
+	@Inject
 	public AnalysisBuilder(IConnectionManagerORM connMgr, IWorkloadDAO workload, DatabaseUtils dbUtils) {
 		this.connMgr = connMgr;
 		this.workload = workload;

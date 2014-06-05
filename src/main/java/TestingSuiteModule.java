@@ -7,6 +7,7 @@ import main.java.analysis.AnalysisBuilder;
 import main.java.analysis.IAnalysisBuilder;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.IConnectionManager;
+import main.java.distributed.IConnectionManagerORM;
 import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
@@ -33,6 +34,7 @@ public class TestingSuiteModule extends AbstractModule {
 		
 		// Distributed
 		bind(IConnectionManager.class).to(ConnectionManagerORM.class);
+		bind(IConnectionManagerORM.class).to(ConnectionManagerORM.class);
 		
 		// Configuration
 		bind(IConfigurationDAO.class).to(ConfigurationDAO.class);

@@ -42,7 +42,7 @@ public class CrawlRunner {
 
 	public static void main(String[] args) {
 		// Header
-		System.out.println("Crawljax Functional Testing Suite");
+		System.out.println("Crawljax Testing Suite");
 		System.out.println("---------------------------------");
 		
 		// Do stuff
