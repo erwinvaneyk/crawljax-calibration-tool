@@ -65,7 +65,7 @@ public class TestAnalysisReport {
 	public void testRunAnalysisSame() throws AnalysisException, SQLException {
 		ConnectionManagerORM connMgr = new ConnectionManagerORM();
 		Dao<WebsiteResult,String> dao = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
-		WebsiteResult benchmarkWebsite = dao.queryForId(String.valueOf(TestAnalysisFactory.benchmarkWebsiteID));
+		WebsiteResult benchmarkWebsite = dao.queryForId(String.valueOf(TestAnalysisBuilder.benchmarkWebsiteID));
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
 		input.add(benchmarkWebsite);
 		Analysis result = new Analysis("testRunAnalysisSame", input, null);

@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * A factory/builder for generating a analysis, for a given set of websiteResults.
  */
-public interface IAnalysisFactory {
+public interface IAnalysisBuilder {
 
 	/**
 	 * Adds a metric to the metric pool

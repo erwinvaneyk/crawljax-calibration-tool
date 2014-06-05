@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.google.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.IConnectionManager;
 
@@ -25,6 +27,7 @@ public class ResultDAO {
 
 	private IConnectionManager con;
 
+	@Inject
 	public ResultDAO(IConnectionManager con) {
 		this.con = con;
 	}

@@ -10,12 +10,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.crawljax.core.state.duplicatedetection.*;
-import com.google.inject.Guice;
+import com.google.inject.Inject;
 
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
@@ -48,13 +47,15 @@ public class StateAnalysisMetric implements IMetric {
 
 	private int thresholdNearestState = 1;
 
-	public StateAnalysisMetric() {
+	private DatabaseUtils databaseUtils;
+
+	@Inject
+	public StateAnalysisMetric(DatabaseUtils databaseUtils, NearDuplicateDetection npd) {
 		// Configure a NearestDuplicateDetection for comparing the states
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		npd =
-		        Guice.createInjector(new DuplicateDetectionModule(thresholdNearestState, ft))
-		                .getInstance(NearDuplicateDetection.class);
+		this.npd = npd;
+		this.databaseUtils = databaseUtils;
 	}
 
 	/**
@@ -123,10 +124,7 @@ public class StateAnalysisMetric implements IMetric {
 		// Retrieve the duplicate-table
 		ConcurrentHashMap<String, String> duplicates = null;
 		try {
-			duplicates =
-			        new DatabaseUtils(new ConnectionManager())
-			                .retrieveDuplicatesMap(benchmarkStates.get(0).getWebsiteResult()
-			                        .getId());
+			duplicates = databaseUtils.retrieveDuplicatesMap(benchmarkStates.get(0).getWebsiteResult().getId());
 		} catch (SQLException e) {
 			log.error(
 			        "SQL error while retrieving the duplicate-map: {}. Assuming that duplicate-map does not exist.",
@@ -164,9 +162,7 @@ public class StateAnalysisMetric implements IMetric {
 		ArrayList<StateResult> temp = new ArrayList<StateResult>(states);
 		// get the duplicates-mapping relevant for this list, using the websiteResult-id.
 		try {
-			ConcurrentHashMap<String, String> duplicates =
-			        new DatabaseUtils(new ConnectionManager())
-			                .retrieveDuplicatesMap(websiteResultId);
+			ConcurrentHashMap<String, String> duplicates = databaseUtils.retrieveDuplicatesMap(websiteResultId);
 			for (StateResult current : states) {
 				if (temp.contains(current)) {
 					this.removeStateAndDuplicates(temp, duplicates, current.getStateId());

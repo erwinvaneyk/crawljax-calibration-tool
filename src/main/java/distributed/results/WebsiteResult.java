@@ -1,6 +1,7 @@
 package main.java.distributed.results;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import main.java.distributed.workload.WorkTask;
@@ -15,6 +16,7 @@ import com.j256.ormlite.table.*;
  */
 @DatabaseTable(tableName = "WebsiteResults")
 @RequiredArgsConstructor
+@EqualsAndHashCode(exclude={"workTask", "stateResults"})
 @ToString(exclude = { "workTask", "jsonResults", "stateResults" })
 @Data
 public class WebsiteResult {
@@ -37,27 +39,5 @@ public class WebsiteResult {
 	public WebsiteResult() {
 		jsonResults = null;
 		duration = 0;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		WebsiteResult other = (WebsiteResult) obj;
-		if (Float.floatToIntBits(duration) != Float
-		        .floatToIntBits(other.duration))
-			return false;
-		if (id != other.id)
-			return false;
-		if (jsonResults == null) {
-			if (other.jsonResults != null)
-				return false;
-		} else if (!jsonResults.equals(other.jsonResults))
-			return false;
-		return true;
 	}
 }

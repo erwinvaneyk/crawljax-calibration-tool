@@ -9,6 +9,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.IConnectionManager;
 
@@ -41,6 +43,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 * Sets up the ConnectionManager and creates an ID based on the hostname and local ip.
 	 * @throws IOException The ConnectionManager could not retrieve the settings-file.
 	 */
+	@Inject
 	public WorkloadDAO(IConnectionManager conn) {
 		connMgr = conn;
 		log.info("WorkerID: " + workerID);

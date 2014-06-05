@@ -12,51 +12,57 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import main.java.analysis.Analysis;
-import main.java.analysis.AnalysisException;
-import main.java.analysis.AnalysisFactory;
+import main.java.analysis.AnalysisBuilder;
 import main.java.analysis.AnalysisProcessorCmd;
 import main.java.analysis.AnalysisProcessorCsv;
 import main.java.analysis.AnalysisProcessorFile;
 import main.java.analysis.SpeedMetric;
 import main.java.analysis.StateAnalysisMetric;
-import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
-import main.java.distributed.IConnectionManager;
-import main.java.distributed.configuration.ConfigurationDAO;
 import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
-import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.results.ResultDAO;
 import main.java.distributed.workload.IWorkloadDAO;
-import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
 import main.java.distributed.workload.WorkloadRunner;
 
-import com.crawljax.cli.JarRunner;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class CrawlRunner {
+	@Inject private static Injector injector;
 	String[] additionalArgs = null;
 	DatabaseUtils dbUtils;
+	private IResultProcessor resultProcessor;
+	private IWorkloadDAO workload;
+	private CrawlManager crawlManager;
+	private IConfigurationDAO config;
 
 	public static void main(String[] args) {
 		// Header
 		System.out.println("Crawljax Functional Testing Suite");
 		System.out.println("---------------------------------");
-		System.out.println("Crawljax CLI details:");
-		JarRunner.main(new String[] {"--version"});
-		System.out.println("---------------------------------");
 		
 		// Do stuff
-		new CrawlRunner(args);
+        CrawlRunner cr = Guice.createInjector(new TestingSuiteModule()).getInstance(CrawlRunner.class);
+        cr.actOnArgs(args);
 		// Finish up.
 		System.out.println("Finished.");
 	}
 	
-	public CrawlRunner(String[] args) {
-		dbUtils = new DatabaseUtils(new ConnectionManager());
-		ConfigurationIni config = new ConfigurationIni();
+	@Inject
+	public CrawlRunner(IResultProcessor resultprocessor, CrawlManager suite, 
+			IWorkloadDAO workload, IConfigurationDAO config, DatabaseUtils dbUtils) {
+		this.resultProcessor = resultprocessor;
+		this.crawlManager = suite;
+		this.workload = workload;
+		this.config = config;
+		this.dbUtils = dbUtils;
+	}
+	
+	public void actOnArgs(String[] args) {
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -69,7 +75,7 @@ public class CrawlRunner {
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
 			dbUtils.actionFlushWebsitesFile("/websites.txt");
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile(config.getSettingsFile());
+			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class).getSettingsFile());
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
@@ -95,12 +101,6 @@ public class CrawlRunner {
 
 	private void actionWorker() {
 		try {
-			IConnectionManager conn = new ConnectionManager();
-			IResultProcessor resultprocessor = new ResultProcessor(new ResultDAO(conn));
-			CrawlManager suite = new CrawlManager();
-			IWorkloadDAO workload = new WorkloadDAO(conn);
-			IConfigurationDAO config = new ConfigurationDAO(conn);
-
 			System.out.println("Started client crawler/worker.");
 			while (true) {
 				// Get worktasks
@@ -122,12 +122,12 @@ public class CrawlRunner {
 						File dir = CrawlManager.generateOutputDir(task.getURL());
 						// Crawl
 						long timeStart = new Date().getTime();
-						boolean hasNoError = suite.runCrawler(task.getURL(), dir, args);
+						boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
 						if(!hasNoError) {
 							throw new Exception("Crawljax returned an error code");
 						}
 						try {
-							resultprocessor.uploadResults(task.getId(), dir, new Date().getTime() - timeStart);
+							resultProcessor.uploadResults(task.getId(), dir, new Date().getTime() - timeStart);
 						} catch(ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
@@ -148,9 +148,8 @@ public class CrawlRunner {
 	private void actionLocalCrawler() {
 		System.out.println("Started local crawler");
 		try {
-			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
-			suite.crawlWebsites();
+			crawlManager.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
+			crawlManager.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
@@ -162,21 +161,17 @@ public class CrawlRunner {
 	}
 	
 	private void actionAnalysis() {
-		try {
-			// Build factory
-			AnalysisFactory factory = new AnalysisFactory();
-			factory.addMetric(new SpeedMetric());
-			factory.addMetric(new StateAnalysisMetric());
-			
-			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
+		// Build factory
+		AnalysisBuilder factory = injector.getInstance(AnalysisBuilder.class);
+		factory.addMetric(injector.getInstance(SpeedMetric.class));
+		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
+		
+		// Generate report
+		Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
 
-			new AnalysisProcessorFile().apply(analysis);
-			new AnalysisProcessorCsv("test").apply(analysis);
-			// Output to cmd
-			new AnalysisProcessorCmd().apply(analysis);
-		} catch (AnalysisException e) {
-			System.out.println(e.getMessage());
-		}
+		new AnalysisProcessorFile().apply(analysis);
+		new AnalysisProcessorCsv("test").apply(analysis);
+		// Output to cmd
+		new AnalysisProcessorCmd().apply(analysis);
 	}
 }

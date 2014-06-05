@@ -7,22 +7,31 @@ import java.util.Scanner;
 
 import org.apache.commons.validator.routines.UrlValidator;
 
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.IConnectionManager;
-import main.java.distributed.configuration.ConfigurationDAO;
+import com.google.inject.Guice;
+
+import main.java.TestingSuiteModule;
 import main.java.distributed.configuration.IConfigurationDAO;
 
 public class WorkloadRunner {
+
+	private IWorkloadDAO workload;
+	private IConfigurationDAO config;
 	
 	/**
 	 * Main runnable method for the distributor. It allows an user to submit urls to the server.
 	 * @param args websites to be submitted to the server
 	 */
 	public static void main(String[] args) {
+		Guice.createInjector(new TestingSuiteModule()).getInstance(WorkloadRunner.class);
+	}
+	
+	public WorkloadRunner(IConfigurationDAO config, IWorkloadDAO workload) {
+		this.config = config;
+		this.workload = workload;
+	}
+	
+	public void run(String[] args) {
 		UrlValidator urlvalidator = new UrlValidator();
-		IConnectionManager conn = new ConnectionManager();
-		IConfigurationDAO config = new ConfigurationDAO(conn);
-		IWorkloadDAO workload = new WorkloadDAO(conn);
 		URL url;
 		for(String arg : args) {
 			try {
@@ -34,8 +43,7 @@ public class WorkloadRunner {
 					System.out.println("Url already exists in the database.");
 				}
 			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Invalid url provided in args: " + e.getMessage());
 			}
 		}
 		// Process commandline inputs
@@ -47,7 +55,7 @@ public class WorkloadRunner {
 			if(rawurl.equals("exit")||rawurl.equals("quit")) break;
 			try {
 				// Check url
-				if (!urlvalidator.isValid(rawurl)) throw new MalformedURLException("invalid url");
+				if (!urlvalidator.isValid(rawurl)) throw new MalformedURLException("invalid url: " + rawurl);
 				url = new URL(rawurl);
 				
 				// Add configurations
@@ -74,7 +82,7 @@ public class WorkloadRunner {
 				else 
 					System.out.println("Failed to add " + url + ": URL already exists in database.");
 			} catch (MalformedURLException e) {
-				System.out.println(e.getMessage());
+				System.out.println("Invalid url provided: " + e.getMessage());
 			} 
 		}
 		in.close();

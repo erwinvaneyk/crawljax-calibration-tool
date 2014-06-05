@@ -2,23 +2,31 @@ package main.java;
 
 import java.util.List;
 
+import com.google.inject.Guice;
+
 import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisProcessorCsv;
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.configuration.ConfigurationDAO;
+import main.java.distributed.configuration.IConfigurationDAO;
 
-public class ShingleSizeAndThesholdRunner {
+public class ShingleSizeAndThesholdRunner {	
 	private static int[] websiteIds = new int[]{1};
 	private static int type = 1;
 	
 	private static String filename = "results";
-	
+
+	private IConfigurationDAO config;
+	private ThresholdRunner runner;
 	
 	public static void main(String[] args) {
-		ThresholdRunner runner = new ThresholdRunner();
-		
-		ConfigurationDAO config = new ConfigurationDAO(new ConnectionManager());
-		
+		Guice.createInjector(new TestingSuiteModule()).getInstance(ShingleSizeAndThesholdRunner.class).run();
+	}
+	
+	public ShingleSizeAndThesholdRunner(ThresholdRunner runner, IConfigurationDAO config) {
+		this.runner = runner;
+		this.config = config;
+	}
+	
+	public void run() {		
 		for (int i=1; i<3; i++) {
 			config.updateConfiguration("common", "feature", "FeatureShingles;" + String.valueOf(i) + ";"+ String.valueOf(type), 6);
 			List<Analysis> results = runner.analyseThresholds(0.0, 4.0, 0.1, websiteIds);

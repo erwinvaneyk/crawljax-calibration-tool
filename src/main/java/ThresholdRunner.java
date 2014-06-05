@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import main.java.analysis.*;
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.configuration.ConfigurationDAO;
+import main.java.distributed.configuration.IConfigurationDAO;
 
 public class ThresholdRunner {
 	
@@ -14,35 +16,40 @@ public class ThresholdRunner {
 	
 	private static int[] websiteIds = new int[]{1,};
 
+	private static Injector injector;
+
 	public static void main(String[] args) {
-		ThresholdRunner tr = new ThresholdRunner();
+		injector = Guice.createInjector(new TestingSuiteModule());
+		ThresholdRunner tr = injector.getInstance(ThresholdRunner.class);
 		List<Analysis> results = tr.analyseThresholds(1, 1, 1, websiteIds);
 		for(Analysis analysis : results) {
 			new AnalysisProcessorCsv(filename).apply(analysis);
 		}
 	}
+
+	private IConfigurationDAO config;
+
+	private IAnalysisBuilder factory;
+	
+	public ThresholdRunner(IConfigurationDAO config, IAnalysisBuilder factory) {
+		this.config = config;
+		this.factory = factory;
+	}
 	
 	public List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
 		assert from <= to;
 		assert websiteids.length > 0;
-		ConfigurationDAO config = new ConfigurationDAO(new ConnectionManager());
 		Map<String, String> defaultSettings = config.getConfiguration("common");
 		// Build factory
-		AnalysisFactory factory = new AnalysisFactory();
-		factory.addMetric(new SpeedMetric());
-		factory.addMetric(new StateAnalysisMetric());
+		factory.addMetric(injector.getInstance(SpeedMetric.class));
+		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
 		List<Analysis> results = new ArrayList<Analysis>();
 		
 		for(double i = from; i <= to; i+=step) {
-			try {
-				// update setting
-				config.updateConfiguration("common", "threshold", String.valueOf(i), 6);
-				// run crawler
-				results.add(factory.getAnalysis("threshold-" + i,websiteids));
-
-			} catch (AnalysisException e) {
-				e.printStackTrace();
-			}
+			// update setting
+			config.updateConfiguration("common", "threshold", String.valueOf(i), 6);
+			// run crawler
+			results.add(factory.getAnalysis("threshold-" + i,websiteids));
 		}
 		config.updateConfiguration("common", "threshold", defaultSettings.get("threshold"), 6);
 		System.out.println("Finished!");
