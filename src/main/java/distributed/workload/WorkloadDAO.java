@@ -9,18 +9,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.IConnectionManager;
 
 /**
  * SQL-server-based implementation of the IWorkloadDistributor-interface. The 
  * WorkloadDistributor is responsible for managing the workload of the clients.  
  */
+@Slf4j
 public class WorkloadDAO implements IWorkloadDAO {
-
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String TABLE = "workload";
 	private static final String COLUMN_ID = "id";
@@ -46,7 +43,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 	 */
 	public WorkloadDAO(IConnectionManager conn) {
 		connMgr = conn;
-		logger.info("WorkerID: " + workerID);
+		log.info("WorkerID: " + workerID);
 	}
 	
 	/**
@@ -61,7 +58,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			int claimed = conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + COLUMN_WORKERID + "=\"" + workerID
 					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
-			logger.debug("Workunits claimed by worker: " + claimed);
+			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 				// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
@@ -72,13 +69,13 @@ public class WorkloadDAO implements IWorkloadDAO {
 					URL url = new URL(res.getString("url"));
 					WorkTask workTask = new WorkTask(id, url);
 					workTasks.add(workTask);
-					logger.info("Worktask retrieved: " + workTask.getURL());
+					log.info("Worktask retrieved: " + workTask.getURL());
 				} catch (MalformedURLException e) {
-					logger.error(e.getMessage());
+					log.error(e.getMessage());
 				}
 			}
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return workTasks;		
@@ -96,11 +93,11 @@ public class WorkloadDAO implements IWorkloadDAO {
 		try {
 			// Update crawled-field to 1 to show crawl has finished.
 			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_ID + "=\"" + wt.getId() + "\"");
-			logger.info("Checked out crawl of id: " + wt.getId());
+			log.info("Checked out crawl of id: " + wt.getId());
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		} catch (NullPointerException e) {
-			logger.error("Unexpected null, probably the input " + wt + " or the connection " + conn);
+			log.error("Unexpected null, probably the input " + wt + " or the connection " + conn);
 		}
 		connMgr.closeConnection();
 		return ret != 0;
@@ -120,7 +117,7 @@ public class WorkloadDAO implements IWorkloadDAO {
 			Statement statement = conn.createStatement();
 			ret = statement.executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
 					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0, \"" + worker + "\")", Statement.RETURN_GENERATED_KEYS);
-			logger.info("Succesfully submitted {} to the server.", url);
+			log.info("Succesfully submitted {} to the server.", url);
 			
 			// Get generated key
 			ResultSet generatedkeys = statement.getGeneratedKeys();
@@ -128,9 +125,9 @@ public class WorkloadDAO implements IWorkloadDAO {
 	            ret = generatedkeys.getInt(1);
 	        }
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		}  catch (NullPointerException e) {
-			logger.error("Unexpected null, probably the input " + url + " or the connection " + conn);
+			log.error("Unexpected null, probably the input " + url + " or the connection " + conn);
 		}
 		connMgr.closeConnection();
 		return ret;
@@ -149,9 +146,9 @@ public class WorkloadDAO implements IWorkloadDAO {
 			// Update the worker and crawled field to the default values for the url.
 			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID 
 					+"=\"\" WHERE " + COLUMN_ID + "=\"" + id + "\"");
-			logger.info("Reverted claim/checkout of crawl for id: " + id);
+			log.info("Reverted claim/checkout of crawl for id: " + id);
 		} catch (SQLException e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret != 0;

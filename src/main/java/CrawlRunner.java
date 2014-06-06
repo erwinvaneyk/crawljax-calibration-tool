@@ -28,7 +28,7 @@ import main.java.distributed.configuration.IConfigurationDAO;
 import main.java.distributed.results.IResultProcessor;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.results.UploadResult;
+import main.java.distributed.results.ResultDAO;
 import main.java.distributed.workload.IWorkloadDAO;
 import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
@@ -56,6 +56,7 @@ public class CrawlRunner {
 	
 	public CrawlRunner(String[] args) {
 		dbUtils = new DatabaseUtils(new ConnectionManager());
+		ConfigurationIni config = new ConfigurationIni();
 		// Parse Args
 		String arg = "";
 		if (args.length > 0) {
@@ -68,15 +69,13 @@ public class CrawlRunner {
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
 			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile();
+			dbUtils.actionFlushSettingsFile(config.getSettingsFile());
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
 			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
-			actionAnalysis(true);
-		} else if (arg.equals("-c") || arg.equals("--controler")) {
-			actionAnalysis(false);
+			actionAnalysis();
 		} else {
 			actionHelp();
 		}
@@ -97,7 +96,7 @@ public class CrawlRunner {
 	private void actionWorker() {
 		try {
 			IConnectionManager conn = new ConnectionManager();
-			IResultProcessor resultprocessor = new ResultProcessor(new UploadResult(conn));
+			IResultProcessor resultprocessor = new ResultProcessor(new ResultDAO(conn));
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
@@ -126,7 +125,7 @@ public class CrawlRunner {
 							throw new Exception("Crawljax returned an error code");
 						}
 						try {
-							resultprocessor.uploadResults(task.getId(), dir.toString(), new Date().getTime() - timeStart);
+							resultprocessor.uploadResults(task.getId(), dir, new Date().getTime() - timeStart);
 						} catch(ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
@@ -160,7 +159,7 @@ public class CrawlRunner {
 		WorkloadRunner.main(args);
 	}
 	
-	private void actionAnalysis(boolean helpCrawling) {
+	private void actionAnalysis() {
 		try {
 			// Build factory
 			AnalysisFactory factory = new AnalysisFactory();
@@ -168,7 +167,7 @@ public class CrawlRunner {
 			factory.addMetric(new StateAnalysisMetric());
 			
 			// Generate report
-			Analysis analysis = factory.getAnalysis("analysis",new int[]{2}, helpCrawling);
+			Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
 
 			new AnalysisProcessorFile().apply(analysis);
 			new AnalysisProcessorCsv("test").apply(analysis);

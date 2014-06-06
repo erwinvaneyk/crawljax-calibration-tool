@@ -9,45 +9,41 @@ import com.j256.ormlite.table.DatabaseTable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-
 /**
  * A task for a worker to crawl a website
  */
-@DatabaseTable(tableName="workload")
+@DatabaseTable(tableName = "workload")
 @RequiredArgsConstructor
-@Data public class WorkTask {
+@Data
+public class WorkTask {
 
-	@DatabaseField(generatedId=true,canBeNull=false)
+	@DatabaseField(generatedId = true, canBeNull = false)
 	private final int id;
-	
-	@DatabaseField(canBeNull=false)
+
+	@DatabaseField(canBeNull = false)
 	private final String url;
 
-	@DatabaseField(defaultValue="",canBeNull=false)
+	@DatabaseField(defaultValue = "", canBeNull = false)
 	private String worker;
 
 	@DatabaseField
 	private boolean crawled;
-	
+
 	public WorkTask() {
 		id = 0;
 		url = null;
-		
 	}
-	
-	public WorkTask(int id,URL url) {
+
+	public WorkTask(int id, URL url) {
 		this.id = id;
 		this.url = url.toString();
 	}
-	
+
 	public URL getURL() {
 		try {
 			return new URL(url);
 		} catch (MalformedURLException e) {
-			System.out.println("Invalid url: " + url + " - " + e);
+			throw new RuntimeException("Could not get URL-instance, because " + e.getMessage());
 		}
-		return null;
 	}
-	
-	
 }

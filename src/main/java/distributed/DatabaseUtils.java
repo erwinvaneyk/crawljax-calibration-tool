@@ -91,11 +91,16 @@ public class DatabaseUtils {
 		return succes;
 	}
 	
-	public void actionFlushWebsitesFile(File path) {
+	/**
+	 * Sent a file, which contains websites, to the database.
+	 * @param fileName The location of the file which content will be sent to the database
+	 */
+	public void actionFlushWebsitesFile(String fileName) {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO(con);
 			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(path);
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + fileName));
+			URL url;
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
 				workload.submitWork(new URL(rawUrl), false);
@@ -107,11 +112,12 @@ public class DatabaseUtils {
 	}
 	
 	/**
-	 * Flushes the local settings file to the server, overwriting the existing distributed settings.
+	 * Flushes entire local settings file to the server, replacing any interfering settings.
+	 * @param fileName the filename of the settings file.
 	 */
-	public void actionFlushSettingsFile() {
+	public void actionFlushSettingsFile(File fileName) {
 		IConfigurationDAO conf = new ConfigurationDAO(con);
-		Ini ini = new ConfigurationIni().getIni();
+		Ini ini = new ConfigurationIni(fileName).getIni();
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {
@@ -124,20 +130,17 @@ public class DatabaseUtils {
 	 * Retrieves the duplicate-mapping for a given websiteResultID.
 	 * @param websiteResultId the websiteResultID for which the mapping should be retrieved
 	 * @return map with tuples defining duplicates, using a format <WebsiteResultID, WebsiteResultID>,
-	 * 			if an error occurd or nothing was found, return an empty map.
+	 * 			if an error occurred or nothing was found, return an empty map.
+	 * @throws SQLException 
 	 */
-	public ConcurrentHashMap<String, String> retrieveDuplicatesMap(int websiteResultId) {
+	public ConcurrentHashMap<String, String> retrieveDuplicatesMap(int websiteResultId) throws SQLException {
 		ConcurrentHashMap<String, String> stateIds = new ConcurrentHashMap<String, String>();
-		try {
 			// Retrieve the duplicate mapping from the database.
-			ResultSet res = con.getConnection().createStatement().
-					executeQuery("SELECT * FROM  benchmarkSite WHERE websiteId = " + websiteResultId);
+			Connection conn = new ConnectionManager().getConnection();
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  benchmarkSite WHERE websiteId = " + websiteResultId);
 			while (res.next()) {
 				stateIds.put(res.getString("stateIdFirst"),res.getString("stateIdSecond"));
 			}
-		} catch (SQLException e) {
-			log.error("SQL exception while retrieving duplicates: " + e.getMessage());
-		}
 		return stateIds;
 	}
 }

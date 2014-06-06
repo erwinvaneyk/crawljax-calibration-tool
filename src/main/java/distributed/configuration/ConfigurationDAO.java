@@ -9,8 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.IConnectionManager;
 
 /**
@@ -20,9 +19,8 @@ import main.java.distributed.IConnectionManager;
  * - pair <secton,key> is UNIQUE
  * - ORDER BY depth DESC
  */
+@Slf4j
 public class ConfigurationDAO implements IConfigurationDAO {
-
-	final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String TABLE = "configuration"; 
 	private static final String COLUMN_SECTION = "section"; 
@@ -37,7 +35,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	}
 
 	public Map<String, String> getConfiguration(List<String> sections) {
-		logger.debug("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
+		log.debug("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
 		assert sections != null;
 		Map<String,String> config = new HashMap<String,String>();
 		try {
@@ -51,12 +49,12 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			while (res.next()) {
 				if(!config.containsKey(res.getString(COLUMN_KEY))) {
 					config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
-					logger.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+					log.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
 				}
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.error("Error while retrieving configurations: " + e.getMessage());
+			log.error("Error while retrieving configurations: " + e.getMessage());
 		}
 		return config;
 	}
@@ -76,16 +74,16 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			if(conn.createStatement().executeUpdate("UPDATE `" + TABLE + "` SET `"
 					+ COLUMN_VALUE + "`=\""+ value + "\",`" + COLUMN_DEPTH + "`=" + importance 
 					+ " WHERE `" + COLUMN_SECTION + "`=\"" + section + "\" AND `" + COLUMN_KEY + "`=\"" + key + "\"") > 0) {
-				logger.info("Updated in section " + section + " key " + key + " to value " + value);
+				log.info("Updated in section " + section + " key " + key + " to value " + value);
 			} else {
 				// If update failed, try insert.
 				conn.createStatement().executeUpdate("INSERT INTO  " + TABLE + " VALUES (\"" + section + "\",\"" 
 						+ key + "\",\"" + value + "\"," + importance +")");
-				logger.info("Inserted into section " + section + " key " + key + " to value " + value);
+				log.info("Inserted into section " + section + " key " + key + " to value " + value);
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.error("Error while updating configurations: " + e.getMessage());
+			log.error("Error while updating configurations: " + e.getMessage());
 		}
 	}
 
@@ -96,10 +94,10 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			Connection conn = connMgr.getConnection();
 			conn.createStatement().executeUpdate("DELETE FROM  `" + TABLE + "` WHERE `" + 
 					COLUMN_SECTION + "`=\"" + section + "\" AND `" + COLUMN_KEY + "`=\"" + key + "\"");
-			logger.info("Deleted section: " + section);
+			log.info("Deleted section: " + section);
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.error("Error while deleting configurations: " + e.getMessage());
+			log.error("Error while deleting configurations: " + e.getMessage());
 		}
 	}
 
@@ -108,10 +106,10 @@ public class ConfigurationDAO implements IConfigurationDAO {
 		try {
 			Connection conn = connMgr.getConnection();
 			conn.createStatement().executeUpdate("DELETE FROM `" + TABLE + "` WHERE `" + COLUMN_SECTION + "`=\"" + section + "\"");
-			logger.info("Deleted section: " + section);
+			log.info("Deleted section: " + section);
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.error("Error while deleting configurations: " + e.getMessage());
+			log.error("Error while deleting configurations: " + e.getMessage());
 		}
 	}
 	
@@ -122,11 +120,11 @@ public class ConfigurationDAO implements IConfigurationDAO {
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM `" + TABLE + "`");
 			while (res.next()) {
 				config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
-				logger.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				log.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {
-			logger.error("Error while retrieving configurations: " + e.getMessage());
+			log.error("Error while retrieving configurations: " + e.getMessage());
 		}
 		return config;
 	}

@@ -2,6 +2,8 @@ package main.java;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +16,7 @@ import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
+import com.crawljax.core.state.NDDStateVertexFactory;
 import com.crawljax.core.state.duplicatedetection.*;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
 
@@ -23,7 +26,7 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 @Slf4j
 public class ConfigurationMapper {
 	
-	/**
+	private static List<FeatureType> features;
 	 * Sets up the crawljax-configuration for a given website, outputDir and additional args
 	 * @param website the website to be crawled
 	 * @param outputDir the output-folder
@@ -32,6 +35,7 @@ public class ConfigurationMapper {
 	 */
 	public CrawljaxConfiguration convert(URL website, File outputDir, Map<String,String> args) {
 
+		features = new ArrayList<FeatureType>();
 		CrawljaxConfigurationBuilder builder = CrawljaxConfiguration.builderFor(website.toString());
 		builder.setOutputDirectory(outputDir);
 
@@ -39,6 +43,7 @@ public class ConfigurationMapper {
 		builder.addPlugin(new CrawlOverview());
 		builder.addPlugin(new StoreDOMPlugin());
 		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.FIREFOX, 1));
+		builder.setStateVertexFactory(new NDDStateVertexFactory());
 		
 		// arguments
 		for( Entry<String, String> entry : args.entrySet()) {
@@ -49,6 +54,7 @@ public class ConfigurationMapper {
 				log.error("Failed to map pair {} = {}. ({})",entry.getKey(), entry.getValue(), e.getMessage());
 			} 
 		}
+		builder.setFeaturesNearDuplicateDetection(features);
 		return builder.build();
 	}
 	
@@ -69,7 +75,7 @@ public class ConfigurationMapper {
 		} else if(key.equalsIgnoreCase("t") || key.equalsIgnoreCase("timeout")) {
 			builder.setMaximumRunTime(Long.parseLong(value), TimeUnit.MINUTES);
 		} else if(key.equalsIgnoreCase("threshold")) {
-			builder.setThresholdNearDuplicateDetection(Integer.parseInt(value));
+			builder.setThresholdNearDuplicateDetection(Double.parseDouble(value));
 		} else if(key.equalsIgnoreCase("a") || key.equalsIgnoreCase("crawlHiddenAnchors")) {
 			builder.crawlRules().crawlHiddenAnchors(true);
 		} else if(key.equalsIgnoreCase("waitAfterReload")) {
@@ -81,10 +87,10 @@ public class ConfigurationMapper {
 			assert parts.length >= 3;
 			if(parts[0].equalsIgnoreCase("FeatureShingles")) {
 				Integer index = Integer.valueOf(parts[2]);
-				FeatureSizeType fst = FeatureSizeType.values()[index];
+				FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
 				FeatureShingles ft = new FeatureShingles(Integer.valueOf(parts[1]), fst);
-				NearDuplicateDetectionSingleton.addFeature(ft);
-				log.info("Feature added: {}", ft);
+				features.add(ft); 
+				log.info("Feature added: {}", ft);			
 			}
 		} else if(key.equalsIgnoreCase("b") || key.equalsIgnoreCase("browser")) {
 			for (BrowserType b : BrowserType.values()) {
