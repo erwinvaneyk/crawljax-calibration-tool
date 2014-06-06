@@ -32,7 +32,8 @@ public class StateAnalysisMetric implements IMetric {
 	@Getter
 	private float score = 1; // stub
 
-	NearDuplicateDetection npd;
+	@Getter @Setter
+	NearDuplicateDetection nearDuplicateDetection;
 
 	public static final String MISSED_STATES 					= "Missed states";
 	public static final String DUPLICATE_STATES 				= "Duplicate states";
@@ -55,7 +56,7 @@ public class StateAnalysisMetric implements IMetric {
 		// Configure a NearestDuplicateDetection for comparing the states
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		this.npd = npd;
+		this.nearDuplicateDetection = npd;
 		this.databaseUtils = databaseUtils;
 	}
 

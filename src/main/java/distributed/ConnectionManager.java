@@ -30,7 +30,7 @@ public class ConnectionManager implements IConnectionManager {
 	/**
 	 * Load setting files for ConnectionManager
 	 */
-	static {
+	public ConnectionManager() {
 		try {
 			//log.warning("ConnectionManager uses the default paths for the config-files.");
 			setup(DEFAULT_SETTINGS_PATH);
@@ -44,7 +44,7 @@ public class ConnectionManager implements IConnectionManager {
 	 * @param connectionDetailsPath the path to the settings-file.
 	 * @throws IOException the connection-settings file could not be found.
 	 */
-	private static void setup(File connectionDetailsPath) throws IOException {
+	private void setup(File connectionDetailsPath) throws IOException {
 		settings = new Properties();
 		FileInputStream input = new FileInputStream(connectionDetailsPath);
 		 
@@ -58,7 +58,7 @@ public class ConnectionManager implements IConnectionManager {
 		// Load driver
 		try {
 			Class.forName(DRIVER).newInstance();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);

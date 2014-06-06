@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import main.java.TestingSuiteModule;
 import main.java.analysis.StateAnalysisMetric;
 import main.java.analysis.Statistic;
 import main.java.distributed.results.StateResult;
@@ -16,28 +17,32 @@ import main.java.distributed.workload.WorkTask;
 import org.junit.Test;
 
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
+import com.google.inject.Guice;
 
 public class TestStateAnalysisMetric {
 	
+	public StateAnalysisMetric getStateAnalysisMetric() {
+		return Guice.createInjector(new TestingSuiteModule()).getInstance(StateAnalysisMetric.class);
+	}
 	@Test
 	public void testApplyEmpty() {
 		//mock
 		List<WebsiteResult> benchmarkWebsites = new ArrayList<WebsiteResult>();
 		List<WebsiteResult> testedWebsites = new ArrayList<WebsiteResult>();
 		//run method		
-		StateAnalysisMetric sam = new StateAnalysisMetric();
+		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertNotNull(sam.apply(benchmarkWebsites, testedWebsites));
 	}
 
 	@Test
 	public void testGetMetricName() {
-		StateAnalysisMetric sam = new StateAnalysisMetric();
+		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertNotNull(sam.getMetricName());
 	}
 
 	@Test
 	public void testGetScoreBeforeApply() {
-		StateAnalysisMetric sam = new StateAnalysisMetric();
+		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertEquals(sam.getScore(),-1,0.01);
 	}
 	
@@ -73,7 +78,7 @@ public class TestStateAnalysisMetric {
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
 		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
 		// Execute method	
-		StateAnalysisMetric sam = new StateAnalysisMetric();	
+		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
 		Collection<Statistic> results = sam.apply(benchmarkedWebsites, testedWebsites);
 		for(Statistic stat : results) {
@@ -122,7 +127,7 @@ public class TestStateAnalysisMetric {
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
 		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
 		// Execute method	
-		StateAnalysisMetric sam = new StateAnalysisMetric();	
+		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
 		
 		
@@ -147,14 +152,14 @@ public class TestStateAnalysisMetric {
 	public void testApplyNull1() {
 		List<WebsiteResult> testedWebsites = new ArrayList<WebsiteResult>();
 		//run method		
-		StateAnalysisMetric sam = new StateAnalysisMetric();
+		StateAnalysisMetric sam = getStateAnalysisMetric();
 		sam.apply(null, testedWebsites);
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void testApplyNullBoth() {
 		//run method		
-		StateAnalysisMetric sam = new StateAnalysisMetric();
+		StateAnalysisMetric sam = getStateAnalysisMetric();
 		sam.apply(null, null);
 	}
 

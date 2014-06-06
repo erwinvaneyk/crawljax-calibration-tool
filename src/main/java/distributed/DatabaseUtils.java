@@ -107,14 +107,13 @@ public class DatabaseUtils {
 	 */
 	public void actionFlushWebsitesFile(File file) {
 		try {
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + fileName));
+			crawlManager.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + file));
 			String rawUrl;
 			while((rawUrl = crawlManager.getWebsiteQueue().poll()) != null) {
-				url = new URL(rawUrl);
 				workload.submitWork(new URL(rawUrl), false);
 			}
 		} catch (IOException e) {
-			System.out.println(e1.getMessage());
+			System.out.println(e.getMessage());
 		}
 		System.out.println("File flushed to server.");
 	}

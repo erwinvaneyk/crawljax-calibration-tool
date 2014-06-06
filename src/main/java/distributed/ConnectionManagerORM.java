@@ -31,7 +31,8 @@ public class ConnectionManagerORM extends ConnectionManager implements IConnecti
 	/**
 	 * Load setting files for ConnectionManager
 	 */
-	static {
+	public ConnectionManagerORM() {
+		super();
 		try {
 			setup(DEFAULT_SETTINGS_PATH);
 		} catch (IOException e) {
@@ -44,7 +45,7 @@ public class ConnectionManagerORM extends ConnectionManager implements IConnecti
 	 * @param connectionDetailsPath the path to the settings-file.
 	 * @throws IOException the connection-settings file could not be found.
 	 */
-	private static void setup(File connectionDetailsPath) throws IOException {
+	private void setup(File connectionDetailsPath) throws IOException {
 		settings = new Properties();
 		FileInputStream input = new FileInputStream(connectionDetailsPath);
 		 
@@ -58,7 +59,7 @@ public class ConnectionManagerORM extends ConnectionManager implements IConnecti
 		// Load driver
 		try {
 			Class.forName(DRIVER).newInstance();
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);
