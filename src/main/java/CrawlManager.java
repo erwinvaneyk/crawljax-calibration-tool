@@ -92,8 +92,8 @@ public class CrawlManager {
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * @param args arguments which need to be send to crawljax.
 	 */
-	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {		
-		CrawljaxConfiguration config = ConfigurationMapper.convert(website, outputdir, args);
+	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {	
+		CrawljaxConfiguration config = new ConfigurationMapper().convert(website, outputdir, args);
 
 		CrawljaxRunner runner = new CrawljaxRunner(config);
 		runner.call();

@@ -14,6 +14,7 @@ import com.google.inject.Inject;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.results.StateResult;
@@ -33,12 +34,12 @@ public class StateAnalysisMetric implements IMetric {
 
 	NearDuplicateDetection npd;
 
-	public static final String MISSED_STATES = "Missed states";
-	public static final String DUPLICATE_STATES = "Duplicate states";
-	public static final String TOTAL_BENCHMARK_STATES = "Total benchmark states";
-	public static final String TOTAL_TESTED_STATES = "Total tested states";
-	public static final String TOTAL_BENCHMARK_UNIQUE_STATES = "Total unique benchmark states";
-	public static final String MISSED_UNIQUE_STATES = "Missed unique states";
+	public static final String MISSED_STATES 					= "Missed states";
+	public static final String DUPLICATE_STATES 				= "Duplicate states";
+	public static final String TOTAL_BENCHMARK_STATES 			= "Total benchmark states";
+	public static final String TOTAL_TESTED_STATES 				= "Total tested states";
+	public static final String TOTAL_BENCHMARK_UNIQUE_STATES 	= "Total unique benchmark states";
+	public static final String MISSED_UNIQUE_STATES 			= "Missed unique states";
 
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two
@@ -213,9 +214,9 @@ public class StateAnalysisMetric implements IMetric {
 		for (StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
-				double distance = npd.getDistance(
-				        npd.generateHash(source.getDom()),
-				        npd.generateHash(state.getDom()));
+				double distance = nearDuplicateDetection.getDistance(
+				        nearDuplicateDetection.generateHash(source.getDom()),
+				        nearDuplicateDetection.generateHash(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
 				if (distance <= threshold && distance < minDistance) {
 					result = state;
