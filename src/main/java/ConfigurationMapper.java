@@ -27,6 +27,7 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 public class ConfigurationMapper {
 	
 	private static List<FeatureType> features;
+	/**
 	 * Sets up the crawljax-configuration for a given website, outputDir and additional args
 	 * @param website the website to be crawled
 	 * @param outputDir the output-folder

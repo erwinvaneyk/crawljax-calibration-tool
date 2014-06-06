@@ -71,7 +71,7 @@ public class TestStateAnalysisMetric {
 		testedWebsites.add(getMockedWebsiteResult(1, 2, "http://mock.mock"));
 		benchmarkedWebsites.add(getMockedWebsiteResult(2,2, "http://mock.mock"));
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(anyInt(), anyInt())).thenReturn(0,1,42);
+		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
 		// Execute method	
 		StateAnalysisMetric sam = new StateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -120,7 +120,7 @@ public class TestStateAnalysisMetric {
 		testedWebsites.add(getMockedWebsiteResult(1, 3, "http://mock.mock"));
 		benchmarkedWebsites.add(getMockedWebsiteResult(2,3, "http://mock.mock"));
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(anyInt(), anyInt())).thenReturn(0,1,42);
+		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
 		// Execute method	
 		StateAnalysisMetric sam = new StateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -129,7 +129,7 @@ public class TestStateAnalysisMetric {
 		Collection<Statistic> results = sam.apply(benchmarkedWebsites, testedWebsites);
 
 		ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(anyInt(), anyInt())).thenReturn(0,1,42);
+		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
 		sam.setNearDuplicateDetection(ndd);
 		Collection<Statistic> resultsInv = sam.apply(testedWebsites, benchmarkedWebsites);
 		

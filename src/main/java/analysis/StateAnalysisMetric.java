@@ -1,6 +1,7 @@
 package main.java.analysis;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,7 +33,8 @@ public class StateAnalysisMetric implements IMetric {
 	@Getter
 	private float score = 1; // stub
 
-	NearDuplicateDetection npd;
+	@Getter @Setter
+	private NearDuplicateDetection nearDuplicateDetection;
 
 	public static final String MISSED_STATES 					= "Missed states";
 	public static final String DUPLICATE_STATES 				= "Duplicate states";
@@ -52,7 +54,7 @@ public class StateAnalysisMetric implements IMetric {
 		// Configure a NearestDuplicateDetection for comparing the states
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		npd =
+		nearDuplicateDetection =
 		        Guice.createInjector(new DuplicateDetectionModule(thresholdNearestState, ft))
 		                .getInstance(NearDuplicateDetection.class);
 	}
@@ -217,9 +219,9 @@ public class StateAnalysisMetric implements IMetric {
 		for (StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
-				double distance = npd.getDistance(
-				        npd.generateHash(source.getDom()),
-				        npd.generateHash(state.getDom()));
+				double distance = nearDuplicateDetection.getDistance(
+				        nearDuplicateDetection.generateHash(source.getDom()),
+				        nearDuplicateDetection.generateHash(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
 				if (distance <= threshold && distance < minDistance) {
 					result = state;

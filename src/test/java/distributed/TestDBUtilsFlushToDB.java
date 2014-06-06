@@ -33,7 +33,7 @@ public class TestDBUtilsFlushToDB {
 	public void testFlushWebsites() throws SQLException, IOException {
 		this.makeWebsiteFile();
 		
-		dbUtils.actionFlushWebsitesFile("/testFlushWebsites.txt");
+		dbUtils.actionFlushWebsitesFile(new File("/testFlushWebsites.txt"));
 
 		int idFirst = this.getIdFromUrl("http://thiMayNotExist.hu");
 		assertFalse(idFirst == -1);

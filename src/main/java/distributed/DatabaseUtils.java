@@ -93,14 +93,13 @@ public class DatabaseUtils {
 	
 	/**
 	 * Sent a file, which contains websites, to the database.
-	 * @param fileName The location of the file which content will be sent to the database
+	 * @param file The location of the file which content will be sent to the database
 	 */
-	public void actionFlushWebsitesFile(String fileName) {
+	public void actionFlushWebsitesFile(File file) {
 		try {
 			IWorkloadDAO workload = new WorkloadDAO(con);
 			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + fileName));
-			URL url;
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + file));
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
 				workload.submitWork(new URL(rawUrl), false);

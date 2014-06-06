@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisException;
 import main.java.analysis.AnalysisFactory;
 import main.java.distributed.ConnectionManagerORM;

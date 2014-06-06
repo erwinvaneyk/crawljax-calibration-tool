@@ -34,8 +34,6 @@ import main.java.distributed.workload.WorkloadDAO;
 import main.java.distributed.workload.WorkTask;
 import main.java.distributed.workload.WorkloadRunner;
 
-import com.crawljax.cli.JarRunner;
-
 public class CrawlRunner {
 	String[] additionalArgs = null;
 	DatabaseUtils dbUtils;
@@ -43,9 +41,6 @@ public class CrawlRunner {
 	public static void main(String[] args) {
 		// Header
 		System.out.println("Crawljax Functional Testing Suite");
-		System.out.println("---------------------------------");
-		System.out.println("Crawljax CLI details:");
-		JarRunner.main(new String[] {"--version"});
 		System.out.println("---------------------------------");
 		
 		// Do stuff
