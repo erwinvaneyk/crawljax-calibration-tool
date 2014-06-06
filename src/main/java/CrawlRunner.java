@@ -67,7 +67,7 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			dbUtils.actionFlushWebsitesFile("/websites.txt");
+			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
 			dbUtils.actionFlushSettingsFile(config.getSettingsFile());
 		} else if (arg.equals("-d") || arg.equals("--distributor")) {
@@ -100,8 +100,6 @@ public class CrawlRunner {
 			CrawlManager suite = new CrawlManager();
 			IWorkloadDAO workload = new WorkloadDAO(conn);
 			IConfigurationDAO config = new ConfigurationDAO(conn);
-
-			System.out.println("Started client crawler/worker.");
 			while (true) {
 				// Get worktasks
 				List<WorkTask> workTasks = workload.retrieveWork(1);

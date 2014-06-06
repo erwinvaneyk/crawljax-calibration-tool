@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,14 +15,15 @@ import org.ini4j.Profile.Section;
 
 import lombok.extern.slf4j.Slf4j;
 import main.java.CrawlManager;
-import main.java.distributed.configuration.ConfigurationDAO;
-import main.java.distributed.configuration.ConfigurationIni;
-import main.java.distributed.configuration.IConfigurationDAO;
-import main.java.distributed.workload.IWorkloadDAO;
-import main.java.distributed.workload.WorkloadDAO;
+import main.java.distributed.configuration.*;
+import main.java.distributed.workload.*;
 
 @Slf4j
+/**
+ * The DatabaseUtils-class contains all of the miscellaneous functionality related to the database.
+ */
 public class DatabaseUtils {
+	
 	IConnectionManager con;
 	
 	public DatabaseUtils(IConnectionManager con) {
@@ -50,14 +50,16 @@ public class DatabaseUtils {
 			}
 			log.info("Deleting the results of websiteId: " + id + ", workTaksId: " + workTaskId + "...");
 			
-			boolean deleteDomResult = this.deleteById("DomResults", "websiteResult_id", id, connection);
-			boolean deleteWebsiteResults = this.deleteById("WebsiteResults", "id", id, connection);
-			boolean deleteWorkTask = this.deleteById("workload", "id", workTaskId, connection);
+			boolean deleteDomResult = this.deleteById("DomResults", "websiteResult_id", id);
+			boolean deleteWebsiteResults = this.deleteById("WebsiteResults", "id", id);
+			boolean deleteWorkTask = this.deleteById("workload", "id", workTaskId);
 			
 			con.closeConnection();
 			if (deleteDomResult && deleteWebsiteResults && deleteWorkTask) {
 				log.info("Succesfull deleted the results of id={}", id);
 				result = true;
+			} else {
+				log.warn("Not all results for websiteId {} could be deleted.", id);
 			}
 		} catch (SQLException e) {
 			log.info("SQLException while deleting the results of id={}", id);
@@ -66,19 +68,25 @@ public class DatabaseUtils {
 		
 		return result;
 	}
-
-	private boolean deleteById(String table, String column, int id, Connection connection) throws SQLException {
+	
+	/**
+	 * Delete an entry in a table given a column and a value.
+	 * @param table the relevant table
+	 * @param column the column in the where-clause
+	 * @param value The value of the column to be matched.
+	 * @return return true if the deleting was a success.
+	 * @throws SQLException
+	 */
+	private boolean deleteById(String table, String column, int value) throws SQLException {
 		boolean succes = false;
-		
 		String sql = "DELETE FROM " + table + " WHERE " + column + " = ?";
-		PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-		statement.setInt(1, id);
+		PreparedStatement statement = con.getConnection().prepareStatement(sql);
+		statement.setInt(1, value);
 		int deleteDom = statement.executeUpdate();
 		if (deleteDom > 0) {
 			succes = true;
 		} else {
-			log.info(""+deleteDom);;
-			log.warn("The {} of id={} can not be deleted.", table, id);
+			log.warn("The {} of id={} can not be deleted.", table, value);
 		}
 		return succes;
 	}
@@ -95,13 +103,12 @@ public class DatabaseUtils {
 			URL url;
 			String rawUrl;
 			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
-				url = new URL(rawUrl);
-				workload.submitWork(url, false);
+				workload.submitWork(new URL(rawUrl), false);
 			}
 		} catch (IOException e1) {
-			System.out.println(e1.getMessage());
+			log.error(e1.getMessage());
 		}
-		System.out.println("File flushed to server.");
+		log.info("Websites from file flushed to server.");
 	}
 	
 	/**

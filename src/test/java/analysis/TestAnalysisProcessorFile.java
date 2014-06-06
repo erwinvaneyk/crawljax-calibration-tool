@@ -34,8 +34,19 @@ public class TestAnalysisProcessorFile {
 	}
 	
 	@Test
+	public void testOutputDirSet() {
+		assertNotNull(apf.getOutputDir());
+	}
+	
+	@Test
+	public void testOutputDirSetGet() {
+		File newDir = new File("/test/");
+		apf.setOutputDir(newDir);
+		assertEquals(apf.getOutputDir(), newDir);
+	}
+	
+	@Test(expected=NullPointerException.class)
 	public void testApplyNull() {
 		apf.apply(null);
-		assertNull(apf.getOutput());
 	}
 }

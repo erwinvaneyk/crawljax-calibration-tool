@@ -71,7 +71,7 @@ public class TestAnalysisReport {
 		Analysis result = new Analysis("testRunAnalysisSame", input, null);
 		result.runAnalysis(input);
 		// temporary
-		assertEquals(result.getTestWebsitesResults(), null);
+		assertEquals(result.getTestWebsitesResults(), input);
 		assertEquals(result.getBenchmarkWebsites(), input);
 		connMgr.closeConnection();
 	}

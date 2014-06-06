@@ -1,11 +1,12 @@
 package main.java.distributed.results;
 
+import java.util.Collection;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import main.java.distributed.workload.WorkTask;
 
-import com.j256.ormlite.dao.*;
 import com.j256.ormlite.field.*;
 import com.j256.ormlite.table.*;
 
@@ -32,7 +33,7 @@ public class WebsiteResult {
 	private final float duration;
 
 	@ForeignCollectionField(eager = true)
-	private ForeignCollection<StateResult> stateResults;
+    private Collection<StateResult> stateResults;
 
 	public WebsiteResult() {
 		jsonResults = null;

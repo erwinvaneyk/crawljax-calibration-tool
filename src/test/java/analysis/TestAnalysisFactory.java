@@ -6,7 +6,6 @@ import java.util.List;
 
 import main.java.analysis.AnalysisException;
 import main.java.analysis.AnalysisFactory;
-import main.java.analysis.Analysis;
 import main.java.distributed.ConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
 

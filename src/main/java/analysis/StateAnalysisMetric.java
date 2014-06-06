@@ -1,7 +1,6 @@
 package main.java.analysis;
 
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -14,6 +13,7 @@ import com.google.inject.Guice;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
@@ -34,12 +34,12 @@ public class StateAnalysisMetric implements IMetric {
 
 	NearDuplicateDetection npd;
 
-	public static final String MISSED_STATES = "Missed states";
-	public static final String DUPLICATE_STATES = "Duplicate states";
-	public static final String TOTAL_BENCHMARK_STATES = "Total benchmark states";
-	public static final String TOTAL_TESTED_STATES = "Total tested states";
-	public static final String TOTAL_BENCHMARK_UNIQUE_STATES = "Total unique benchmark states";
-	public static final String MISSED_UNIQUE_STATES = "Missed unique states";
+	public static final String MISSED_STATES 					= "Missed states";
+	public static final String DUPLICATE_STATES 				= "Duplicate states";
+	public static final String TOTAL_BENCHMARK_STATES 			= "Total benchmark states";
+	public static final String TOTAL_TESTED_STATES 				= "Total tested states";
+	public static final String TOTAL_BENCHMARK_UNIQUE_STATES 	= "Total unique benchmark states";
+	public static final String MISSED_UNIQUE_STATES 			= "Missed unique states";
 
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two
