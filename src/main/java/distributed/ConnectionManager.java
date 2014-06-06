@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.Properties;
 
+import com.google.inject.Singleton;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -13,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @Slf4j
+@Singleton
 public class ConnectionManager implements IConnectionManager {
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";

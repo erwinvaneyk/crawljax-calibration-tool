@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.IConnectionManager;
 
@@ -30,6 +32,7 @@ public class ConfigurationDAO implements IConfigurationDAO {
 	
 	private IConnectionManager connMgr;
 
+	@Inject
 	public ConfigurationDAO(IConnectionManager conn) {
 		connMgr = conn;
 	}

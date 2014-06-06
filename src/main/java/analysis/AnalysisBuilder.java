@@ -6,7 +6,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -14,21 +16,23 @@ import com.j256.ormlite.stmt.Where;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.ConnectionManagerORM;
+import main.java.distributed.IConnectionManagerORM;
 import main.java.distributed.results.WebsiteResult;
 import main.java.distributed.DatabaseUtils;
-import main.java.distributed.workload.WorkloadDAO;
+import main.java.distributed.workload.IWorkloadDAO;
 
 /**
- * The AnalysisFactory is responsible for properly constructing an analysis from benchmarks. *
+ * The AnalysisBuilder is responsible for properly constructing an analysis from benchmarks. *
  */
 @Slf4j
-public class AnalysisFactory implements IAnalysisFactory {
+public class AnalysisBuilder implements IAnalysisBuilder {
 
 	@Getter
 	private ImmutableList<IMetric> metrics = new ImmutableList.Builder<IMetric>()
 	        .build();
+	private IConnectionManagerORM connMgr;
+	private IWorkloadDAO workload;
+	private DatabaseUtils dbUtils;
 
 	/**
 	 * Add a metric-type to the list of metrics used to analyse the results
@@ -41,6 +45,13 @@ public class AnalysisFactory implements IAnalysisFactory {
 		        .add(metric)
 		        .build();
 		log.info("Metric added to analysis: " + metric.getMetricName());
+	}
+	
+	@Inject
+	public AnalysisBuilder(IConnectionManagerORM connMgr, IWorkloadDAO workload, DatabaseUtils dbUtils) {
+		this.connMgr = connMgr;
+		this.workload = workload;
+		this.dbUtils = dbUtils; 
 	}
 
 	/**
@@ -76,14 +87,14 @@ public class AnalysisFactory implements IAnalysisFactory {
 	 * @throws AnalysisException
 	 *             Invalid parameters or an sql exception occured
 	 */
+	@VisibleForTesting
 	public List<WebsiteResult> retrieveWebsiteResultsById(int[] websiteids)
 	        throws AnalysisException {
 		if (websiteids == null || websiteids.length == 0) {
 			throw new AnalysisException("Invalid number websiteids provided; should be > 0.");
 		}
 		try {
-			Dao<WebsiteResult, String> websiteResultDAO = DaoManager.createDao(
-			        new ConnectionManagerORM().getConnectionORM(), WebsiteResult.class);
+			Dao<WebsiteResult, String> websiteResultDAO = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
 			QueryBuilder<WebsiteResult, String> builder = websiteResultDAO.queryBuilder();
 			Where<WebsiteResult, String> where = builder.where();
 			for (int id : websiteids) {
@@ -109,7 +120,7 @@ public class AnalysisFactory implements IAnalysisFactory {
 	 * @throws AnalysisException
 	 *             Invalid parameters or an sql exception occured
 	 */
-	public List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites)
+	private List<WebsiteResult> updateWebsiteResults(List<WebsiteResult> benchmarkedWebsites)
 	        throws AnalysisException {
 		if (benchmarkedWebsites == null || benchmarkedWebsites.isEmpty()) {
 			throw new AnalysisException(
@@ -119,7 +130,7 @@ public class AnalysisFactory implements IAnalysisFactory {
 		try {
 			// Build query to retrieve newly crawled websiteResults.
 			Dao<WebsiteResult, String> websiteResultDAO =
-			        DaoManager.createDao(new ConnectionManagerORM().getConnectionORM(),
+			        DaoManager.createDao(connMgr.getConnectionORM(),
 			                WebsiteResult.class);
 			QueryBuilder<WebsiteResult, String> builder = websiteResultDAO.queryBuilder();
 			Where<WebsiteResult, String> where = builder.where();
@@ -157,7 +168,6 @@ public class AnalysisFactory implements IAnalysisFactory {
 
 	private List<Integer> resubmitWebsitesForCrawling(List<WebsiteResult> benchmarkedWebsites) {
 		List<Integer> newids = new ArrayList<Integer>(benchmarkedWebsites.size());
-		WorkloadDAO workload = new WorkloadDAO(new ConnectionManager());
 		for (WebsiteResult baseWebsite : benchmarkedWebsites) {
 			log.debug("Work to submit: {}", baseWebsite.getWorkTask());
 			int newId = workload.submitWork(baseWebsite.getWorkTask().getURL(), false);
@@ -174,7 +184,7 @@ public class AnalysisFactory implements IAnalysisFactory {
 
 	private void removeWebsiteResultsFromDB(Collection<WebsiteResult> websites) {
 		for (WebsiteResult website : websites) {
-			new DatabaseUtils(new ConnectionManager()).deleteAllResultsById(website.getId());
+			dbUtils.deleteAllResultsById(website.getId());
 		}
 	}
 }

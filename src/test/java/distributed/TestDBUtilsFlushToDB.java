@@ -15,7 +15,10 @@ import java.sql.SQLException;
 
 import org.junit.Test;
 
+import com.google.inject.Guice;
+
 import lombok.extern.slf4j.Slf4j;
+import main.java.TestingSuiteModule;
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.IConnectionManager;
@@ -26,7 +29,7 @@ import main.java.distributed.IConnectionManager;
 @Slf4j
 public class TestDBUtilsFlushToDB {
 	private IConnectionManager con = new ConnectionManager();
-	private DatabaseUtils dbUtils = new DatabaseUtils(con);
+	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule()).getInstance(DatabaseUtils.class);
 	
 	
 	@Test

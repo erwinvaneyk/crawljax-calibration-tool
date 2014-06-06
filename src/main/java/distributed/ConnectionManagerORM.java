@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import com.google.inject.Singleton;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 
@@ -15,7 +16,8 @@ import lombok.extern.slf4j.Slf4j;
  * ConnectionManager, which besides regular connections also supports connections compatible with ORMLite.
  */
 @Slf4j
-public class ConnectionManagerORM extends ConnectionManager {
+@Singleton
+public class ConnectionManagerORM extends ConnectionManager implements IConnectionManagerORM {
 	
 	public static String DRIVER = "com.mysql.jdbc.Driver";
 	
@@ -75,8 +77,10 @@ public class ConnectionManagerORM extends ConnectionManager {
 	}
 	
 	public void closeConnection() {
-		super.closeConnection();
-		connection.closeQuietly();		
+		if (connection != null) {
+			connection.closeQuietly();	
+			super.closeConnection();	
+		}
 	}
 	
 	

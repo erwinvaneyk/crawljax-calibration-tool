@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import main.java.distributed.ConnectionManager;
 import main.java.distributed.DatabaseUtils;
 
@@ -16,7 +15,7 @@ import org.junit.Test;
 
 public class TestDBUtilsDeleteResults {
 	
-	ConnectionManager con;
+	private ConnectionManager con;
 	
 	@Before
 	public void insertNewResult() throws SQLException {
@@ -59,7 +58,7 @@ public class TestDBUtilsDeleteResults {
 	}
 	
 	public void deleteAndCheck(String sql, int expected) throws SQLException {
-		DatabaseUtils dbutils = new DatabaseUtils(con);
+		DatabaseUtils dbutils = new DatabaseUtils(con, null, null, null);
 		
 		boolean deleted = dbutils.deleteAllResultsById(-2);
 		assertTrue(deleted);

@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FileUtils;
 
+import com.google.inject.Inject;
+
 /**
  * ResultProcessor should deal with the results of crawls, sending them to the SQL server. 
  */
@@ -24,6 +26,7 @@ public class ResultProcessor implements IResultProcessor {
 	
 	private ResultDAO upload;
 	
+	@Inject
 	public ResultProcessor(ResultDAO upload) {
 		this.upload = upload;
 	}

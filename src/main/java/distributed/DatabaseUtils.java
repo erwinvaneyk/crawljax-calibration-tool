@@ -13,21 +13,31 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import lombok.extern.slf4j.Slf4j;
 import main.java.CrawlManager;
 import main.java.distributed.configuration.*;
 import main.java.distributed.workload.*;
 
 @Slf4j
+@Singleton
 /**
  * The DatabaseUtils-class contains all of the miscellaneous functionality related to the database.
  */
 public class DatabaseUtils {
+	private IConnectionManager con;
+	private CrawlManager crawlManager;
+	private IWorkloadDAO workload;
+	private IConfigurationDAO config;
 	
-	IConnectionManager con;
-	
-	public DatabaseUtils(IConnectionManager con) {
+	@Inject
+	public DatabaseUtils(IConnectionManager con, IWorkloadDAO workload, CrawlManager suite, IConfigurationDAO conf) {
 		this.con = con;
+		this.workload = workload;
+		this.crawlManager = suite;
+		this.config = conf;
 	}
 	
 	/**
@@ -56,7 +66,7 @@ public class DatabaseUtils {
 			
 			con.closeConnection();
 			if (deleteDomResult && deleteWebsiteResults && deleteWorkTask) {
-				log.info("Succesfull deleted the results of id={}", id);
+				log.info("Succesfully deleted the results of id={}", id);
 				result = true;
 			} else {
 				log.warn("Not all results for websiteId {} could be deleted.", id);
@@ -97,17 +107,16 @@ public class DatabaseUtils {
 	 */
 	public void actionFlushWebsitesFile(File file) {
 		try {
-			IWorkloadDAO workload = new WorkloadDAO(con);
-			CrawlManager suite = new CrawlManager();
-			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + file));
+			suite.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + fileName));
 			String rawUrl;
-			while((rawUrl = suite.getWebsiteQueue().poll()) != null) {
+			while((rawUrl = crawlManager.getWebsiteQueue().poll()) != null) {
+				url = new URL(rawUrl);
 				workload.submitWork(new URL(rawUrl), false);
 			}
-		} catch (IOException e1) {
-			log.error(e1.getMessage());
+		} catch (IOException e) {
+			System.out.println(e1.getMessage());
 		}
-		log.info("Websites from file flushed to server.");
+		System.out.println("File flushed to server.");
 	}
 	
 	/**
@@ -115,12 +124,11 @@ public class DatabaseUtils {
 	 * @param fileName the filename of the settings file.
 	 */
 	public void actionFlushSettingsFile(File fileName) {
-		IConfigurationDAO conf = new ConfigurationDAO(con);
 		Ini ini = new ConfigurationIni(fileName).getIni();
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {
-				conf.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
+				config.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section.getName().length());
 			}
 		}
 	}
@@ -135,8 +143,7 @@ public class DatabaseUtils {
 	public ConcurrentHashMap<String, String> retrieveDuplicatesMap(int websiteResultId) throws SQLException {
 		ConcurrentHashMap<String, String> stateIds = new ConcurrentHashMap<String, String>();
 			// Retrieve the duplicate mapping from the database.
-			Connection conn = new ConnectionManager().getConnection();
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  benchmarkSite WHERE websiteId = " + websiteResultId);
+			ResultSet res = con.getConnection().createStatement().executeQuery("SELECT * FROM  benchmarkSite WHERE websiteId = " + websiteResultId);
 			while (res.next()) {
 				stateIds.put(res.getString("stateIdFirst"),res.getString("stateIdSecond"));
 			}
