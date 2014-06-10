@@ -13,18 +13,18 @@ import main.java.distributed.configuration.ConfigurationDao;
 
 public class ThresholdRunner {
 	
-	private static String filename = "2wordsShingleBroder";
+	private final static String FILENAME = "2wordsShingleBroder";
 	
-	private static int[] websiteIds = new int[]{1,};
+	private final static int[] WEBSITE_IDS = new int[]{1,};
 
 	private static Injector injector;
 
 	public static void main(String[] args) {
 		injector = Guice.createInjector(new TestingSuiteModule());
 		ThresholdRunner tr = injector.getInstance(ThresholdRunner.class);
-		List<Analysis> results = tr.analyseThresholds(1, 1, 1, websiteIds);
+		List<Analysis> results = tr.analyseThresholds(1, 1, 1, WEBSITE_IDS);
 		for(Analysis analysis : results) {
-			new AnalysisProcessorCsv(filename).apply(analysis);
+			new AnalysisProcessorCsv(FILENAME).apply(analysis);
 		}
 	}
 
@@ -34,6 +34,7 @@ public class ThresholdRunner {
 
 	@Inject
 	public ThresholdRunner(ConfigurationDao config, AnalysisBuilder factory) {
+		injector = Guice.createInjector(new TestingSuiteModule());
 		this.config = config;
 		this.factory = factory;
 	}
