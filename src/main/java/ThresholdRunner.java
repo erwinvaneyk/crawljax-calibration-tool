@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import main.java.analysis.*;
@@ -31,7 +32,9 @@ public class ThresholdRunner {
 
 	private IAnalysisBuilder factory;
 	
+	@Inject
 	public ThresholdRunner(IConfigurationDAO config, IAnalysisBuilder factory) {
+		injector = Guice.createInjector(new TestingSuiteModule());
 		this.config = config;
 		this.factory = factory;
 	}
