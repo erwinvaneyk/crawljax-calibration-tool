@@ -8,7 +8,7 @@ import main.java.distributed.results.WebsiteResult;
  * Metrics can be added to an analysis (using the factory). A metric is supposed to measure some
  * aspect of the benchmark and test crawl.
  */
-public interface IMetric {
+public interface Metric {
 
 	/**
 	 * @return metric name

@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import main.java.distributed.ConnectionManager;
+import main.java.distributed.ConnectionManagerImpl;
 import main.java.distributed.DatabaseUtils;
 
 import org.junit.After;
@@ -15,11 +15,11 @@ import org.junit.Test;
 
 public class TestDBUtilsDeleteResults {
 	
-	private ConnectionManager con;
+	private ConnectionManagerImpl con;
 	
 	@Before
 	public void insertNewResult() throws SQLException {
-		con = new ConnectionManager();
+		con = new ConnectionManagerImpl();
 		Statement st = con.getConnection().createStatement();
 		
 		String makeWorload = "INSERT INTO workload VALUES (-1, 'http://test.nl', '', 0)";
@@ -63,7 +63,7 @@ public class TestDBUtilsDeleteResults {
 		boolean deleted = dbutils.deleteAllResultsById(-2);
 		assertTrue(deleted);
 		
-		con = new ConnectionManager();
+		con = new ConnectionManagerImpl();
 		Statement st = con.getConnection().createStatement();
 		
 		ResultSet resultset = st.executeQuery(sql);

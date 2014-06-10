@@ -27,13 +27,13 @@ public class Analysis {
 	private ImmutableList<Statistic> statistics;
 
 	@Getter
-	private ImmutableList<IMetric> metrics;
+	private ImmutableList<Metric> metrics;
 
 	@Getter
 	private float score = 0;
 
 	public Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
-	        ImmutableList<IMetric> metrics) {
+	        ImmutableList<Metric> metrics) {
 		if (title != null && title != "")
 			this.title = title;
 		if (benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
@@ -41,7 +41,7 @@ public class Analysis {
 			        "Error while creating analysisReport, benchmarkWebsites should not be empty.");
 		}
 		if (metrics == null) {
-			this.metrics = new ImmutableList.Builder<IMetric>().build();
+			this.metrics = new ImmutableList.Builder<Metric>().build();
 			log.warn("Metrics should not be null (has been converted to empty though)");
 		} else {
 			this.metrics = metrics;
@@ -66,7 +66,7 @@ public class Analysis {
 
 	private ImmutableList<Statistic> runMetrics(Collection<WebsiteResult> websiteResults) {
 		ImmutableList.Builder<Statistic> resultBuilder = ImmutableList.builder();
-		for (IMetric metric : metrics) {
+		for (Metric metric : metrics) {
 			log.info("Running metric: " + metric.getMetricName());
 			try {
 				// ignore/abort metrics, which throw any exception.
@@ -87,7 +87,7 @@ public class Analysis {
 	 * @return true if the analysis contains the metric, otherwise false.
 	 */
 	public boolean hasMetric(Class<?> classname) {
-		for (IMetric metric : metrics) {
+		for (Metric metric : metrics) {
 			if (metric.getClass().equals(classname))
 				return true;
 		}

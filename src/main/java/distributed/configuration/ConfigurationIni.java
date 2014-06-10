@@ -13,7 +13,7 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
 @Slf4j
-public class ConfigurationIni implements IConfigurationDAO {
+public class ConfigurationIni implements ConfigurationDao {
 
 	public static final String DEFAULT_SETTINGS_DIR = System.getProperty("user.dir") + "/config";
 	public static final String INI_SECTION_COMMON = "common";

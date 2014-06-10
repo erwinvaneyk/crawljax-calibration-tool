@@ -12,7 +12,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import main.java.analysis.Analysis;
-import main.java.analysis.AnalysisBuilder;
+import main.java.analysis.AnalysisBuilderImpl;
 import main.java.analysis.AnalysisProcessorCmd;
 import main.java.analysis.AnalysisProcessorCsv;
 import main.java.analysis.AnalysisProcessorFile;
@@ -20,10 +20,10 @@ import main.java.analysis.SpeedMetric;
 import main.java.analysis.StateAnalysisMetric;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.configuration.ConfigurationIni;
-import main.java.distributed.configuration.IConfigurationDAO;
-import main.java.distributed.results.IResultProcessor;
+import main.java.distributed.configuration.ConfigurationDao;
+import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.workload.IWorkloadDAO;
+import main.java.distributed.workload.WorkloadDao;
 import main.java.distributed.workload.WorkTask;
 import main.java.distributed.workload.WorkloadRunner;
 
@@ -35,10 +35,10 @@ public class CrawlRunner {
 	@Inject private static Injector injector;
 	String[] additionalArgs = null;
 	DatabaseUtils dbUtils;
-	private IResultProcessor resultProcessor;
-	private IWorkloadDAO workload;
+	private ResultProcessor resultProcessor;
+	private WorkloadDao workload;
 	private CrawlManager crawlManager;
-	private IConfigurationDAO config;
+	private ConfigurationDao config;
 
 	public static void main(String[] args) {
 		// Header
@@ -53,8 +53,8 @@ public class CrawlRunner {
 	}
 	
 	@Inject
-	public CrawlRunner(IResultProcessor resultprocessor, CrawlManager suite, 
-			IWorkloadDAO workload, IConfigurationDAO config, DatabaseUtils dbUtils) {
+	public CrawlRunner(ResultProcessor resultprocessor, CrawlManager suite, 
+			WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils) {
 		this.resultProcessor = resultprocessor;
 		this.crawlManager = suite;
 		this.workload = workload;
@@ -162,7 +162,7 @@ public class CrawlRunner {
 	
 	private void actionAnalysis() {
 		// Build factory
-		AnalysisBuilder factory = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl factory = injector.getInstance(AnalysisBuilderImpl.class);
 		factory.addMetric(injector.getInstance(SpeedMetric.class));
 		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
 		

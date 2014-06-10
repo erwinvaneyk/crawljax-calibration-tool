@@ -6,9 +6,9 @@ import java.util.List;
 
 import main.java.TestingSuiteModule;
 import main.java.analysis.AnalysisException;
-import main.java.analysis.AnalysisBuilder;
+import main.java.analysis.AnalysisBuilderImpl;
 import main.java.analysis.Analysis;
-import main.java.distributed.ConnectionManagerORM;
+import main.java.distributed.ConnectionManagerOrmImpl;
 import main.java.distributed.results.WebsiteResult;
 
 import org.junit.AfterClass;
@@ -25,12 +25,12 @@ public class TestAnalysisBuilder {
 	public final static String BenchmarkUrl = "http://demo.crawljax.com"; 
 	public static WebsiteResult benchmarkWebsite;
 	public static int benchmarkWebsiteID = 1;
-	private static ConnectionManagerORM connMgr;
+	private static ConnectionManagerOrmImpl connMgr;
 	private static Injector injector;
 
 	@BeforeClass
 	public static void benchmarkWebsite() throws Exception {
-		connMgr = new ConnectionManagerORM();
+		connMgr = new ConnectionManagerOrmImpl();
 		Dao<WebsiteResult,String> dao = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
 		benchmarkWebsite = dao.queryForId(String.valueOf(benchmarkWebsiteID));
 		injector = Guice.createInjector(new TestingSuiteModule());
@@ -43,7 +43,7 @@ public class TestAnalysisBuilder {
 
 	@Test
 	public void testGetAnalysisValid()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		Analysis res = af.getAnalysis("testGetAnalysis", new int[]{benchmarkWebsite.getId()});
 		assertNotNull(res);
 		assertNotNull(res.getTitle());
@@ -54,7 +54,7 @@ public class TestAnalysisBuilder {
 	
 	@Test
 	public void testGetAnalysisTitleNull()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		Analysis res = af.getAnalysis(null, new int[]{benchmarkWebsite.getId()});
 		assertNotNull(res);
 		assertNotNull(res.getTitle());
@@ -66,25 +66,25 @@ public class TestAnalysisBuilder {
 	
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisIDsNull()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		af.getAnalysis("TestGetAnalysisIDsNull", null);
 	}
 	
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisBothNull()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		af.getAnalysis("TestGetAnalysisBothNull", null);
 	}
 	
 	@Test(expected=AnalysisException.class)
 	public void testGetAnalysisIDsEmpty()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		af.getAnalysis("testGetAnalysisIDsEmpty", new int[]{});
 	}
 
 	@Test
 	public void testRetrieveWebsiteResultsById()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		List<WebsiteResult> results = af.retrieveWebsiteResultsById(new int[]{benchmarkWebsite.getId()});
 		assertNotNull(results);
 		assertEquals(results.size(), 1);
@@ -93,13 +93,13 @@ public class TestAnalysisBuilder {
 
 	@Test(expected=AnalysisException.class)
 	public void testRetrieveWebsiteResultsByIdNull()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		af.retrieveWebsiteResultsById(null);
 	}
 	
 	@Test(expected=AnalysisException.class)
 	public void testRetrieveWebsiteResultsByIdEmpty()  {
-		AnalysisBuilder af = injector.getInstance(AnalysisBuilder.class);
+		AnalysisBuilderImpl af = injector.getInstance(AnalysisBuilderImpl.class);
 		af.retrieveWebsiteResultsById(new int[]{});
 	}
 }

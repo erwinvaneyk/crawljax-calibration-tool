@@ -15,10 +15,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.ConnectionManager;
-import main.java.distributed.results.ResultProcessor;
+import main.java.distributed.ConnectionManagerImpl;
+import main.java.distributed.results.ResultProcessorImpl;
 import main.java.distributed.results.ResultProcessorException;
-import main.java.distributed.results.ResultDAO;
+import main.java.distributed.results.ResultDao;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -53,7 +53,7 @@ public class TestResultProcessor {
 	
 	private void mockAndRun(boolean dbContainsTuple, int updateSucces) throws SQLException, ResultProcessorException {
 		// Mock objects
-		ConnectionManager connMgr = mock(ConnectionManager.class);
+		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		Connection conn = mock(Connection.class);
 		PreparedStatement statement = mock(PreparedStatement.class);
 		ResultSet resultset = mock(ResultSet.class);
@@ -70,8 +70,8 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
-		ResultDAO upload = new ResultDAO(connMgr);
-		ResultProcessor resProc = new ResultProcessor(upload);
+		ResultDao upload = new ResultDao(connMgr);
+		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 	
@@ -85,7 +85,7 @@ public class TestResultProcessor {
 		try {
 			json = new PrintWriter("TestDir/result.json", "UTF-8");
 			json.println("This is a test");
-			json.println("For the class ResultProcessor.java");
+			json.println("For the class ResultProcessorImpl.java");
 			json.close();
 		} catch (FileNotFoundException e) {
 			log.error("FileNotFoundException while adding the stub Json-file to the test directory");
@@ -194,7 +194,7 @@ public class TestResultProcessor {
 		makeFileStructure();
 		
 		// Mock objects
-		ConnectionManager connMgr = mock(ConnectionManager.class);
+		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		Connection conn = mock(Connection.class);
 		PreparedStatement statement = mock(PreparedStatement.class);
 		ResultSet resultset = mock(ResultSet.class);
@@ -209,8 +209,8 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
-		ResultDAO upload = new ResultDAO(connMgr);
-		ResultProcessor resProc = new ResultProcessor(upload);
+		ResultDao upload = new ResultDao(connMgr);
+		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 }

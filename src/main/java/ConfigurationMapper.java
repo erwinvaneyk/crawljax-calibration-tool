@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import main.java.crawljax.plugins.StoreDOMPlugin;
+import main.java.crawljax.plugins.StoreDomPlugin;
 
 import com.crawljax.browser.EmbeddedBrowser.BrowserType;
 import com.crawljax.core.configuration.BrowserConfiguration;
@@ -42,7 +42,7 @@ public class ConfigurationMapper {
 
 		// Add plugins
 		builder.addPlugin(new CrawlOverview());
-		builder.addPlugin(new StoreDOMPlugin());
+		builder.addPlugin(new StoreDomPlugin());
 		builder.setBrowserConfig(new BrowserConfiguration(BrowserType.FIREFOX, 1));
 		builder.setStateVertexFactory(new NDDStateVertexFactory());
 		

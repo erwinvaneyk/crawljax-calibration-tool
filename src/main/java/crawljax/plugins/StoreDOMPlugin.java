@@ -14,7 +14,7 @@ import com.crawljax.core.state.StateVertex;
  * Plugin for storing the stripped DOM, next to the original DOM.
  */
 @Slf4j
-public class StoreDOMPlugin implements OnNewStatePlugin {
+public class StoreDomPlugin implements OnNewStatePlugin {
 
 	private static final String OUTPUT_SUBDIR = "/strippedDOM/";
 	private static final String FILE_EXTENSION = ".html";

@@ -10,12 +10,12 @@ import org.apache.commons.validator.routines.UrlValidator;
 import com.google.inject.Guice;
 
 import main.java.TestingSuiteModule;
-import main.java.distributed.configuration.IConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationDao;
 
 public class WorkloadRunner {
 
-	private IWorkloadDAO workload;
-	private IConfigurationDAO config;
+	private WorkloadDao workload;
+	private ConfigurationDao config;
 	
 	/**
 	 * Main runnable method for the distributor. It allows an user to submit urls to the server.
@@ -25,7 +25,7 @@ public class WorkloadRunner {
 		Guice.createInjector(new TestingSuiteModule()).getInstance(WorkloadRunner.class);
 	}
 	
-	public WorkloadRunner(IConfigurationDAO config, IWorkloadDAO workload) {
+	public WorkloadRunner(ConfigurationDao config, WorkloadDao workload) {
 		this.config = config;
 		this.workload = workload;
 	}

@@ -13,14 +13,14 @@ public class TestConnectionManager {
 
 	@Test
 	public void testGetConnection() {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		assertNotNull(conn);
 	}
 	
 	@Test
 	public void testGetActiveConnection() throws SQLException {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		assertNotNull(conn);
 		Connection conn2 = connMgr.getConnection();
@@ -30,7 +30,7 @@ public class TestConnectionManager {
 	
 	@Test
 	public void testCloseActiveConnection() throws SQLException {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		connMgr.closeConnection();
 		assertTrue(conn.isClosed());
@@ -38,7 +38,7 @@ public class TestConnectionManager {
 	
 	@Test
 	public void testRedundantCloseActiveConnection() throws SQLException {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		connMgr.closeConnection();
 		connMgr.closeConnection();
@@ -47,13 +47,13 @@ public class TestConnectionManager {
 	
 	@Test
 	public void testCloseInactiveConnection() throws SQLException {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		connMgr.closeConnection();
 	}
 	
 	@Test
 	public void testGetClosedConnection() {
-		IConnectionManager connMgr = new ConnectionManager();
+		ConnectionManager connMgr = new ConnectionManagerImpl();
 		connMgr.getConnection();
 		connMgr.closeConnection();
 		Connection conn = connMgr.getConnection();

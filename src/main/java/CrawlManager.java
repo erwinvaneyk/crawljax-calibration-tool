@@ -12,7 +12,7 @@ import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.configuration.ConfigurationIni;
-import main.java.distributed.configuration.IConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationDao;
 
 import org.apache.commons.validator.routines.UrlValidator;
 
@@ -59,7 +59,7 @@ public class CrawlManager {
 	public List<File> crawlWebsites() {
 		List<File> outputdirs = new ArrayList<File>();
 		try {
-			IConfigurationDAO config = new ConfigurationIni();
+			ConfigurationDao config = new ConfigurationIni();
 			while(!websiteQueue.isEmpty()) {
 				URL website = new URL(websiteQueue.poll());
 				Map<String,String> args = config.getConfiguration(website.toString());

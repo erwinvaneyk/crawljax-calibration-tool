@@ -9,10 +9,10 @@ import java.sql.Statement;
 import com.google.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.IConnectionManager;
+import main.java.distributed.ConnectionManager;
 
 @Slf4j
-public class ResultDAO {
+public class ResultDao {
 	private static final String TABLE_STATE_RESULTS = "DomResults";
 	private static final String COLUMN_ID_WEBSITE = "websiteResult_id";
 	private static final String COLUMN_ID_STATE = "stateId";
@@ -25,10 +25,10 @@ public class ResultDAO {
 	private static final String COLUMN_RESULTS_JSON = "jsonResults";
 	private static final String COLUMN_DURATION = "duration";
 
-	private IConnectionManager con;
+	private ConnectionManager con;
 
 	@Inject
-	public ResultDAO(IConnectionManager con) {
+	public ResultDao(ConnectionManager con) {
 		this.con = con;
 	}
 
