@@ -19,16 +19,16 @@ import com.google.inject.Guice;
 
 import lombok.extern.slf4j.Slf4j;
 import main.java.TestingSuiteModule;
-import main.java.distributed.ConnectionManager;
+import main.java.distributed.ConnectionManagerImpl;
 import main.java.distributed.DatabaseUtils;
-import main.java.distributed.IConnectionManager;
+import main.java.distributed.ConnectionManager;
 
 /**
  * Integration test for the database utils.
  */
 @Slf4j
-public class TestDBUtilsFlushToDB {
-	private IConnectionManager con = new ConnectionManager();
+public class TestDBUtilsFlushToDatabase {
+	private ConnectionManager con = new ConnectionManagerImpl();
 	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule()).getInstance(DatabaseUtils.class);
 	
 	

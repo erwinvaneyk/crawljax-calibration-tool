@@ -27,13 +27,13 @@ import main.java.distributed.workload.*;
  * The DatabaseUtils-class contains all of the miscellaneous functionality related to the database.
  */
 public class DatabaseUtils {
-	private IConnectionManager con;
+	private ConnectionManager con;
 	private CrawlManager crawlManager;
-	private IWorkloadDAO workload;
-	private IConfigurationDAO config;
+	private WorkloadDao workload;
+	private ConfigurationDao config;
 	
 	@Inject
-	public DatabaseUtils(IConnectionManager con, IWorkloadDAO workload, CrawlManager suite, IConfigurationDAO conf) {
+	public DatabaseUtils(ConnectionManager con, WorkloadDao workload, CrawlManager suite, ConfigurationDao conf) {
 		this.con = con;
 		this.workload = workload;
 		this.crawlManager = suite;

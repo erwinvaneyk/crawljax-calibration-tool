@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import main.java.analysis.*;
-import main.java.distributed.configuration.IConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationDao;
 
 public class ThresholdRunner {
 	
@@ -27,11 +28,12 @@ public class ThresholdRunner {
 		}
 	}
 
-	private IConfigurationDAO config;
+	private ConfigurationDao config;
 
-	private IAnalysisBuilder factory;
-	
-	public ThresholdRunner(IConfigurationDAO config, IAnalysisBuilder factory) {
+	private AnalysisBuilder factory;
+
+	@Inject
+	public ThresholdRunner(ConfigurationDao config, AnalysisBuilder factory) {
 		this.config = config;
 		this.factory = factory;
 	}

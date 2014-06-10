@@ -3,17 +3,17 @@ package main.java;
 import java.util.ArrayList;
 import java.util.List;
 
+import main.java.analysis.AnalysisBuilderImpl;
 import main.java.analysis.AnalysisBuilder;
-import main.java.analysis.IAnalysisBuilder;
-import main.java.distributed.ConnectionManagerORM;
-import main.java.distributed.IConnectionManager;
-import main.java.distributed.IConnectionManagerORM;
-import main.java.distributed.configuration.ConfigurationDAO;
-import main.java.distributed.configuration.IConfigurationDAO;
-import main.java.distributed.results.IResultProcessor;
+import main.java.distributed.ConnectionManagerOrmImpl;
+import main.java.distributed.ConnectionManager;
+import main.java.distributed.ConnectionManagerOrm;
+import main.java.distributed.configuration.ConfigurationDaoImpl;
+import main.java.distributed.configuration.ConfigurationDao;
 import main.java.distributed.results.ResultProcessor;
-import main.java.distributed.workload.IWorkloadDAO;
-import main.java.distributed.workload.WorkloadDAO;
+import main.java.distributed.results.ResultProcessorImpl;
+import main.java.distributed.workload.WorkloadDao;
+import main.java.distributed.workload.WorkloadDaoImpl;
 
 import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
@@ -30,20 +30,20 @@ public class TestingSuiteModule extends AbstractModule {
 		install(new DuplicateDetectionModule(1, ft));
 		
 		// Analysis
-		bind(IAnalysisBuilder.class).to(AnalysisBuilder.class);
+		bind(AnalysisBuilder.class).to(AnalysisBuilderImpl.class);
 		
 		// Distributed
-		bind(IConnectionManager.class).to(ConnectionManagerORM.class);
-		bind(IConnectionManagerORM.class).to(ConnectionManagerORM.class);
+		bind(ConnectionManager.class).to(ConnectionManagerOrmImpl.class);
+		bind(ConnectionManagerOrm.class).to(ConnectionManagerOrmImpl.class);
 		
 		// Configuration
-		bind(IConfigurationDAO.class).to(ConfigurationDAO.class);
+		bind(ConfigurationDao.class).to(ConfigurationDaoImpl.class);
 		
 		// Results
-		bind(IResultProcessor.class).to(ResultProcessor.class);
+		bind(ResultProcessor.class).to(ResultProcessorImpl.class);
 		
 		// Workload
-		bind(IWorkloadDAO.class).to(WorkloadDAO.class);
+		bind(WorkloadDao.class).to(WorkloadDaoImpl.class);
 		
     }
 

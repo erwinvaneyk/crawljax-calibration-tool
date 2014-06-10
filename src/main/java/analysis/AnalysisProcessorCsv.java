@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * This processor is responsible for outputting the results of the analysis to a csv-file.
  */
 @Slf4j
-public class AnalysisProcessorCsv extends AnalysisProcessorFile implements IAnalysisProcessor {
+public class AnalysisProcessorCsv extends AnalysisProcessorFile implements AnalysisProcessor {
 	private static final String SEPERATOR = ";";
 	private static final String ENTRY_SEPERATOR = "\r\n";
 	private static final String HEADER_ANALYSEID = "Test ID";

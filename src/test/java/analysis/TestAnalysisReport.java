@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import main.java.analysis.AnalysisException;
 import main.java.analysis.Analysis;
-import main.java.distributed.ConnectionManagerORM;
+import main.java.distributed.ConnectionManagerOrmImpl;
 import main.java.distributed.results.WebsiteResult;
 
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class TestAnalysisReport {
 
 	@Test
 	public void testRunAnalysisSame() throws AnalysisException, SQLException {
-		ConnectionManagerORM connMgr = new ConnectionManagerORM();
+		ConnectionManagerOrmImpl connMgr = new ConnectionManagerOrmImpl();
 		Dao<WebsiteResult,String> dao = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
 		WebsiteResult benchmarkWebsite = dao.queryForId(String.valueOf(TestAnalysisBuilder.benchmarkWebsiteID));
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();

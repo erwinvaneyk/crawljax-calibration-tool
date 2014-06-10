@@ -24,7 +24,7 @@ import main.java.distributed.results.WebsiteResult;
 /**
  * This metric measures how many duplicate states and missed states the recrawled result contains.
  */
-public class StateAnalysisMetric implements IMetric {
+public class StateAnalysisMetric implements Metric {
 
 	@Getter
 	private final String metricName = "State Analysis Metric";

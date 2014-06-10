@@ -10,7 +10,7 @@ import main.java.distributed.results.WebsiteResult;
 /**
  * This processor is responsible for outputting the results of an analysis to a file.
  */
-public class AnalysisProcessorFile implements IAnalysisProcessor {
+public class AnalysisProcessorFile implements AnalysisProcessor {
 	
 	private final static String FILE_EXTENSION = ".txt";
 	private final static String LINEBREAK = "\r\n";

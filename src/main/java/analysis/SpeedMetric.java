@@ -8,7 +8,7 @@ import main.java.distributed.results.WebsiteResult;
 /**
  * This metric measures the speed difference between two crawls.
  */
-public class SpeedMetric implements IMetric {
+public class SpeedMetric implements Metric {
 
 	public static final String SPEED_INCREASE = "Speed increase";
 

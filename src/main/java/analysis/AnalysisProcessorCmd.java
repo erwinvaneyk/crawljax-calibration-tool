@@ -9,7 +9,7 @@ import main.java.distributed.results.WebsiteResult;
  * This processor is responsible for outputting the results of the analysis to the console.
  */
 @Slf4j
-public class AnalysisProcessorCmd implements IAnalysisProcessor {
+public class AnalysisProcessorCmd implements AnalysisProcessor {
 
 	private final static String LINEBREAK = "\r\n";
 	private final static String HORIZONTALBREAK_MAIN = "============================" + LINEBREAK;
@@ -30,7 +30,7 @@ public class AnalysisProcessorCmd implements IAnalysisProcessor {
 			}
 			writer.print(HORIZONTALBREAK_SUB);
 			writer.print("metrics: " + LINEBREAK);
-			for (IMetric metric : analysisReport.getMetrics()) {
+			for (Metric metric : analysisReport.getMetrics()) {
 				writer.print("- " + metric.getMetricName() + LINEBREAK);
 			}
 			writer.print(HORIZONTALBREAK_SUB);

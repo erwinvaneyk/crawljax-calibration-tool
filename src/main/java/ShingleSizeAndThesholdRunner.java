@@ -3,10 +3,11 @@ package main.java;
 import java.util.List;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 
 import main.java.analysis.Analysis;
 import main.java.analysis.AnalysisProcessorCsv;
-import main.java.distributed.configuration.IConfigurationDAO;
+import main.java.distributed.configuration.ConfigurationDao;
 
 public class ShingleSizeAndThesholdRunner {	
 	private static int[] websiteIds = new int[]{1};
@@ -14,14 +15,15 @@ public class ShingleSizeAndThesholdRunner {
 	
 	private static String filename = "results";
 
-	private IConfigurationDAO config;
+	private ConfigurationDao config;
 	private ThresholdRunner runner;
 	
 	public static void main(String[] args) {
 		Guice.createInjector(new TestingSuiteModule()).getInstance(ShingleSizeAndThesholdRunner.class).run();
 	}
 	
-	public ShingleSizeAndThesholdRunner(ThresholdRunner runner, IConfigurationDAO config) {
+	@Inject
+	public ShingleSizeAndThesholdRunner(ThresholdRunner runner, ConfigurationDao config) {
 		this.runner = runner;
 		this.config = config;
 	}
