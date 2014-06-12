@@ -16,6 +16,7 @@ import main.java.distributed.workload.WorkTask;
 
 import org.junit.Test;
 
+import com.crawljax.core.state.duplicatedetection.Fingerprint;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
 import com.google.inject.Guice;
 
@@ -70,7 +71,9 @@ public class TestStateAnalysisMetric {
 		testedWebsites.add(getMockedWebsiteResult(1, 2, "http://mock.mock"));
 		benchmarkedWebsites.add(getMockedWebsiteResult(2,2, "http://mock.mock"));
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
+		Fingerprint finger = mock(Fingerprint.class);
+		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
+		when(ndd.generateHash(anyString())).thenReturn(finger);
 		// Execute method	
 		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -119,7 +122,9 @@ public class TestStateAnalysisMetric {
 		testedWebsites.add(getMockedWebsiteResult(1, 3, "http://mock.mock"));
 		benchmarkedWebsites.add(getMockedWebsiteResult(2,3, "http://mock.mock"));
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
+		Fingerprint finger = mock(Fingerprint.class);
+		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
+		when(ndd.generateHash(anyString())).thenReturn(finger);
 		// Execute method	
 		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -128,7 +133,9 @@ public class TestStateAnalysisMetric {
 		Collection<Statistic> results = sam.apply(benchmarkedWebsites, testedWebsites);
 
 		ndd = mock(NearDuplicateDetection.class);
-		when(ndd.getDistance(new int[]{anyInt()}, new int[]{anyInt()})).thenReturn(0.0,1.0,42.0);
+		finger = mock(Fingerprint.class);
+		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
+		when(ndd.generateHash(anyString())).thenReturn(finger);
 		sam.setNearDuplicateDetection(ndd);
 		Collection<Statistic> resultsInv = sam.apply(testedWebsites, benchmarkedWebsites);
 		
