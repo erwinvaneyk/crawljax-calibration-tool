@@ -212,9 +212,9 @@ public class StateAnalysisMetric implements Metric {
 		for (StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
-				double distance = nearDuplicateDetection.getDistance(
-				        nearDuplicateDetection.generateHash(source.getDom()),
-				        nearDuplicateDetection.generateHash(state.getDom()));
+				double distance =
+				        nearDuplicateDetection.generateHash(source.getDom()).getDistance(
+				                nearDuplicateDetection.generateHash(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
 				if (distance <= threshold && distance < minDistance) {
 					result = state;
