@@ -32,6 +32,12 @@ public class Analysis {
 	@Getter
 	private float score = 0;
 
+	/**
+	 * 
+	 * @param title
+	 * @param benchmarkWebsites
+	 * @param metrics
+	 */
 	public Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
 	        ImmutableList<Metric> metrics) {
 		if (title != null && title != "")

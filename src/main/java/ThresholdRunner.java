@@ -46,7 +46,7 @@ public class ThresholdRunner {
 		// Build factory
 		factory.addMetric(injector.getInstance(SpeedMetric.class));
 		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
-		List<Analysis> results = new ArrayList<Analysis>();
+		List<Analysis> results = new ArrayList<Analysis>((int)((to - from)/step));
 		
 		for(double i = from; i <= to; i+=step) {
 			// update setting

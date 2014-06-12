@@ -35,7 +35,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		try {
 			workerID = InetAddress.getLocalHost().toString();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			// If host-name is not available, use an alternative name.
+			workerID = System.getProperty("user.name");
 		}
 	}
 	
@@ -56,14 +57,14 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	 */
 	public List<WorkTask> retrieveWork(int maxcount) {
 		assert maxcount >= 0;
-		ArrayList<WorkTask> workTasks = new ArrayList<WorkTask>();
+		List<WorkTask> workTasks = new ArrayList<WorkTask>(maxcount);
 		Connection conn = connMgr.getConnection();
 		try {
 			int claimed = conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + COLUMN_WORKERID + "=\"" + workerID
 					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
 			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
-				// Note: this will also return the claimed/unfinished websites not signed off.
+			// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
 					+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {

@@ -57,7 +57,7 @@ public class CrawlManager {
 	 * @return the outputdirs of the crawled websites
 	 */
 	public List<File> crawlWebsites() {
-		List<File> outputdirs = new ArrayList<File>();
+		List<File> outputdirs = new ArrayList<File>(websiteQueue.size());
 		try {
 			ConfigurationDao config = new ConfigurationIni();
 			while(!websiteQueue.isEmpty()) {
