@@ -39,12 +39,6 @@ public class TestStateAnalysisMetric {
 		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertNotNull(sam.getMetricName());
 	}
-
-	@Test
-	public void testGetScoreBeforeApply() {
-		StateAnalysisMetric sam = getStateAnalysisMetric();
-		assertEquals(sam.getScore(),-1,0.01);
-	}
 	
 	private StateResult getMockedStateResult(String id, WebsiteResult parent) {
 		StateResult stateResult = mock(StateResult.class);

@@ -1,5 +1,6 @@
 package main.java.distributed.results;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 
@@ -12,6 +13,7 @@ import com.j256.ormlite.table.DatabaseTable;
  */
 @DatabaseTable(tableName = "DomResults")
 @ToString(exclude = { "dom", "strippedDom", "websiteResult", "screenshot" })
+@AllArgsConstructor
 @Data
 public class StateResult {
 

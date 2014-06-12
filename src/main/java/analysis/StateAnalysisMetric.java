@@ -29,9 +29,6 @@ public class StateAnalysisMetric implements Metric {
 	@Getter
 	private final String metricName = "State Analysis Metric";
 
-	@Getter
-	private float score = 1; // stub
-
 	@Getter @Setter
 	NearDuplicateDetection nearDuplicateDetection;
 
