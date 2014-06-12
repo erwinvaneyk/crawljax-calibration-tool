@@ -18,7 +18,7 @@ public class StoreDomPlugin implements OnNewStatePlugin {
 
 	private static final String OUTPUT_SUBDIR = "/strippedDOM/";
 	private static final String FILE_EXTENSION = ".html";
-	private static final String PLUGIN_NAME = "Chuck Norris";
+	private static final String PLUGIN_NAME = "StrippedDom plugin";
 
 	/**
 	 * Returns the name of the metric.

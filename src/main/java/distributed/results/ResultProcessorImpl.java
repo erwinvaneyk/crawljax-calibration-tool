@@ -3,7 +3,6 @@ package main.java.distributed.results;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -42,7 +41,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 		this.uploadDom(websiteID, dir);
 		this.uploadStrippedDom(websiteID, dir);
 		this.uploadScreenshot(websiteID, dir);
-				
+
 		//this.removeDir(dir);
 		
 		upload.closeConnection();
@@ -113,9 +112,6 @@ public class ResultProcessorImpl implements ResultProcessor {
 				
 				upload.uploadScreenshotAction(id, fr, stateId);
 				fr.close();
-			} catch (FileNotFoundException e) {
-				log.error("Screenshot of state{} cannot be uploaded to the database.", stateId);
-				e.printStackTrace();
 			} catch (IOException e) {
 				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
 			}
@@ -132,12 +128,15 @@ public class ResultProcessorImpl implements ResultProcessor {
 		}
 	}
 	
-	private File findFile(File dir, String file) {
+	private File findFile(File dir, String file) throws ResultProcessorException {
 		File result = null;
 		for (File fileOfDir : dir.listFiles()) {
 			if (fileOfDir.getName().contains(file)) {
 				result = fileOfDir;
 			}
+		}
+		if (result == null) {
+			throw new ResultProcessorException("The file, " + file + ", cannot be found in the output directory " + dir.getAbsolutePath());
 		}
 		return result;
 	}
