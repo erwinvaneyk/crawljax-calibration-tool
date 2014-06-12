@@ -3,21 +3,18 @@ package test.java.analysis;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import main.java.analysis.AnalysisException;
 import main.java.analysis.Analysis;
-import main.java.distributed.ConnectionManagerOrmImpl;
+import main.java.distributed.results.StateResult;
 import main.java.distributed.results.WebsiteResult;
+import main.java.distributed.workload.WorkTask;
 
 import org.junit.Test;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-
-public class TestAnalysisReport {
+public class TestAnalysis {
 
 	@Test
 	public void testAnalysisReport() throws AnalysisException {
@@ -62,18 +59,26 @@ public class TestAnalysisReport {
 	}
 
 	@Test
-	public void testRunAnalysisSame() throws AnalysisException, SQLException {
-		ConnectionManagerOrmImpl connMgr = new ConnectionManagerOrmImpl();
-		Dao<WebsiteResult,String> dao = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
-		WebsiteResult benchmarkWebsite = dao.queryForId(String.valueOf(TestAnalysisBuilder.benchmarkWebsiteID));
+	public void testRunAnalysisSame() throws AnalysisException {
+
+		WorkTask workTask = new WorkTask(4,"mocked.nl");
+		WebsiteResult benchmarkWebsite = new WebsiteResult("MOCK JSON results", 42);
+		benchmarkWebsite.setId(3);
+		benchmarkWebsite.setWorkTask(workTask);
+		Collection<StateResult> stateResults = new ArrayList<StateResult>();
+		StateResult stateResult = new StateResult(benchmarkWebsite, "state1", "MOCK DOM","STRIPPED MOCK DOM", "01010101", null);
+		stateResults.add(stateResult);
+		benchmarkWebsite.setStateResults(stateResults);
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
+		
+		
+		
 		input.add(benchmarkWebsite);
 		Analysis result = new Analysis("testRunAnalysisSame", input, null);
 		result.runAnalysis(input);
 		// temporary
 		assertEquals(result.getTestWebsitesResults(), input);
 		assertEquals(result.getBenchmarkWebsites(), input);
-		connMgr.closeConnection();
 	}
 
 	@Test(expected=AnalysisException.class)

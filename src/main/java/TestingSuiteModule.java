@@ -1,5 +1,6 @@
 package main.java;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import main.java.distributed.configuration.ConfigurationDaoImpl;
 import main.java.distributed.configuration.ConfigurationDao;
 import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorImpl;
+import main.java.distributed.results.WebsiteResult;
 import main.java.distributed.workload.WorkloadDao;
 import main.java.distributed.workload.WorkloadDaoImpl;
 
@@ -19,6 +21,9 @@ import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.crawljax.core.state.duplicatedetection.FeatureType;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
 
 public class TestingSuiteModule extends AbstractModule {	
 	
@@ -44,7 +49,11 @@ public class TestingSuiteModule extends AbstractModule {
 		
 		// Workload
 		bind(WorkloadDao.class).to(WorkloadDaoImpl.class);
-		
     }
+	
+	@Provides
+	public Dao<WebsiteResult, String> getWebsiteDao(ConnectionManagerOrm connMgr) throws SQLException {
+		return DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
+	}
 
 }

@@ -37,16 +37,4 @@ public class SpeedMetric implements Metric {
 		return ret;
 
 	}
-
-	public float getScore() {
-		float score = (benchmarkDuration - testDuration) / benchmarkDuration;
-		if (score < 0) {
-			return 0;
-		} else if (score > 0.5) {
-			return 1;
-		} else {
-			return (float) 0.5;
-		}
-	}
-
 }

@@ -42,7 +42,7 @@ public class Analysis {
 		}
 		if (metrics == null) {
 			this.metrics = new ImmutableList.Builder<Metric>().build();
-			log.warn("Metrics should not be null (has been converted to empty though)");
+			log.warn("Metrics should not be null (has been converted to an empty list though)");
 		} else {
 			this.metrics = metrics;
 		}

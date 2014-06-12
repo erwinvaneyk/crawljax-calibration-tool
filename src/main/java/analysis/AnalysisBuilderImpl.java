@@ -10,13 +10,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.Where;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import main.java.distributed.ConnectionManagerOrm;
 import main.java.distributed.results.WebsiteResult;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.workload.WorkloadDao;
@@ -30,7 +28,7 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 	@Getter
 	private ImmutableList<Metric> metrics = new ImmutableList.Builder<Metric>()
 	        .build();
-	private ConnectionManagerOrm connMgr;
+	private Dao<WebsiteResult, String> websiteResultDAO;
 	private WorkloadDao workload;
 	private DatabaseUtils dbUtils;
 
@@ -48,8 +46,8 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 	}
 	
 	@Inject
-	public AnalysisBuilderImpl(ConnectionManagerOrm connMgr, WorkloadDao workload, DatabaseUtils dbUtils) {
-		this.connMgr = connMgr;
+	public AnalysisBuilderImpl(Dao<WebsiteResult, String> websiteDao, WorkloadDao workload, DatabaseUtils dbUtils) {
+		this.websiteResultDAO = websiteDao;
 		this.workload = workload;
 		this.dbUtils = dbUtils; 
 	}
@@ -69,12 +67,11 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 		if (benchmarkedWebsites.isEmpty())
 			log.warn("No websiteResults found for websiteids: " + Arrays.toString(websiteids));
 		List<WebsiteResult> testWebsites = updateWebsiteResults(benchmarkedWebsites);
-		log.debug("Benchmarked websites have been crawled");
+		// Create Analysis
 		Analysis analyse = new Analysis(title, benchmarkedWebsites, metrics);
+		// Run metrics on analysis
 		analyse.runAnalysis(testWebsites);
-		log.debug("Results have been analysed");
 		removeWebsiteResultsFromDB(testWebsites);
-		log.debug("Removed results from database");
 		return analyse;
 	}
 
@@ -94,7 +91,6 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 			throw new AnalysisException("Invalid number websiteids provided; should be > 0.");
 		}
 		try {
-			Dao<WebsiteResult, String> websiteResultDAO = DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
 			QueryBuilder<WebsiteResult, String> builder = websiteResultDAO.queryBuilder();
 			Where<WebsiteResult, String> where = builder.where();
 			for (int id : websiteids) {
@@ -129,9 +125,6 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 		List<Integer> newids = resubmitWebsitesForCrawling(benchmarkedWebsites);
 		try {
 			// Build query to retrieve newly crawled websiteResults.
-			Dao<WebsiteResult, String> websiteResultDAO =
-			        DaoManager.createDao(connMgr.getConnectionORM(),
-			                WebsiteResult.class);
 			QueryBuilder<WebsiteResult, String> builder = websiteResultDAO.queryBuilder();
 			Where<WebsiteResult, String> where = builder.where();
 			for (Integer newid : newids) {

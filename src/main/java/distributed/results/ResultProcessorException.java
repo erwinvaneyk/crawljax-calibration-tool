@@ -7,10 +7,6 @@ package main.java.distributed.results;
  */
 public class ResultProcessorException extends RuntimeException {
 	
-	public ResultProcessorException() {
-		super();
-	}
-	
 	public ResultProcessorException(String message) {
 		super(message);
 	}

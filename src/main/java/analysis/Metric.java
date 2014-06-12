@@ -24,11 +24,4 @@ public interface Metric {
 	 */
 	public Collection<Statistic> apply(Collection<WebsiteResult> benchmarkWebsites,
 	        Collection<WebsiteResult> testWebsitesResults);
-
-	/**
-	 * Calculates the score of the test-run, in the context of the metric.
-	 * 
-	 * @return a value between 0 - 1 indicating the score, where 1 is perfect.
-	 */
-	public float getScore();
 }

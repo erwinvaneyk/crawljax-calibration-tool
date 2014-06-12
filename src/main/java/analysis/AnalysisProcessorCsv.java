@@ -6,7 +6,6 @@ import java.io.Writer;
 import java.util.Collection;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,25 +16,33 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 	private static final String SEPERATOR = ";";
 	private static final String ENTRY_SEPERATOR = "\r\n";
 	private static final String HEADER_ANALYSEID = "Test ID";
+	private static final String FILE_EXTENSION = ".csv";
 
-	@Getter @Setter
+	@Getter
 	private String filename;
 
 	public AnalysisProcessorCsv(String filename) {
+		if (filename == null || filename == "")
+			throw new AnalysisException("Invalid filename provided: " + filename
+			        + ". Filename cannot be null or empty.");
 		this.filename = filename;
+		if (!filename.endsWith(FILE_EXTENSION))
+			this.filename += FILE_EXTENSION;
 	}
 
 	public void apply(Analysis analysisReport) {
-		assert analysisReport.hasMetric(StateAnalysisMetric.class)
-		        && analysisReport.hasMetric(SpeedMetric.class);
+		if (!analysisReport.hasMetric(StateAnalysisMetric.class)
+		        || !analysisReport.hasMetric(SpeedMetric.class)) {
+			log.error("AnalysisProcessorCsv.apply requires the metrics StateAnalysisMetric and SpeedMetric to be present. Metrics present: " + analysisReport.getMetrics());
+			return;
+		}
 		try {
-			Writer writer =
-			        openOrCreateFile(new File(this.getOutputDir() + "/" + filename + ".csv"),
-			                true);
+			Writer writer = openOrCreateFile(
+					new File(this.getOutputDir() + "/" + filename),true);
 			writeContents(writer, analysisReport);
-			closeFile(writer);
+			writer.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("IOException while writing to csv-file: " + e.getMessage());
 		}
 	}
 
