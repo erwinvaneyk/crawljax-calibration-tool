@@ -11,13 +11,7 @@ import java.util.Map;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-import main.java.analysis.Analysis;
-import main.java.analysis.AnalysisBuilderImpl;
-import main.java.analysis.AnalysisProcessorCmd;
-import main.java.analysis.AnalysisProcessorCsv;
-import main.java.analysis.AnalysisProcessorFile;
-import main.java.analysis.SpeedMetric;
-import main.java.analysis.StateAnalysisMetric;
+import main.java.analysis.*;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.ConfigurationDao;
@@ -25,7 +19,6 @@ import main.java.distributed.results.ResultProcessor;
 import main.java.distributed.results.ResultProcessorException;
 import main.java.distributed.workload.WorkloadDao;
 import main.java.distributed.workload.WorkTask;
-import main.java.distributed.workload.WorkloadRunner;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -76,8 +69,6 @@ public class CrawlRunner {
 			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
 			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class).getSettingsFile());
-		} else if (arg.equals("-d") || arg.equals("--distributor")) {
-			actionDistributor(additionalArgs);
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
@@ -153,11 +144,6 @@ public class CrawlRunner {
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
-	}
-	
-	private void actionDistributor(String[] args) {
-		System.out.println("Distributor CLI:");
-		WorkloadRunner.main(args);
 	}
 	
 	private void actionAnalysis() {
