@@ -11,10 +11,14 @@ import java.util.Map;
 
 import com.google.inject.Inject;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 
 /**
+ * A ConfigurationDao implementation, which makes use of a SQL-database to store the 
+ * configuration-settings.
+ * 
  * SQL-implementation of the ConfigurationDao
  * (Table) 
  * - Configuration: depth|section|key|value|
@@ -50,9 +54,11 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` " + where.substring(0, where.length() - 4) 
 					+ " ORDER BY `" + COLUMN_DEPTH +"` DESC");
 			while (res.next()) {
-				if(!config.containsKey(res.getString(COLUMN_KEY))) {
-					config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
-					log.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				String key = res.getString(COLUMN_KEY);
+				String value = res.getString(COLUMN_VALUE);
+				if(!config.containsKey(key)) {
+					config.put(key, value);
+					log.info("Configurations retrieved: [" + key + "=" + value + "]");
 				}
 			}
 			connMgr.closeConnection();
@@ -68,9 +74,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return getConfiguration(sections);
 	}
 	
-	public void updateConfiguration(String section, String key, String value, int importance) {
-		assert section != null;
-		assert key.length() > 0;
+	public void updateConfiguration(@NonNull String section, String key, String value, int importance) {
 		try {
 			Connection conn = connMgr.getConnection();
 			// Attempt update for new value
@@ -120,10 +124,12 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		Map<String,String> config = new HashMap<String,String>();
 		try {
 			Connection conn = connMgr.getConnection();
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM `" + TABLE + "`");
+			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM `" + TABLE + "` ORDER BY `" + COLUMN_DEPTH +"` DESC");
 			while (res.next()) {
-				config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
-				log.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				if(!config.containsKey(res.getString(COLUMN_KEY))) {
+					config.put(res.getString(COLUMN_KEY), res.getString(COLUMN_VALUE));
+					log.info("Configurations retrieved: [" + res.getString(COLUMN_KEY) + "=" + res.getString(COLUMN_VALUE) + "]");
+				}
 			}
 			connMgr.closeConnection();
 		} catch (SQLException e) {

@@ -37,6 +37,7 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		} catch (UnknownHostException e) {
 			// If host-name is not available, use an alternative name.
 			workerID = System.getProperty("user.name");
+			log.error("Hostname could not be retrieved, using system-name: {}." + workerID);
 		}
 	}
 	
@@ -91,7 +92,6 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	 * @return true if checkout was succesful, else false. 
 	 */
 	public boolean checkoutWork(WorkTask wt) {
-		assert wt != null;
 		int ret = 0;
 		Connection conn = connMgr.getConnection();
 		try {
