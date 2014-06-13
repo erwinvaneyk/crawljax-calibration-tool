@@ -6,7 +6,17 @@
   <name>Crawljax Functional Testing Suite</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+  	<resources>
+		<resource>
+			<directory>src/main/resources</directory>
+			<filtering>true</filtering>
+		</resource>
+		<resource>
+			<targetPath>.</targetPath>
+			<directory>src/main/config</directory>
+		</resource>
+	</resources>
+  
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -49,7 +59,7 @@
           <outputDirectory>${basedir}/target/${project.artifactId}-${project.version}/config</outputDirectory>
           <resources>
             <resource>
-                <directory>/config</directory>
+                <directory>src/main/config</directory>
                 <filtering>true</filtering>
             </resource>
           </resources>
@@ -65,7 +75,7 @@
           <outputDirectory>${basedir}/target/${project.artifactId}-${project.version}</outputDirectory>
           <resources>
             <resource>
-                <directory>/resources</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
           </resources>
@@ -74,11 +84,6 @@
     </executions>
   </plugin>
     </plugins>
-    <resources>
-     <resource>
-       <directory>${basedir}/resources/</directory>
-     </resource>
-   </resources>
   </build>
   <url>https://github.com/erwinvaneyk/crawljax-functional-testing-suite</url>
   <issueManagement>
