@@ -1,4 +1,4 @@
-package main.java;
+package main.java.crawljax;
 
 import java.io.File;
 import java.net.URL;

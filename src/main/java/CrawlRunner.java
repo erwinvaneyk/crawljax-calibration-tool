@@ -12,6 +12,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import main.java.analysis.*;
+import main.java.crawljax.CrawlManager;
 import main.java.distributed.DatabaseUtils;
 import main.java.distributed.configuration.ConfigurationIni;
 import main.java.distributed.configuration.ConfigurationDao;

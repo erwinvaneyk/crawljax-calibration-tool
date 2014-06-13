@@ -17,7 +17,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import lombok.extern.slf4j.Slf4j;
-import main.java.CrawlManager;
+import main.java.crawljax.CrawlManager;
 import main.java.distributed.configuration.*;
 import main.java.distributed.workload.*;
 
