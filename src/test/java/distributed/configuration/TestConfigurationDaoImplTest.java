@@ -39,7 +39,6 @@ public class TestConfigurationDaoImplTest {
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		System.out.print(result);
 		assertEquals(result.get("depth"),"42");
 		assertEquals(result.get("author"),"me");
 	}
@@ -64,7 +63,6 @@ public class TestConfigurationDaoImplTest {
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		System.out.print(result);
 		assertEquals(result.get("depth"),"42");
 		assertEquals(result.get("author"),"me");
 	}
@@ -87,7 +85,6 @@ public class TestConfigurationDaoImplTest {
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		System.out.print(result);
 		assertEquals(result.size(),0);
 	}
 
@@ -107,7 +104,6 @@ public class TestConfigurationDaoImplTest {
 		// Run test
 		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("something");
-		System.out.print(result);
 		assertEquals(result.size(),0);
 	}
 	
@@ -129,7 +125,6 @@ public class TestConfigurationDaoImplTest {
 		// Run test
 		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("something");
-		System.out.print(result);
 		assertEquals(result.get("depth"),"42");
 		assertEquals(result.get("author"),"me");
 	}
@@ -152,7 +147,6 @@ public class TestConfigurationDaoImplTest {
 		// Run test
 		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("Something");
-		System.out.print(result);
 		assertEquals(result.get("depth"),"42");
 		assertEquals(result.get("author"),"me");
 	}
@@ -175,7 +169,6 @@ public class TestConfigurationDaoImplTest {
 		// Run test
 		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration();
-		System.out.print(result);
 		assertEquals(result.get("depth"),"10");
 		assertEquals(result.get("author"),"42");
 	}
