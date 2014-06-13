@@ -33,7 +33,6 @@ public class Analysis {
 	private float score = 0;
 
 	/**
-	 * 
 	 * @param title
 	 * @param benchmarkWebsites
 	 * @param metrics
@@ -89,7 +88,9 @@ public class Analysis {
 
 	/**
 	 * Checks if the current analysis has a metric.
-	 * @param classname the class of the metric.
+	 * 
+	 * @param classname
+	 *            the class of the metric.
 	 * @return true if the analysis contains the metric, otherwise false.
 	 */
 	public boolean hasMetric(Class<?> classname) {

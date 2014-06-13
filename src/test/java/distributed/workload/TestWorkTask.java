@@ -19,7 +19,7 @@ public class TestWorkTask {
 		assertEquals(wt.getId(), 1);
 		assertEquals(wt.getURL(), url);
 	}
-	
+
 	@Test
 	public void testWorkTask2() throws MalformedURLException {
 		WorkTask wt = new WorkTask();
@@ -29,48 +29,47 @@ public class TestWorkTask {
 		assertTrue(wt.isCrawled());
 	}
 
-
 	@Test
 	public void testEqualsObjectSame() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, new URL("http://test.com"));
 		WorkTask wt2 = new WorkTask(1, new URL("http://test.com"));
 		assertTrue(wt.equals(wt2));
 	}
-	
+
 	@Test
 	public void testEqualsObjectNull() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, new URL("http://test.com"));
 		WorkTask wt2 = null;
 		assertFalse(wt.equals(wt2));
 	}
-	
+
 	@Test
 	public void testEqualsObjectDiffId() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, new URL("http://test.com"));
 		WorkTask wt2 = new WorkTask(2, new URL("http://test.com"));
 		assertFalse(wt.equals(wt2));
 	}
-	
+
 	@Test
 	public void testEqualsObjectDiffUrl() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, new URL("http://test.com"));
 		WorkTask wt2 = new WorkTask(1, new URL("http://notest.com"));
 		assertFalse(wt.equals(wt2));
 	}
-	
+
 	@Test
 	public void testEqualsObjectAllDif() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, new URL("http://test.com"));
 		WorkTask wt2 = new WorkTask(2, new URL("http://notest.com"));
 		assertFalse(wt.equals(wt2));
 	}
-	
-	@Test(expected=RuntimeException.class)
+
+	@Test(expected = RuntimeException.class)
 	public void testGetUrlBadUrl() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, "Infjdhlafijiwjcd338428%%667><");
 		wt.getURL();
 	}
-	
+
 	@Test
 	public void testHashcode() throws MalformedURLException {
 		WorkTask wt = new WorkTask(1, "http://test.com");

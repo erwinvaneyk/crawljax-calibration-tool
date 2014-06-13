@@ -44,12 +44,13 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 		        .build();
 		log.info("Metric added to analysis: " + metric.getMetricName());
 	}
-	
+
 	@Inject
-	public AnalysisBuilderImpl(Dao<WebsiteResult, String> websiteDao, WorkloadDao workload, DatabaseUtils dbUtils) {
+	public AnalysisBuilderImpl(Dao<WebsiteResult, String> websiteDao, WorkloadDao workload,
+	        DatabaseUtils dbUtils) {
 		this.websiteResultDAO = websiteDao;
 		this.workload = workload;
-		this.dbUtils = dbUtils; 
+		this.dbUtils = dbUtils;
 	}
 
 	/**

@@ -21,8 +21,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	private File settingsIniFile;
 
 	private static Ini ini;
-	
-	
+
 	public ConfigurationIni(File fileName) {
 		this.settingsIniFile = fileName;
 		try {
@@ -33,7 +32,7 @@ public class ConfigurationIni implements ConfigurationDao {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public ConfigurationIni() {
 		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
 		try {
@@ -44,18 +43,23 @@ public class ConfigurationIni implements ConfigurationDao {
 			e.printStackTrace();
 		}
 	}
+
 	public File getSettingsFile() {
 		return this.settingsIniFile;
 	}
+
 	/**
 	 * Add/replace additional setting to a existing settings-build.
-	 * @param args the argument-set to which the settings are added.
-	 * @param section the section (ini) that needs to be added.
+	 * 
+	 * @param args
+	 *            the argument-set to which the settings are added.
+	 * @param section
+	 *            the section (ini) that needs to be added.
 	 */
-	private void addSettings(Map<String,String> args, String section) {
+	private void addSettings(Map<String, String> args, String section) {
 		try {
 			Section settings = ini.get(section);
-			for(String key : settings.keySet()) {
+			for (String key : settings.keySet()) {
 				args.put(key, settings.get(key));
 			}
 			log.info("Custom settings loaded for section: " + section);
@@ -64,55 +68,57 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
-	
 	/**
 	 * Set a new ini-object for setting-building. It requires a common-section to be present.
-	 * @param ini the new ini.
+	 * 
+	 * @param ini
+	 *            the new ini.
 	 */
 	public void setIni(Ini newIni) {
 		if (newIni.containsKey(INI_SECTION_COMMON))
 			log.warn("Common section could not be found in INI-file");
 		ini = newIni;
 	}
-	
 
 	public Ini getIni() {
 		return ini;
 	}
 
-
 	public Map<String, String> getConfiguration() {
 		// Load common settings{
-		Map<String,String> args = new HashMap<String,String>();
-	    addSettings(args, INI_SECTION_COMMON);
+		Map<String, String> args = new HashMap<String, String>();
+		addSettings(args, INI_SECTION_COMMON);
 		log.debug("Common Settings retrieved.");
-	    return args;
+		return args;
 	}
 
 	public Map<String, String> getConfiguration(List<String> websites) {
 		assert websites != null;
-		Map<String,String> args = new HashMap<String,String>();
-		for(String section : websites) {
+		Map<String, String> args = new HashMap<String, String>();
+		for (String section : websites) {
 			addSettings(args, section);
 		}
 		return args;
 	}
-	
+
 	/**
-	 * Generates a map with settings extracted from the ini and website and outputdir-keys.
-	 * If defined custom settings of the website will be added. 
-	 * @param website the website for which the arguments are build.
+	 * Generates a map with settings extracted from the ini and website and outputdir-keys. If
+	 * defined custom settings of the website will be added.
+	 * 
+	 * @param website
+	 *            the website for which the arguments are build.
 	 * @return map with arguments for the crawling of the website.
-	 * @throws URISyntaxException invalid website-url
-	 * @throws MalformedURLException 
+	 * @throws URISyntaxException
+	 *             invalid website-url
+	 * @throws MalformedURLException
 	 */
 	public Map<String, String> getConfiguration(String website) {
 		assert website != null;
 		// Load common settings{
 		Map<String, String> args = getConfiguration();
 		addSettings(args, website);
-	    
-	    // Setup vital arguments
+
+		// Setup vital arguments
 		log.info("Settings build for website: " + website);
 		return args;
 	}
@@ -156,7 +162,5 @@ public class ConfigurationIni implements ConfigurationDao {
 			log.error("Failed to delete section: " + e.getMessage());
 		}
 	}
-	
-	
-	
+
 }

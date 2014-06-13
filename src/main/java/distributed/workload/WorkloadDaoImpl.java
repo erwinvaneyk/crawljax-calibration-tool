@@ -15,20 +15,20 @@ import lombok.extern.slf4j.Slf4j;
 import main.java.distributed.ConnectionManager;
 
 /**
- * SQL-server-based implementation of the IWorkloadDistributor-interface. The 
- * WorkloadDistributor is responsible for managing the workload of the clients.  
+ * SQL-server-based implementation of the IWorkloadDistributor-interface. The WorkloadDistributor is
+ * responsible for managing the workload of the clients.
  */
 @Slf4j
 public class WorkloadDaoImpl implements WorkloadDao {
-	
+
 	private static final String TABLE = "workload";
 	private static final String COLUMN_ID = "id";
 	private static final String COLUMN_URL = "url";
 	private static final String COLUMN_WORKERID = "worker";
 	private static final String COLUMN_CRAWLED = "crawled";
-	
+
 	private ConnectionManager connMgr;
-	
+
 	private static String workerID;
 
 	static {
@@ -40,20 +40,25 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			log.error("Hostname could not be retrieved, using system-name: {}." + workerID);
 		}
 	}
-	
+
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
-	 * @throws IOException The ConnectionManagerImpl could not retrieve the settings-file.
+	 * 
+	 * @throws IOException
+	 *             The ConnectionManagerImpl could not retrieve the settings-file.
 	 */
 	@Inject
 	public WorkloadDaoImpl(ConnectionManager conn) {
 		connMgr = conn;
 		log.info("WorkerID: " + workerID);
 	}
-	
+
 	/**
-	 * Retrieve and claim a number of urls from the server (if nothing is available, an empty ArrayList is returned).
-	 * @param maxcount the maximum number of urls to retrieve.
+	 * Retrieve and claim a number of urls from the server (if nothing is available, an empty
+	 * ArrayList is returned).
+	 * 
+	 * @param maxcount
+	 *            the maximum number of urls to retrieve.
 	 * @return a list with claimed urls
 	 */
 	public List<WorkTask> retrieveWork(int maxcount) {
@@ -61,13 +66,18 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		List<WorkTask> workTasks = new ArrayList<WorkTask>(maxcount);
 		Connection conn = connMgr.getConnection();
 		try {
-			int claimed = conn.createStatement().executeUpdate("UPDATE "+ TABLE +" SET " + COLUMN_WORKERID + "=\"" + workerID
-					+ "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND " + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
+			int claimed =
+			        conn.createStatement().executeUpdate(
+			                "UPDATE " + TABLE + " SET " + COLUMN_WORKERID + "=\"" + workerID
+			                        + "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND "
+			                        + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
 			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 			// Note: this will also return the claimed/unfinished websites not signed off.
-			ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  "+ TABLE +" WHERE "+ COLUMN_WORKERID + " = \"" 
-					+ workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
+			ResultSet res =
+			        conn.createStatement().executeQuery(
+			                "SELECT * FROM  " + TABLE + " WHERE " + COLUMN_WORKERID + " = \""
+			                        + workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {
 				try {
 					int id = res.getInt("id");
@@ -83,20 +93,25 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			log.error(e.getMessage());
 		}
 		connMgr.closeConnection();
-		return workTasks;		
+		return workTasks;
 	}
-	
+
 	/**
 	 * Registering a succesful crawl on the server.
-	 * @param url The url to be checked out.
-	 * @return true if checkout was succesful, else false. 
+	 * 
+	 * @param url
+	 *            The url to be checked out.
+	 * @return true if checkout was succesful, else false.
 	 */
 	public boolean checkoutWork(WorkTask wt) {
 		int ret = 0;
 		Connection conn = connMgr.getConnection();
 		try {
 			// Update crawled-field to 1 to show crawl has finished.
-			ret = conn.createStatement().executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED +"=1 WHERE " + COLUMN_ID + "=\"" + wt.getId() + "\"");
+			ret =
+			        conn.createStatement().executeUpdate(
+			                "UPDATE " + TABLE + " SET " + COLUMN_CRAWLED + "=1 WHERE "
+			                        + COLUMN_ID + "=\"" + wt.getId() + "\"");
 			log.info("Checked out crawl of id: " + wt.getId());
 		} catch (SQLException e) {
 			log.error(e.getMessage());
@@ -106,10 +121,12 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		connMgr.closeConnection();
 		return ret != 0;
 	}
-	
+
 	/**
 	 * Submit a new url/workunit to the server to crawl.
-	 * @param url the url to be crawled
+	 * 
+	 * @param url
+	 *            the url to be crawled
 	 * @return generated id of the url, if failed: -1
 	 */
 	public int submitWork(URL url, boolean claim) {
@@ -119,27 +136,31 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			String worker = claim ? workerID : "";
 			// Insert a new row containing the url in the workload-table.
 			Statement statement = conn.createStatement();
-			ret = statement.executeUpdate("INSERT INTO " + TABLE +" (" + COLUMN_URL +"," 
-					+ COLUMN_CRAWLED +"," + COLUMN_WORKERID + ") VALUES (\"" + url + "\",0, \"" + worker + "\")", Statement.RETURN_GENERATED_KEYS);
+			ret =
+			        statement.executeUpdate("INSERT INTO " + TABLE + " (" + COLUMN_URL + ","
+			                + COLUMN_CRAWLED + "," + COLUMN_WORKERID + ") VALUES (\"" + url
+			                + "\",0, \"" + worker + "\")", Statement.RETURN_GENERATED_KEYS);
 			log.info("Succesfully submitted {} to the server.", url);
-			
+
 			// Get generated key
 			ResultSet generatedkeys = statement.getGeneratedKeys();
-	        if (generatedkeys.next()) {
-	            ret = generatedkeys.getInt(1);
-	        }
+			if (generatedkeys.next()) {
+				ret = generatedkeys.getInt(1);
+			}
 		} catch (SQLException e) {
 			log.error(e.getMessage());
-		}  catch (NullPointerException e) {
+		} catch (NullPointerException e) {
 			log.error("Unexpected null, probably the input " + url + " or the connection " + conn);
 		}
 		connMgr.closeConnection();
 		return ret;
 	}
-	
+
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
-	 * @param url the url to be reverted
+	 * 
+	 * @param url
+	 *            the url to be reverted
 	 * @return true if successful, else false.
 	 */
 	public boolean revertWork(int id) {
@@ -148,8 +169,10 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		try {
 			Statement st = conn.createStatement();
 			// Update the worker and crawled field to the default values for the url.
-			ret = st.executeUpdate("UPDATE " + TABLE +" SET " + COLUMN_CRAWLED + "=0, " + COLUMN_WORKERID 
-					+"=\"\" WHERE " + COLUMN_ID + "=\"" + id + "\"");
+			ret =
+			        st.executeUpdate("UPDATE " + TABLE + " SET " + COLUMN_CRAWLED + "=0, "
+			                + COLUMN_WORKERID
+			                + "=\"\" WHERE " + COLUMN_ID + "=\"" + id + "\"");
 			log.info("Reverted claim/checkout of crawl for id: " + id);
 		} catch (SQLException e) {
 			log.error(e.getMessage());

@@ -32,17 +32,17 @@ public class TestConfigurationDaoImplTest {
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author");
-		when(resultSet.getString("value")).thenReturn("42","me");
-		
+		when(resultSet.getString("value")).thenReturn("42", "me");
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		assertEquals(result.get("depth"),"42");
-		assertEquals(result.get("author"),"me");
+		assertEquals(result.get("depth"), "42");
+		assertEquals(result.get("author"), "me");
 	}
-	
+
 	@Test
 	public void testGetConfigurationListOfStringOverlappingSettings() throws SQLException {
 		// Setup mocked Database
@@ -56,17 +56,17 @@ public class TestConfigurationDaoImplTest {
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
-		when(resultSet.getString("value")).thenReturn("42","me","10");
-		
+		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		assertEquals(result.get("depth"),"42");
-		assertEquals(result.get("author"),"me");
+		assertEquals(result.get("depth"), "42");
+		assertEquals(result.get("author"), "me");
 	}
-	
+
 	@Test
 	public void testGetConfigurationListOfStringNoSettings() throws SQLException {
 		// Setup mocked Database
@@ -79,13 +79,13 @@ public class TestConfigurationDaoImplTest {
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
 		// result mock
 		when(resultSet.next()).thenReturn(false);
-		
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
-		assertEquals(result.size(),0);
+		assertEquals(result.size(), 0);
 	}
 
 	@Test
@@ -100,13 +100,13 @@ public class TestConfigurationDaoImplTest {
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
 		// result mock
 		when(resultSet.next()).thenReturn(false);
-		
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("something");
-		assertEquals(result.size(),0);
+		assertEquals(result.size(), 0);
 	}
-	
+
 	@Test
 	public void testGetConfigurationString() throws SQLException {
 		// Setup mocked Database
@@ -120,15 +120,15 @@ public class TestConfigurationDaoImplTest {
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author");
-		when(resultSet.getString("value")).thenReturn("42","me");
-		
+		when(resultSet.getString("value")).thenReturn("42", "me");
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("something");
-		assertEquals(result.get("depth"),"42");
-		assertEquals(result.get("author"),"me");
+		assertEquals(result.get("depth"), "42");
+		assertEquals(result.get("author"), "me");
 	}
-	
+
 	@Test
 	public void testGetConfigurationStringOverlappingSettings() throws SQLException {
 		// Setup mocked Database
@@ -142,15 +142,15 @@ public class TestConfigurationDaoImplTest {
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
-		when(resultSet.getString("value")).thenReturn("42","me","10");
-		
+		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("Something");
-		assertEquals(result.get("depth"),"42");
-		assertEquals(result.get("author"),"me");
+		assertEquals(result.get("depth"), "42");
+		assertEquals(result.get("author"), "me");
 	}
-	
+
 	@Test
 	public void testGetConfiguration() throws SQLException {
 		// Setup mocked Database
@@ -164,15 +164,15 @@ public class TestConfigurationDaoImplTest {
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
-		when(resultSet.getString("value")).thenReturn("42","me","10");
-		
+		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration();
-		assertEquals(result.get("depth"),"10");
-		assertEquals(result.get("author"),"42");
+		assertEquals(result.get("depth"), "10");
+		assertEquals(result.get("author"), "42");
 	}
-	
+
 	@Test
 	public void testUpdateConfiguration() throws SQLException {
 		// Setup mocked Database
@@ -182,13 +182,13 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
-		
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
-		config.updateConfiguration("section","key", "value",0);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
+		config.updateConfiguration("section", "key", "value", 0);
 		verify(statement).executeUpdate(anyString());
 	}
-	
+
 	@Test
 	public void testUpdateConfigurationFailed() throws SQLException {
 		// Setup mocked Database
@@ -197,14 +197,14 @@ public class TestConfigurationDaoImplTest {
 		Statement statement = mock(Statement.class);
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
-		when(statement.executeUpdate(anyString())).thenReturn(0,1);
-		
+		when(statement.executeUpdate(anyString())).thenReturn(0, 1);
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
-		config.updateConfiguration("section","key", "value",0);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
+		config.updateConfiguration("section", "key", "value", 0);
 		verify(statement, times(2)).executeUpdate(anyString());
 	}
-	
+
 	@Test
 	public void testDeleteConfiguration() throws SQLException {
 		// Setup mocked Database
@@ -214,13 +214,13 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
-		
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		config.deleteConfiguration("section");
 		verify(statement).executeUpdate(anyString());
 	}
-	
+
 	@Test
 	public void testDeleteConfiguration2() throws SQLException {
 		// Setup mocked Database
@@ -230,10 +230,10 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
-		
+
 		// Run test
-		ConfigurationDaoImpl config =  new ConfigurationDaoImpl(connMgr);
-		config.deleteConfiguration("section","key");
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
+		config.deleteConfiguration("section", "key");
 		verify(statement).executeUpdate(anyString());
 	}
 

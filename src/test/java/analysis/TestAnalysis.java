@@ -26,7 +26,7 @@ public class TestAnalysis {
 		assertEquals(result.getBenchmarkWebsites(), input);
 		assertEquals(result.getTitle(), title);
 	}
-	
+
 	@Test
 	public void testAnalysisReportTitleNull() throws AnalysisException {
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
@@ -36,7 +36,7 @@ public class TestAnalysis {
 		assertEquals(result.getBenchmarkWebsites(), input);
 		assertNotNull(result.getTitle());
 	}
-	
+
 	@Test
 	public void testAnalysisReportTitleEmpty() throws AnalysisException {
 		WebsiteResult wr = mock(WebsiteResult.class);
@@ -47,13 +47,13 @@ public class TestAnalysis {
 		assertEquals(result.getBenchmarkWebsites(), input);
 		assertNotNull(result.getTitle());
 	}
-	
-	@Test(expected=AnalysisException.class)
+
+	@Test(expected = AnalysisException.class)
 	public void testAnalysisReportWebsiteResultsEmpty() throws AnalysisException {
 		new Analysis("WebsiteResultsEmpty", new ArrayList<WebsiteResult>(), null);
 	}
-	
-	@Test(expected=AnalysisException.class)
+
+	@Test(expected = AnalysisException.class)
 	public void testAnalysisReportWebsiteResultsNull() throws AnalysisException {
 		new Analysis("WebsiteResultsEmpty", null, null);
 	}
@@ -61,18 +61,18 @@ public class TestAnalysis {
 	@Test
 	public void testRunAnalysisSame() throws AnalysisException {
 
-		WorkTask workTask = new WorkTask(4,"mocked.nl");
+		WorkTask workTask = new WorkTask(4, "mocked.nl");
 		WebsiteResult benchmarkWebsite = new WebsiteResult("MOCK JSON results", 42);
 		benchmarkWebsite.setId(3);
 		benchmarkWebsite.setWorkTask(workTask);
 		Collection<StateResult> stateResults = new ArrayList<StateResult>();
-		StateResult stateResult = new StateResult(benchmarkWebsite, "state1", "MOCK DOM","STRIPPED MOCK DOM", "01010101", null);
+		StateResult stateResult =
+		        new StateResult(benchmarkWebsite, "state1", "MOCK DOM", "STRIPPED MOCK DOM",
+		                "01010101", null);
 		stateResults.add(stateResult);
 		benchmarkWebsite.setStateResults(stateResults);
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
-		
-		
-		
+
 		input.add(benchmarkWebsite);
 		Analysis result = new Analysis("testRunAnalysisSame", input, null);
 		result.runAnalysis(input);
@@ -81,7 +81,7 @@ public class TestAnalysis {
 		assertEquals(result.getBenchmarkWebsites(), input);
 	}
 
-	@Test(expected=AnalysisException.class)
+	@Test(expected = AnalysisException.class)
 	public void testRunAnalysisMissingWebsites() throws AnalysisException {
 		WebsiteResult wr = mock(WebsiteResult.class);
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
@@ -90,7 +90,7 @@ public class TestAnalysis {
 		result.runAnalysis(new ArrayList<WebsiteResult>());
 	}
 
-	@Test(expected=AnalysisException.class)
+	@Test(expected = AnalysisException.class)
 	public void testRunAnalysisNull() throws AnalysisException {
 		Collection<WebsiteResult> input = new ArrayList<WebsiteResult>();
 		input.add(mock(WebsiteResult.class));

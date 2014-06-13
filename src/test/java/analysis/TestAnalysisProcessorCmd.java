@@ -15,26 +15,26 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestAnalysisProcessorCmd {
-	
+
 	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
 	@Before
 	public void setUpStreams() {
-	    System.setOut(new PrintStream(outContent));
+		System.setOut(new PrintStream(outContent));
 	}
-	
+
 	@After
 	public void cleanUpStreams() {
-	    System.setOut(null);
+		System.setOut(null);
 	}
-	
+
 	@Test
 	public void testApply() throws AnalysisException {
 		Analysis analysisReport = mock(Analysis.class);
 		new AnalysisProcessorCmd().apply(analysisReport);
 		assertNotNull(outContent.toString());
 	}
-	
+
 	@Test
 	public void testApplyNull() throws AnalysisException {
 		new AnalysisProcessorCmd().apply(null);

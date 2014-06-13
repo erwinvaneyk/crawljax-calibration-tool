@@ -6,7 +6,7 @@ package main.java.distributed.results;
  * In order to show the exceptions friendly to the user
  */
 public class ResultProcessorException extends RuntimeException {
-	
+
 	public ResultProcessorException(String message) {
 		super(message);
 	}

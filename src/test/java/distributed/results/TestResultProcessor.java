@@ -36,9 +36,10 @@ public class TestResultProcessor {
 		new File("TestDir").mkdir();
 		log.debug("Test directory setup.");
 	}
-	
+
 	/**
 	 * Delete the whole directory 'TestDir'
+	 * 
 	 * @throws IOException
 	 */
 	@After
@@ -50,8 +51,9 @@ public class TestResultProcessor {
 			log.error("IOException while removing the TestDir directory: " + e.getMessage());
 		}
 	}
-	
-	private void mockAndRun(boolean dbContainsTuple, int updateSucces) throws SQLException, ResultProcessorException {
+
+	private void mockAndRun(boolean dbContainsTuple, int updateSucces) throws SQLException,
+	        ResultProcessorException {
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		Connection conn = mock(Connection.class);
@@ -61,12 +63,12 @@ public class TestResultProcessor {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.prepareStatement(anyString(), anyInt())).thenReturn(statement);
 		assertEquals(statement, conn.prepareStatement("SELECT * FROM workload", 5));
-		
+
 		when(statement.executeUpdate()).thenReturn(updateSucces);
 		assertEquals(updateSucces, statement.executeUpdate());
-		
+
 		when(statement.getGeneratedKeys()).thenReturn(resultset);
-		
+
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
@@ -74,9 +76,10 @@ public class TestResultProcessor {
 		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
-	
+
 	/**
 	 * Make a stub file named result.json
+	 * 
 	 * @throws FileNotFoundException
 	 * @throws UnsupportedEncodingException
 	 */
@@ -95,15 +98,16 @@ public class TestResultProcessor {
 			System.exit(1);
 		}
 	}
-	
+
 	/**
 	 * Make a the directory 'screenshot' and a stub file for a single screenshot
+	 * 
 	 * @throws IOException
 	 */
 	private void makeScreenshotStub() {
-		new File("TestDir/screenshots").mkdir();		
-		byte imageBin[] = { 0,1,0,0 };
-		
+		new File("TestDir/screenshots").mkdir();
+		byte imageBin[] = { 0, 1, 0, 0 };
+
 		FileOutputStream screenshot;
 		try {
 			screenshot = new FileOutputStream(new File("TestDir/screenshots/shot1.jpg"));
@@ -114,7 +118,7 @@ public class TestResultProcessor {
 			System.exit(1);
 		}
 	}
-	
+
 	private void makeDomStub(String sd) {
 		new File("TestDir/" + sd).mkdir();
 		PrintWriter dom;
@@ -124,75 +128,82 @@ public class TestResultProcessor {
 			dom.println("For the " + sd);
 			dom.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while adding the stub " + sd + "-file to the test directory");
+			log.error("FileNotFoundException while adding the stub " + sd
+			        + "-file to the test directory");
 			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
 			log.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
 			System.exit(1);
 		}
 	}
-	
+
 	private void makeFileStructure() {
 		makeJsonStub();
 		makeScreenshotStub();
 		makeDomStub("doms");
 		makeDomStub("strippedDOM");
 	}
+
 	/**
 	 * Test a good run
+	 * 
 	 * @throws ResultProcessorException
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	@Test
 	public void testUploadAction() throws ResultProcessorException, SQLException {
 		makeFileStructure();
-		
+
 		mockAndRun(false, 1);
 	}
-	
+
 	/**
 	 * Test a run with missing Json-file
+	 * 
 	 * @throws ResultProcessorException
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
-	@Test (expected = ResultProcessorException.class)
+	@Test(expected = ResultProcessorException.class)
 	public void testMissingFiles() throws ResultProcessorException, SQLException {
 		mockAndRun(false, 1);
 	}
-	
+
 	/**
 	 * Test a good run where the database already contains the tuple that need te be inserted
+	 * 
 	 * @throws ResultProcessorException
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	@Test
 	public void testContainsTuple() throws ResultProcessorException, SQLException {
 		makeFileStructure();
-		
+
 		mockAndRun(true, 1);
 	}
-	
+
 	/**
 	 * Test if a ResultProcessorException is thrown if the update of a json-file
+	 * 
 	 * @throws SQLException
 	 * @throws ResultProcessorException
 	 */
-	@Test (expected = ResultProcessorException.class)
+	@Test(expected = ResultProcessorException.class)
 	public void testFailedInsertJson() throws SQLException, ResultProcessorException {
 		makeFileStructure();
-		
+
 		mockAndRun(false, 0);
 	}
-	
+
 	/**
 	 * Test a SQLException in the sql-statement
+	 * 
 	 * @throws SQLException
 	 * @throws ResultProcessorException
 	 */
-	@Test (expected = ResultProcessorException.class)
+	@Test(expected = ResultProcessorException.class)
 	public void testSQLException() throws SQLException, ResultProcessorException {
 		makeFileStructure();
-		
+
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		Connection conn = mock(Connection.class);
@@ -201,11 +212,11 @@ public class TestResultProcessor {
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(new SQLException());
-		
+
 		when(statement.executeUpdate()).thenReturn(1);
-		
+
 		when(statement.getGeneratedKeys()).thenReturn(resultset);
-		
+
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection

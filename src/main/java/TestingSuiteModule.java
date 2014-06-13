@@ -25,34 +25,35 @@ import com.google.inject.Provides;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 
-public class TestingSuiteModule extends AbstractModule {	
-	
+public class TestingSuiteModule extends AbstractModule {
+
 	@Override
-    protected void configure() {
+	protected void configure() {
 		// Use Near-duplicate Module
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
 		install(new DuplicateDetectionModule(1, ft));
-		
+
 		// Analysis
 		bind(AnalysisBuilder.class).to(AnalysisBuilderImpl.class);
-		
+
 		// Distributed
 		bind(ConnectionManager.class).to(ConnectionManagerOrmImpl.class);
 		bind(ConnectionManagerOrm.class).to(ConnectionManagerOrmImpl.class);
-		
+
 		// Configuration
 		bind(ConfigurationDao.class).to(ConfigurationDaoImpl.class);
-		
+
 		// Results
 		bind(ResultProcessor.class).to(ResultProcessorImpl.class);
-		
+
 		// Workload
 		bind(WorkloadDao.class).to(WorkloadDaoImpl.class);
-    }
-	
+	}
+
 	@Provides
-	public Dao<WebsiteResult, String> getWebsiteDao(ConnectionManagerOrm connMgr) throws SQLException {
+	public Dao<WebsiteResult, String> getWebsiteDao(ConnectionManagerOrm connMgr)
+	        throws SQLException {
 		return DaoManager.createDao(connMgr.getConnectionORM(), WebsiteResult.class);
 	}
 

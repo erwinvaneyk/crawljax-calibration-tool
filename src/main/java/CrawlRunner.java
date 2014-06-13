@@ -26,7 +26,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class CrawlRunner {
-	@Inject private static Injector injector;
+	@Inject
+	private static Injector injector;
 	String[] additionalArgs = null;
 	DatabaseUtils dbUtils;
 	private ResultProcessor resultProcessor;
@@ -38,24 +39,25 @@ public class CrawlRunner {
 		// Header
 		System.out.println("Crawljax Testing Suite");
 		System.out.println("---------------------------------");
-		
+
 		// Do stuff
-        CrawlRunner cr = Guice.createInjector(new TestingSuiteModule()).getInstance(CrawlRunner.class);
-        cr.actOnArgs(args);
+		CrawlRunner cr =
+		        Guice.createInjector(new TestingSuiteModule()).getInstance(CrawlRunner.class);
+		cr.actOnArgs(args);
 		// Finish up.
 		System.out.println("Finished.");
 	}
-	
+
 	@Inject
-	public CrawlRunner(ResultProcessor resultprocessor, CrawlManager suite, 
-			WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils) {
+	public CrawlRunner(ResultProcessor resultprocessor, CrawlManager suite,
+	        WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils) {
 		this.resultProcessor = resultprocessor;
 		this.crawlManager = suite;
 		this.workload = workload;
 		this.config = config;
 		this.dbUtils = dbUtils;
 	}
-	
+
 	public void actOnArgs(String[] args) {
 		// Parse Args
 		String arg = "";
@@ -67,9 +69,11 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
+			dbUtils.actionFlushWebsitesFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR
+			        + "/websites.txt"));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class).getSettingsFile());
+			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class)
+			        .getSettingsFile());
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
@@ -78,15 +82,21 @@ public class CrawlRunner {
 			actionHelp();
 		}
 	}
-	
+
 	private void actionHelp() {
 		Options options = new Options();
-		options.addOption("w","worker", false, "Setup computer as slave/worker, polling the db continuously.");
-		options.addOption("f","flush", false, "Flushes the website-file to the server. Nothing is crawled.");
-		options.addOption("s","settings", false, "Flushes setting-file to the server. Nothing is crawled.");
-		options.addOption("d","distributor", false, "Runs the commandline interface of the distributor.");
-		options.addOption("l","local", false, "Do not use server-functionality. Read the website-file and crawl all.");
-		options.addOption("c", "controller", false, "Run the analysis only as  controller, so that system will not help crawling");
+		options.addOption("w", "worker", false,
+		        "Setup computer as slave/worker, polling the db continuously.");
+		options.addOption("f", "flush", false,
+		        "Flushes the website-file to the server. Nothing is crawled.");
+		options.addOption("s", "settings", false,
+		        "Flushes setting-file to the server. Nothing is crawled.");
+		options.addOption("d", "distributor", false,
+		        "Runs the commandline interface of the distributor.");
+		options.addOption("l", "local", false,
+		        "Do not use server-functionality. Read the website-file and crawl all.");
+		options.addOption("c", "controller", false,
+		        "Run the analysis only as  controller, so that system will not help crawling");
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("Crawljax-testing-suite CLI", options);
 	}
@@ -97,14 +107,15 @@ public class CrawlRunner {
 			while (true) {
 				// Get worktasks
 				List<WorkTask> workTasks = workload.retrieveWork(1);
-				while(workTasks.isEmpty()) {
+				while (workTasks.isEmpty()) {
 					workTasks = workload.retrieveWork(1);
 					if (workTasks.isEmpty()) {
-						if(additionalArgs.length >= 1 && additionalArgs[0].equals("-finish")) return;
+						if (additionalArgs.length >= 1 && additionalArgs[0].equals("-finish"))
+							return;
 						Thread.sleep(1000 * 10); // sleep 10 seconds
 					}
 				}
-				
+
 				for (WorkTask task : workTasks) {
 					try {
 						List<String> sections = new ArrayList<String>();
@@ -115,46 +126,49 @@ public class CrawlRunner {
 						// Crawl
 						long timeStart = new Date().getTime();
 						boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
-						if(!hasNoError) {
+						if (!hasNoError) {
 							throw new Exception("Crawljax returned an error code");
 						}
 						try {
-							resultProcessor.uploadResults(task.getId(), dir, new Date().getTime() - timeStart);
-						} catch(ResultProcessorException e) {
+							resultProcessor.uploadResults(task.getId(), dir, new Date().getTime()
+							        - timeStart);
+						} catch (ResultProcessorException e) {
 							System.out.println(e.getMessage());
 						}
 						workload.checkoutWork(task);
 						System.out.println("crawl: " + task.getURL() + " completed");
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
-						workload.revertWork(task.getId());						
-						System.out.println("crawl: " + task.getURL() + " failed. Claim reverted.");
+						workload.revertWork(task.getId());
+						System.out
+						        .println("crawl: " + task.getURL() + " failed. Claim reverted.");
 					}
 				}
 			}
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted; worker stopped.");
-		} 
+		}
 	}
-	
+
 	private void actionLocalCrawler() {
 		System.out.println("Started local crawler");
 		try {
-			crawlManager.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR + "/websites.txt"));
+			crawlManager.websitesFromFile(new File(ConfigurationIni.DEFAULT_SETTINGS_DIR
+			        + "/websites.txt"));
 			crawlManager.crawlWebsites();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	private void actionAnalysis() {
 		// Build factory
 		AnalysisBuilderImpl factory = injector.getInstance(AnalysisBuilderImpl.class);
 		factory.addMetric(injector.getInstance(SpeedMetric.class));
 		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
-		
+
 		// Generate report
-		Analysis analysis = factory.getAnalysis("analysis",new int[]{2});
+		Analysis analysis = factory.getAnalysis("analysis", new int[] { 2 });
 
 		new AnalysisProcessorFile().apply(analysis);
 		new AnalysisProcessorCsv("test").apply(analysis);
