@@ -1,7 +1,8 @@
 package test.java.distributed;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,15 +40,15 @@ public class TestDBUtilsFlushToDatabase {
 		dbUtils.actionFlushWebsitesFile(new File("/testFlushWebsites.txt"));
 
 		int idFirst = this.getIdFromUrl("http://thiMayNotExist.hu");
-		assertFalse(idFirst == -1);
+		assertThat(idFirst, not(is(-1)));
 		this.deleteWorktaskById(idFirst);
 		
 		int idSecond = this.getIdFromUrl("http://maybeThis.uk");
-		assertFalse(idSecond == -1);
+		assertThat(idSecond, not(is(-1)));
 		this.deleteWorktaskById(idSecond);
 		
 		int idThird = this.getIdFromUrl("http://andTheLastOne.pl");
-		assertFalse(idThird == -1);
+		assertThat(idThird, not(is(-1)));
 		this.deleteWorktaskById(idThird);
 		
 		new File("config/testFlushWebsites.txt").delete();
