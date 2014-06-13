@@ -73,7 +73,7 @@ public class TestStateAnalysisMetric {
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
 		Fingerprint finger = mock(Fingerprint.class);
 		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
-		when(ndd.generateHash(anyString())).thenReturn(finger);
+		when(ndd.generateFingerprint(anyString())).thenReturn(finger);
 		// Execute method	
 		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -124,7 +124,7 @@ public class TestStateAnalysisMetric {
 		NearDuplicateDetection ndd = mock(NearDuplicateDetection.class);
 		Fingerprint finger = mock(Fingerprint.class);
 		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
-		when(ndd.generateHash(anyString())).thenReturn(finger);
+		when(ndd.generateFingerprint(anyString())).thenReturn(finger);
 		// Execute method	
 		StateAnalysisMetric sam = getStateAnalysisMetric();	
 		sam.setNearDuplicateDetection(ndd);
@@ -135,7 +135,7 @@ public class TestStateAnalysisMetric {
 		ndd = mock(NearDuplicateDetection.class);
 		finger = mock(Fingerprint.class);
 		when(finger.getDistance(any(Fingerprint.class))).thenReturn(0.0,1.0,42.0);
-		when(ndd.generateHash(anyString())).thenReturn(finger);
+		when(ndd.generateFingerprint(anyString())).thenReturn(finger);
 		sam.setNearDuplicateDetection(ndd);
 		Collection<Statistic> resultsInv = sam.apply(testedWebsites, benchmarkedWebsites);
 		

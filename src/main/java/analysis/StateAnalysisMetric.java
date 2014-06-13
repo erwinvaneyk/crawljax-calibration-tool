@@ -213,8 +213,8 @@ public class StateAnalysisMetric implements Metric {
 			try {
 				// For each state, calculate the distance from the source to the state.
 				double distance =
-				        nearDuplicateDetection.generateHash(source.getDom()).getDistance(
-				                nearDuplicateDetection.generateHash(state.getDom()));
+				        nearDuplicateDetection.generateFingerprint(source.getDom()).getDistance(
+				                nearDuplicateDetection.generateFingerprint(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
 				if (distance <= threshold && distance < minDistance) {
 					result = state;
