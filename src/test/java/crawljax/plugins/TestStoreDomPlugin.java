@@ -62,13 +62,10 @@ public class TestStoreDomPlugin {
 		String fileContent = "";
 		File strippedDom = testDir.listFiles()[0];
 		for (File file: strippedDom.listFiles()) {
-			System.out.println(file.getName());
 			if (file.getName().equals("TestState.html")) {
-				System.out.println("Binnen");
 				BufferedReader br = new BufferedReader(new FileReader(file));
 				String line;
 				while ((line = br.readLine()) != null) {
-					System.out.println(line);
 					fileContent += line;
 				}
 				br.close();
