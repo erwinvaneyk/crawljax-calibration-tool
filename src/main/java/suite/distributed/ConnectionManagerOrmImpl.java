@@ -1,5 +1,6 @@
 package suite.distributed;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -35,8 +36,7 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 	public ConnectionManagerOrmImpl() {
 		super();
 		try {
-			System.out.print(getClass().getResource(DEFAULT_SETTINGS_FILE).toString());
-			setup(getClass().getResourceAsStream(DEFAULT_SETTINGS_FILE));
+			setup(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

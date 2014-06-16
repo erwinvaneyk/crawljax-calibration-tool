@@ -1,5 +1,6 @@
 package suite.distributed;
 
+import java.io.File;
 import java.sql.Connection;
 
 /**
@@ -7,7 +8,7 @@ import java.sql.Connection;
  */
 public interface ConnectionManager {
 
-	public static final String DEFAULT_SETTINGS_FILE = "dist.ini";
+	public static final File DEFAULT_SETTINGS_FILE = new File("src/main/config/dist.ini");
 
 	/**
 	 * Returns the connection. If not present, create a new connection.

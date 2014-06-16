@@ -135,8 +135,8 @@ public class DatabaseUtils {
 	 * @param fileName
 	 *            the filename of the settings file.
 	 */
-	public void actionFlushSettingsFile(File fileName) {
-		Ini ini = new ConfigurationIni(fileName.toString()).getIni();
+	public void actionFlushSettingsFile(File absoluteFilepath) {
+		Ini ini = new ConfigurationIni(absoluteFilepath).getIni();
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {

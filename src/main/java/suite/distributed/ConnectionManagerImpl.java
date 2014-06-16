@@ -1,5 +1,6 @@
 package suite.distributed;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
@@ -31,8 +32,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	public ConnectionManagerImpl() {
 		try {
 			// log.warning("ConnectionManagerImpl uses the default paths for the config-files.");
-			System.out.print(getClass().getResource(DEFAULT_SETTINGS_FILE).toString());
-			setup(getClass().getResourceAsStream(DEFAULT_SETTINGS_FILE));
+			setup(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

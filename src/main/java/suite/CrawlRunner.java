@@ -77,8 +77,8 @@ public class CrawlRunner {
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
 			dbUtils.actionFlushWebsitesFile(new File("/websites.txt")); // TODO fix path
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile(new File(injector.getInstance(ConfigurationIni.class)
-			        .getSettingsFile())); // TODO fix path
+			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class)
+			        .getSettingsFile()); // TODO fix path
 		} else if (arg.equals("-l") || arg.equals("--local")) {
 			actionLocalCrawler();
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {

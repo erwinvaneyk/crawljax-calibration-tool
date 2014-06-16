@@ -1,7 +1,8 @@
 package suite.distributed.configuration;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,16 +16,15 @@ import org.ini4j.Profile.Section;
 public class ConfigurationIni implements ConfigurationDao {
 
 	public static final String INI_SECTION_COMMON = "common";
-	private static final String DEFAULT_SETTINGS_FILE = "settings.ini";
-	private String settingsIniFile;
+	private static final File DEFAULT_SETTINGS_FILE = new File("src/mainconfig/settings.ini");
+	private File settingsIniFile;
 
 	private static Ini ini;
 
-	public ConfigurationIni(String fileName) {
-		this.settingsIniFile = fileName;
+	public ConfigurationIni(File absoluteFilepath) {
+		this.settingsIniFile = absoluteFilepath;
 		try {
-			ini = new Ini(new InputStreamReader(getClass().getClassLoader()
-                    .getResourceAsStream(settingsIniFile)));
+			ini = new Ini(new FileInputStream(settingsIniFile));
 			if (ini.containsKey(INI_SECTION_COMMON))
 				log.warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
@@ -35,8 +35,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	public ConfigurationIni() {
 		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
 		try {
-			ini = new Ini(new InputStreamReader(getClass().getClassLoader()
-                    .getResourceAsStream(settingsIniFile)));
+			ini = new Ini(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
 			if (ini.containsKey(INI_SECTION_COMMON))
 				log.warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
@@ -44,7 +43,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
-	public String getSettingsFile() {
+	public File getSettingsFile() {
 		return this.settingsIniFile;
 	}
 
