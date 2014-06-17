@@ -9,7 +9,7 @@ import main.java.analysis.Statistic;
 import org.junit.Test;
 
 public class TestStatistic {
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#hasDetails()}.
 	 */
@@ -20,7 +20,7 @@ public class TestStatistic {
 		Statistic stat = new Statistic("Name", "value", details);
 		assertTrue(stat.hasDetails());
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#hasDetails()}.
 	 */
@@ -72,7 +72,7 @@ public class TestStatistic {
 		Statistic stat2 = new Statistic("Name", "value", details2);
 		assertTrue(stat.equals(stat2));
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#equals(java.lang.Object)}.
 	 */
@@ -85,7 +85,7 @@ public class TestStatistic {
 		Statistic stat2 = new Statistic("Name", "value", details2);
 		assertFalse(stat.equals(stat2));
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#equals(java.lang.Object)}.
 	 */
@@ -95,7 +95,7 @@ public class TestStatistic {
 		Statistic stat2 = new Statistic("Name", "value");
 		assertFalse(stat.equals(stat2));
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#equals(java.lang.Object)}.
 	 */
@@ -105,7 +105,7 @@ public class TestStatistic {
 		Statistic stat2 = new Statistic("Name", "value");
 		assertFalse(stat.equals(stat2));
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#equals(java.lang.Object)}.
 	 */
@@ -114,7 +114,7 @@ public class TestStatistic {
 		Statistic stat = new Statistic("Name", "value");
 		assertFalse(stat.equals(null));
 	}
-	
+
 	/**
 	 * Test method for {@link main.java.analysis.Statistic#equals(java.lang.Object)}.
 	 */

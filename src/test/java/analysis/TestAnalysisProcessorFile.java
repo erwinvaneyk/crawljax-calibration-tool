@@ -12,9 +12,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestAnalysisProcessorFile {
-	
+
 	private AnalysisProcessorFile apf;
-	
+
 	private static File testDir = new File(System.getProperty("user.dir") + "/output/temp/");
 
 	@BeforeClass
@@ -32,20 +32,20 @@ public class TestAnalysisProcessorFile {
 		apf = new AnalysisProcessorFile();
 		apf.setOutputDir(testDir);
 	}
-	
+
 	@Test
 	public void testOutputDirSet() {
 		assertNotNull(apf.getOutputDir());
 	}
-	
+
 	@Test
 	public void testOutputDirSetGet() {
 		File newDir = new File("/test/");
 		apf.setOutputDir(newDir);
 		assertEquals(apf.getOutputDir(), newDir);
 	}
-	
-	@Test(expected=NullPointerException.class)
+
+	@Test(expected = NullPointerException.class)
 	public void testApplyNull() {
 		apf.apply(null);
 	}

@@ -19,12 +19,10 @@ import main.java.distributed.workload.WorkloadDaoImpl;
 import org.junit.Test;
 
 public class TestWorkloadDao {
-	
-	
-	
+
 	@Test
 	public void testRetrieveWorkInt0() throws SQLException, MalformedURLException {
-		// Result set 
+		// Result set
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
@@ -42,10 +40,10 @@ public class TestWorkloadDao {
 		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size());
 		assertEquals(finalReturn, expected);
 	}
-	
+
 	@Test
 	public void testRetrieveWorkInt1() throws SQLException, MalformedURLException {
-		// Result set 
+		// Result set
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		WorkTask wt1 = new WorkTask(1, new URL("http://1.com"));
 		expected.add(wt1);
@@ -67,14 +65,15 @@ public class TestWorkloadDao {
 		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size());
 		assertEquals(finalReturn, expected);
 	}
-	
+
 	@Test
 	public void testRetrieveWorkInt2() throws SQLException, MalformedURLException {
-		// Result set 
+		// Result set
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		WorkTask wt1 = new WorkTask(1, new URL("http://1.com"));
 		WorkTask wt2 = new WorkTask(2, new URL("http://2.com"));
-		expected.add(wt1); expected.add(wt2);
+		expected.add(wt1);
+		expected.add(wt2);
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		Connection conn = mock(Connection.class);
@@ -86,17 +85,19 @@ public class TestWorkloadDao {
 		when(statement.executeUpdate(anyString())).thenReturn(expected.size());
 		when(statement.executeQuery(anyString())).thenReturn(results);
 		when(results.next()).thenReturn(true, true, false);
-		when(results.getInt("id")).thenReturn(wt1.getId(),wt2.getId());
-		when(results.getString("url")).thenReturn(wt1.getURL().toString(),wt2.getURL().toString());
+		when(results.getInt("id")).thenReturn(wt1.getId(), wt2.getId());
+		when(results.getString("url")).thenReturn(wt1.getURL().toString(),
+		        wt2.getURL().toString());
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size());
 		assertEquals(finalReturn, expected);
 	}
-	
+
 	@Test
-	public void testRetrieveWorkIntSQLExceptionSELECT() throws SQLException, MalformedURLException {
-		// Result set 
+	public void testRetrieveWorkIntSQLExceptionSELECT() throws SQLException,
+	        MalformedURLException {
+		// Result set
 		int expectedSize = 4;
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		// Mock objects
@@ -113,10 +114,11 @@ public class TestWorkloadDao {
 		List<WorkTask> finalReturn = wldao.retrieveWork(expectedSize);
 		assertEquals(finalReturn, expected);
 	}
-	
+
 	@Test
-	public void testRetrieveWorkIntSQLExceptionUPDATE() throws SQLException, MalformedURLException {
-		// Result set 
+	public void testRetrieveWorkIntSQLExceptionUPDATE() throws SQLException,
+	        MalformedURLException {
+		// Result set
 		int expectedSize = 4;
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		// Mock objects
@@ -134,10 +136,10 @@ public class TestWorkloadDao {
 		List<WorkTask> finalReturn = wldao.retrieveWork(expectedSize);
 		assertEquals(finalReturn, expected);
 	}
-	
+
 	@Test
 	public void testRetrieveWorkIntMoreThanAvailable() throws SQLException, MalformedURLException {
-		// Result set 
+		// Result set
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		WorkTask wt1 = new WorkTask(1, new URL("http://1.com"));
 		expected.add(wt1);
@@ -156,17 +158,18 @@ public class TestWorkloadDao {
 		when(results.getString("url")).thenReturn(wt1.getURL().toString());
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
-		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size() + 10); // Ask for 10 more, than received
+		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size() + 10); // Ask for 10 more,
+																			   // than received
 		assertEquals(finalReturn, expected);
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test(expected = AssertionError.class)
 	public void testRetrieveWorkNegativeInt() {
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		wldao.retrieveWork(-1);
 	}
-	
+
 	@Test
 	public void testCheckoutWork() throws SQLException, MalformedURLException {
 		int expected = 3;
@@ -184,7 +187,7 @@ public class TestWorkloadDao {
 		assertEquals(wldao.checkoutWork(wt1), true);
 		verify(statement).executeUpdate(anyString());
 	}
-	
+
 	@Test
 	public void testCheckoutWorkSQLException() throws SQLException, MalformedURLException {
 		WorkTask wt1 = new WorkTask(1, new URL("http://1.com"));
@@ -211,7 +214,7 @@ public class TestWorkloadDao {
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		assertFalse(wldao.checkoutWork(wt1));
 	}
-	
+
 	@Test
 	public void testSubmitWork() throws MalformedURLException, SQLException {
 		int expected = 1;
@@ -228,7 +231,7 @@ public class TestWorkloadDao {
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		assertEquals(wldao.submitWork(url1, true), expected);
 	}
-	
+
 	@Test
 	public void testSubmitWorkSQLException() throws MalformedURLException, SQLException {
 		URL url1 = new URL("http://1.com");
@@ -239,7 +242,8 @@ public class TestWorkloadDao {
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
-		when(statement.executeUpdate(anyString(), anyInt())).thenThrow(new SQLException("MOCK SQL ERROR"));
+		when(statement.executeUpdate(anyString(), anyInt())).thenThrow(
+		        new SQLException("MOCK SQL ERROR"));
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		assertEquals(wldao.submitWork(url1, true), -1);
@@ -252,7 +256,7 @@ public class TestWorkloadDao {
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
-		wldao.submitWork(url1, true);		
+		wldao.submitWork(url1, true);
 	}
 
 	@Test
@@ -267,9 +271,9 @@ public class TestWorkloadDao {
 		when(statement.executeUpdate(anyString())).thenReturn(1);
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
-		assertTrue(wldao.revertWork(42)); 
+		assertTrue(wldao.revertWork(42));
 	}
-	
+
 	@Test
 	public void testRevertWorkUnknownId() throws SQLException {
 		// Mock objects
@@ -282,9 +286,9 @@ public class TestWorkloadDao {
 		when(statement.executeUpdate(anyString())).thenReturn(0);
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
-		assertFalse(wldao.revertWork(42)); 
+		assertFalse(wldao.revertWork(42));
 	}
-	
+
 	@Test
 	public void testRevertWorkSQLException() throws SQLException {
 		int id = 1;
@@ -298,6 +302,6 @@ public class TestWorkloadDao {
 		when(statement.executeUpdate(anyString())).thenThrow(new SQLException("MOCK SQL ERROR"));
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
-		assertFalse(wldao.revertWork(id)); 
+		assertFalse(wldao.revertWork(id));
 	}
 }

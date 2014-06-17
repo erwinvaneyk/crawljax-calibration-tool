@@ -11,12 +11,13 @@ import main.java.distributed.results.WebsiteResult;
  * This processor is responsible for outputting the results of an analysis to a file.
  */
 public class AnalysisProcessorFile implements AnalysisProcessor {
-	
+
 	private final static String FILE_EXTENSION = ".txt";
 	private final static String LINEBREAK = "\r\n";
 	private final static String HORIZONTALBREAK = "----------------------------" + LINEBREAK;
 
-	@Getter @Setter
+	@Getter
+	@Setter
 	private File outputDir = new File(System.getProperty("user.dir") + "/output/");
 
 	@Getter
@@ -31,7 +32,7 @@ public class AnalysisProcessorFile implements AnalysisProcessor {
 			closeFile(writer);
 		} catch (IOException e) {
 			log.error("Error while creating file: {}", e.getMessage());
-		} 
+		}
 	}
 
 	protected Writer openOrCreateFile(File file, boolean append) throws IOException {
@@ -51,7 +52,8 @@ public class AnalysisProcessorFile implements AnalysisProcessor {
 		writer.write(HORIZONTALBREAK);
 		writer.write("Benchmarked Websites:" + LINEBREAK);
 		for (WebsiteResult website : analysisReport.getBenchmarkWebsites()) {
-			writer.write("(" + website.getId() + ") " + website.getWorkTask().getURL() + LINEBREAK);
+			writer.write("(" + website.getId() + ") " + website.getWorkTask().getURL()
+			        + LINEBREAK);
 		}
 		writer.write(HORIZONTALBREAK);
 		writer.write("metrics:" + LINEBREAK);

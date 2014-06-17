@@ -33,12 +33,13 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 	public void apply(Analysis analysisReport) {
 		if (!analysisReport.hasMetric(StateAnalysisMetric.class)
 		        || !analysisReport.hasMetric(SpeedMetric.class)) {
-			log.error("AnalysisProcessorCsv.apply requires the metrics StateAnalysisMetric and SpeedMetric to be present. Metrics present: " + analysisReport.getMetrics());
+			log.error("AnalysisProcessorCsv.apply requires the metrics StateAnalysisMetric and SpeedMetric to be present. Metrics present: "
+			        + analysisReport.getMetrics());
 			return;
 		}
 		try {
 			Writer writer = openOrCreateFile(
-					new File(this.getOutputDir() + "/" + filename),true);
+			        new File(this.getOutputDir() + "/" + filename), true);
 			writeContents(writer, analysisReport);
 			writer.close();
 		} catch (IOException e) {

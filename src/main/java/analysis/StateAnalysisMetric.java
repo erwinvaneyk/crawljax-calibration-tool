@@ -29,15 +29,16 @@ public class StateAnalysisMetric implements Metric {
 	@Getter
 	private final String metricName = "State Analysis Metric";
 
-	@Getter @Setter
+	@Getter
+	@Setter
 	NearDuplicateDetection nearDuplicateDetection;
 
-	public static final String MISSED_STATES 					= "Missed states";
-	public static final String DUPLICATE_STATES 				= "Duplicate states";
-	public static final String TOTAL_BENCHMARK_STATES 			= "Total benchmark states";
-	public static final String TOTAL_TESTED_STATES 				= "Total tested states";
-	public static final String TOTAL_BENCHMARK_UNIQUE_STATES 	= "Total unique benchmark states";
-	public static final String MISSED_UNIQUE_STATES 			= "Missed unique states";
+	public static final String MISSED_STATES = "Missed states";
+	public static final String DUPLICATE_STATES = "Duplicate states";
+	public static final String TOTAL_BENCHMARK_STATES = "Total benchmark states";
+	public static final String TOTAL_TESTED_STATES = "Total tested states";
+	public static final String TOTAL_BENCHMARK_UNIQUE_STATES = "Total unique benchmark states";
+	public static final String MISSED_UNIQUE_STATES = "Missed unique states";
 
 	/**
 	 * The threshold is used for retrieveNearestState, to indicate the max difference between two
@@ -123,7 +124,9 @@ public class StateAnalysisMetric implements Metric {
 		// Retrieve the duplicate-table
 		ConcurrentHashMap<String, String> duplicates = null;
 		try {
-			duplicates = databaseUtils.retrieveDuplicatesMap(benchmarkStates.get(0).getWebsiteResult().getId());
+			duplicates =
+			        databaseUtils.retrieveDuplicatesMap(benchmarkStates.get(0).getWebsiteResult()
+			                .getId());
 		} catch (SQLException e) {
 			log.error(
 			        "SQL error while retrieving the duplicate-map: {}. Assuming that duplicate-map does not exist.",
@@ -161,7 +164,8 @@ public class StateAnalysisMetric implements Metric {
 		ArrayList<StateResult> temp = new ArrayList<StateResult>(states);
 		// get the duplicates-mapping relevant for this list, using the websiteResult-id.
 		try {
-			ConcurrentHashMap<String, String> duplicates = databaseUtils.retrieveDuplicatesMap(websiteResultId);
+			ConcurrentHashMap<String, String> duplicates =
+			        databaseUtils.retrieveDuplicatesMap(websiteResultId);
 			for (StateResult current : states) {
 				if (temp.contains(current)) {
 					this.removeStateAndDuplicates(temp, duplicates, current.getStateId());
@@ -213,8 +217,8 @@ public class StateAnalysisMetric implements Metric {
 			try {
 				// For each state, calculate the distance from the source to the state.
 				double distance =
-				        nearDuplicateDetection.generateHash(source.getDom()).getDistance(
-				                nearDuplicateDetection.generateHash(state.getDom()));
+				        nearDuplicateDetection.generateFingerprint(source.getDom()).getDistance(
+				                nearDuplicateDetection.generateFingerprint(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
 				if (distance <= threshold && distance < minDistance) {
 					result = state;
