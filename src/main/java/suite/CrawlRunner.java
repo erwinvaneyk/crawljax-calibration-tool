@@ -12,10 +12,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
 import suite.analysis.Analysis;
-import suite.analysis.AnalysisBuilderImpl;
-import suite.analysis.AnalysisProcessorCmd;
+import suite.analysis.AnalysisBuilder;
 import suite.analysis.AnalysisProcessorCsv;
-import suite.analysis.AnalysisProcessorFile;
 import suite.analysis.SpeedMetric;
 import suite.analysis.StateAnalysisMetric;
 import suite.crawljax.CrawlManager;
@@ -32,14 +30,14 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class CrawlRunner {
-	@Inject
-	private static Injector injector;
+	@Inject private Injector injector;
 	String[] additionalArgs = null;
 	DatabaseUtils dbUtils;
 	private ResultProcessor resultProcessor;
 	private WorkloadDao workload;
 	private CrawlManager crawlManager;
 	private ConfigurationDao config;
+	private AnalysisBuilder analysisFactory;
 
 	public static void main(String[] args) {
 		// Header
@@ -56,12 +54,14 @@ public class CrawlRunner {
 
 	@Inject
 	public CrawlRunner(ResultProcessor resultprocessor, CrawlManager suite,
-	        WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils) {
+	        WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils, 
+			AnalysisBuilder factory) {
 		this.resultProcessor = resultprocessor;
 		this.crawlManager = suite;
 		this.workload = workload;
 		this.config = config;
 		this.dbUtils = dbUtils;
+		this.analysisFactory = factory;
 	}
 
 	public void actOnArgs(String[] args) {
@@ -75,33 +75,41 @@ public class CrawlRunner {
 		if (arg.equals("-w") || arg.equals("--worker")) {
 			actionWorker();
 		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			dbUtils.actionFlushWebsitesFile(new File("/websites.txt")); // TODO fix path
+			if(!checkArgumentExists(additionalArgs, 1)) return;
+			dbUtils.actionFlushWebsitesFile(new File(args[1]));
 		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			dbUtils.actionFlushSettingsFile(injector.getInstance(ConfigurationIni.class)
-			        .getSettingsFile()); // TODO fix path
+			if(!checkArgumentExists(additionalArgs, 1)) return;
+			dbUtils.actionFlushSettingsFile(new File(args[1]));
 		} else if (arg.equals("-l") || arg.equals("--local")) {
-			actionLocalCrawler();
+			if(!checkArgumentExists(additionalArgs, 1)) return;
+			actionLocalCrawler(new File(args[1]));
 		} else if (arg.equals("-a") || arg.equals("--analyse")) {
 			actionAnalysis();
 		} else {
 			actionHelp();
 		}
 	}
+	
+	private boolean checkArgumentExists(String[] args, int count) {
+		if(args.length < count) {
+			System.out.println("Error: Argument missing");
+			return false;
+		}
+		return true;
+	}
 
 	private void actionHelp() {
 		Options options = new Options();
 		options.addOption("w", "worker", false,
-		        "Setup computer as slave/worker, polling the db continuously.");
-		options.addOption("f", "flush", false,
-		        "Flushes the website-file to the server. Nothing is crawled.");
-		options.addOption("s", "settings", false,
-		        "Flushes setting-file to the server. Nothing is crawled.");
-		options.addOption("d", "distributor", false,
-		        "Runs the commandline interface of the distributor.");
-		options.addOption("l", "local", false,
+		        "Setup computer as slave/worker, polling the db continuously for work.");
+		options.addOption("f", "flush", true,
+		        "Flushes the provided website-file to the server. Nothing is crawled.");
+		options.addOption("s", "settings", true,
+		        "Flushes the provided setting-file to the server. Nothing is crawled.");
+		options.addOption("l", "local", true,
 		        "Do not use server-functionality. Read the website-file and crawl all.");
-		options.addOption("c", "controller", false,
-		        "Run the analysis only as  controller, so that system will not help crawling");
+		options.addOption("a", "analyse", false,
+		        "Run the analysis-manager. This system will not help crawling");
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("Crawljax-testing-suite CLI", options);
 	}
@@ -155,28 +163,30 @@ public class CrawlRunner {
 		}
 	}
 
-	private void actionLocalCrawler() {
+	private void actionLocalCrawler(File websitePath) {
 		System.out.println("Started local crawler");
 		try {
-			crawlManager.websitesFromFile(new File("/websites.txt")); // TODO fix path
-			crawlManager.crawlWebsites();
+			crawlManager.websitesFromFileToQueue(websitePath);
+			crawlManager.crawlWebsitesFromQueue();
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
 	}
 
 	private void actionAnalysis() {
-		// Build factory
-		AnalysisBuilderImpl factory = injector.getInstance(AnalysisBuilderImpl.class);
-		factory.addMetric(injector.getInstance(SpeedMetric.class));
-		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
+		// Add metrics
+		analysisFactory.addMetric(injector.getInstance(SpeedMetric.class));
+		analysisFactory.addMetric(injector.getInstance(StateAnalysisMetric.class));
+		
+		// Settings
+		Map<String, String> settings = config.getConfiguration("common");
+		String threshold = settings.get("threshold");
+		String feature = settings.get("feature").replace(";","|");
 
 		// Generate report
-		Analysis analysis = factory.getAnalysis("analysis", new int[] { 2 });
+		Analysis analysis = analysisFactory.getAnalysis("analysis-" + threshold + "-" + feature, new int[] { 1, 2, 15}); //, 48, 51, 53 });
 
-		new AnalysisProcessorFile().apply(analysis);
-		new AnalysisProcessorCsv("test").apply(analysis);
-		// Output to cmd
-		new AnalysisProcessorCmd().apply(analysis);
+		// Output results
+		new AnalysisProcessorCsv("analysis-results").apply(analysis);
 	}
 }

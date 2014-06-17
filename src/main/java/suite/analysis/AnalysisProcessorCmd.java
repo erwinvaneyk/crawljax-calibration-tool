@@ -39,7 +39,7 @@ public class AnalysisProcessorCmd implements AnalysisProcessor {
 			writer.print(HORIZONTALBREAK_MAIN);
 		} catch (Exception e) {
 			writer.print("Failed to print report: " + analysisReport + ", because "
-			        + e.getMessage());
+			        + e.getMessage() + LINEBREAK);
 			log.error("Failed to print report: " + analysisReport + ", because " + e.getMessage());
 		}
 	}

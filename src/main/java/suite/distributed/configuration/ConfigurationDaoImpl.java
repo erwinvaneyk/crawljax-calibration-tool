@@ -12,6 +12,7 @@ import java.util.Map;
 import suite.distributed.ConnectionManager;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  * depth|section|key|value| - pair <secton,key> is UNIQUE - ORDER BY depth DESC
  */
 @Slf4j
+@Singleton
 public class ConfigurationDaoImpl implements ConfigurationDao {
 
 	private static final String TABLE = "configuration";

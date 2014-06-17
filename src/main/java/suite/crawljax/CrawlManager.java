@@ -42,7 +42,7 @@ public class CrawlManager {
 	 * @throws IOException
 	 *             the file could not be found.
 	 */
-	public void websitesFromFile(File websitesPath) throws IOException {
+	public void websitesFromFileToQueue(File websitesPath) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()));
 		UrlValidator urlValidator = new UrlValidator();
 		String line;
@@ -61,7 +61,7 @@ public class CrawlManager {
 	 * 
 	 * @return the outputdirs of the crawled websites
 	 */
-	public List<File> crawlWebsites() {
+	public List<File> crawlWebsitesFromQueue() {
 		List<File> outputdirs = new ArrayList<File>(websiteQueue.size());
 		try {
 			ConfigurationDao config = new ConfigurationIni();

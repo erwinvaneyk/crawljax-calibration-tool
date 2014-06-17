@@ -12,6 +12,7 @@ import java.util.List;
 import suite.distributed.ConnectionManager;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * responsible for managing the workload of the clients.
  */
 @Slf4j
+@Singleton
 public class WorkloadDaoImpl implements WorkloadDao {
 
 	private static final String TABLE = "workload";

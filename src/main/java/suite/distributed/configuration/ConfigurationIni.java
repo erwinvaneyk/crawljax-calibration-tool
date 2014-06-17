@@ -12,11 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 @Slf4j
+@Singleton
 public class ConfigurationIni implements ConfigurationDao {
 
 	public static final String INI_SECTION_COMMON = "common";
-	private static final File DEFAULT_SETTINGS_FILE = new File("src/mainconfig/settings.ini");
+	private static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/settings.ini");
 	private File settingsIniFile;
 
 	private static Ini ini;
@@ -32,6 +36,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
+	@Inject
 	public ConfigurationIni() {
 		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
 		try {

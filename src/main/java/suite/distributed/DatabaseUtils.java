@@ -119,7 +119,7 @@ public class DatabaseUtils {
 	 */
 	public void actionFlushWebsitesFile(File file) {
 		try {
-			crawlManager.websitesFromFile(file);
+			crawlManager.websitesFromFileToQueue(file);
 			String rawUrl;
 			while ((rawUrl = crawlManager.getWebsiteQueue().poll()) != null) {
 				workload.submitWork(new URL(rawUrl), false);
