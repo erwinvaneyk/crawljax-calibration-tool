@@ -2,11 +2,25 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>crawljax-functional-testing-suite</groupId>
   <artifactId>crawljax-functional-testing-suite</artifactId>
-  <version>0.7.0</version>
+  <version>0.8.0</version>
   <name>Crawljax Functional Testing Suite</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
-    <sourceDirectory>src</sourceDirectory>
+  	<!-- Build with: mvn clean compile assembly:single -->
+  	<resources>
+		<resource>
+			<directory>src/main/resources</directory>
+			<filtering>true</filtering>
+		</resource>
+		<resource>
+			<directory>src/main/config</directory>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
+			<filtering>true</filtering>
+		</resource>
+	</resources>
+  
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -22,7 +36,7 @@
       <configuration>
         <archive>
           <manifest>
-            <mainClass>main.java.CrawlRunner</mainClass>
+            <mainClass>suite.CrawlRunner</mainClass>
           </manifest>
         </archive>
         <descriptorRefs>
@@ -46,26 +60,10 @@
           <goal>copy-resources</goal>
         </goals>
         <configuration>
-          <outputDirectory>${basedir}/target/${project.artifactId}-${project.version}/config</outputDirectory>
+          <outputDirectory>${basedir}/target/${project.artifactId}-${project.version}/src/main/config</outputDirectory>
           <resources>
             <resource>
-                <directory>/config</directory>
-                <filtering>true</filtering>
-            </resource>
-          </resources>
-        </configuration>
-      </execution>
-      <execution>
-        <id>copy-resources-2</id>
-        <phase>validate</phase>
-        <goals>
-          <goal>copy-resources</goal>
-        </goals>
-        <configuration>
-          <outputDirectory>${basedir}/target/${project.artifactId}-${project.version}</outputDirectory>
-          <resources>
-            <resource>
-                <directory>/resources</directory>
+                <directory>src/main/config</directory>
                 <filtering>true</filtering>
             </resource>
           </resources>
@@ -74,11 +72,6 @@
     </executions>
   </plugin>
     </plugins>
-    <resources>
-     <resource>
-       <directory>${basedir}/resources/</directory>
-     </resource>
-   </resources>
   </build>
   <url>https://github.com/erwinvaneyk/crawljax-functional-testing-suite</url>
   <issueManagement>
