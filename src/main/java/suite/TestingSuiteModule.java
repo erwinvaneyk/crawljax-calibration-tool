@@ -17,9 +17,11 @@ import suite.distributed.results.WebsiteResult;
 import suite.distributed.workload.WorkloadDao;
 import suite.distributed.workload.WorkloadDaoImpl;
 
-import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.crawljax.core.state.duplicatedetection.FeatureType;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlhash;
+import com.crawljax.core.state.duplicatedetection.XxHashGenerator;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.j256.ormlite.dao.Dao;
@@ -32,7 +34,7 @@ public class TestingSuiteModule extends AbstractModule {
 		// Use Near-duplicate Module
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		install(new DuplicateDetectionModule(1, ft));
+		bind(NearDuplicateDetection.class).toInstance(new NearDuplicateDetectionCrawlhash(1, ft, new XxHashGenerator()));
 
 		// Analysis
 		bind(AnalysisBuilder.class).to(AnalysisBuilderImpl.class);
