@@ -3,23 +3,16 @@ package suite;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 
-import suite.analysis.Analysis;
-import suite.analysis.AnalysisBuilder;
-import suite.analysis.AnalysisProcessorCsv;
-import suite.analysis.SpeedMetric;
-import suite.analysis.StateAnalysisMetric;
+import suite.analysis.*;
 import suite.crawljax.CrawlManager;
 import suite.distributed.DatabaseUtils;
 import suite.distributed.configuration.ConfigurationDao;
-import suite.distributed.configuration.ConfigurationIni;
 import suite.distributed.results.ResultProcessor;
 import suite.distributed.results.ResultProcessorException;
 import suite.distributed.workload.WorkTask;
@@ -30,9 +23,11 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class CrawlRunner {
+	private static String namespace;
+	private static final String APPLICATION_NAME = "Crawljax Testing Suite";
+	
 	@Inject private Injector injector;
-	String[] additionalArgs = null;
-	DatabaseUtils dbUtils;
+	private DatabaseUtils dbUtils;
 	private ResultProcessor resultProcessor;
 	private WorkloadDao workload;
 	private CrawlManager crawlManager;
@@ -40,16 +35,45 @@ public class CrawlRunner {
 	private AnalysisBuilder analysisFactory;
 
 	public static void main(String[] args) {
-		// Header
-		System.out.println("Crawljax Testing Suite");
-		System.out.println("---------------------------------");
+		try {
+			// Header
+			System.out.println(APPLICATION_NAME + "\n---------------------------------");
+	
+			// Parse commandline
+			CommandLine cmd = new BasicParser().parse(buildOptions(), args);	
+			namespace = cmd.hasOption("n") ? cmd.getOptionValue("n") : "";
+			
+			// Setup Crawlrunner
+			CrawlRunner cr =
+			        Guice.createInjector(new TestingSuiteModule(namespace)).getInstance(CrawlRunner.class);
+			cr.actOnArgs(cmd);
+			
+			// Finish up.
+			System.out.println("Finished.");
+        } catch (ParseException e) {
+	        System.out.println("Error while parsing arguments: " + e.getMessage());
+        }
+	}	
 
-		// Do stuff
-		CrawlRunner cr =
-		        Guice.createInjector(new TestingSuiteModule()).getInstance(CrawlRunner.class);
-		cr.actOnArgs(args);
-		// Finish up.
-		System.out.println("Finished.");
+	private static Options buildOptions() {
+		Options options = new Options();
+		options.addOption("w", "worker", false,
+		        "Setup computer as slave/worker, polling the db continuously for work.");
+		options.addOption("f", "flush", true,
+		        "Flushes the provided website-file to the server. Nothing is crawled.");
+		options.addOption("s", "settings", true,
+		        "Flushes the provided setting-file to the server. Nothing is crawled.");
+		options.addOption("l", "local", true,
+		        "Do not use server-functionality. Read the website-file and crawl all.");
+		options.addOption("a", "analyse", false,
+		        "Run the analysis-manager. This system will not help crawling");
+		options.addOption("n", "namespace", true,
+		        "Sets a custom namespace for the instance. This enables multiple crawl-sessions on a single database");
+		options.addOption("noWaiting", false,
+		        "Prevents a worker-instance from waiting on new tasks. If no tasks are left, the worker stops.");
+		options.addOption("useCommonSettings", false,
+		        "Lets a worker use the default settings, as defined by ConfigurationDAO. Generally the common-section.");
+		return options;
 	}
 
 	@Inject
@@ -64,57 +88,28 @@ public class CrawlRunner {
 		this.analysisFactory = factory;
 	}
 
-	public void actOnArgs(String[] args) {
-		// Parse Args
-		String arg = "";
-		if (args.length > 0) {
-			arg = args[0];
-			additionalArgs = Arrays.copyOfRange(args, 1, args.length);
-		}
-		// Actions
-		if (arg.equals("-w") || arg.equals("--worker")) {
-			actionWorker();
-		} else if (arg.equals("-f") || arg.equals("--flush")) {
-			if(!checkArgumentExists(additionalArgs, 1)) return;
-			dbUtils.actionFlushWebsitesFile(new File(args[1]));
-		} else if (arg.equals("-s") || arg.equals("--settings")) {
-			if(!checkArgumentExists(additionalArgs, 1)) return;
-			dbUtils.actionFlushSettingsFile(new File(args[1]));
-		} else if (arg.equals("-l") || arg.equals("--local")) {
-			if(!checkArgumentExists(additionalArgs, 1)) return;
-			actionLocalCrawler(new File(args[1]));
-		} else if (arg.equals("-a") || arg.equals("--analyse")) {
+	public void actOnArgs(CommandLine cmd) {
+		if (cmd.hasOption("worker")) {
+			actionWorker(namespace, cmd.hasOption("noWaiting"), cmd.hasOption("useCommonSettings"));
+		} else if (cmd.hasOption("flush")) {
+			dbUtils.actionFlushWebsitesFile(new File(cmd.getOptionValue("flush")));
+		} else if (cmd.hasOption("settings")) {
+			dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
+		} else if (cmd.hasOption("local")) {
+			actionLocalCrawler(new File(cmd.getOptionValue("local")));
+		} else if (cmd.hasOption("analysis")) {
 			actionAnalysis();
 		} else {
 			actionHelp();
 		}
 	}
-	
-	private boolean checkArgumentExists(String[] args, int count) {
-		if(args.length < count) {
-			System.out.println("Error: Argument missing");
-			return false;
-		}
-		return true;
-	}
 
 	private void actionHelp() {
-		Options options = new Options();
-		options.addOption("w", "worker", false,
-		        "Setup computer as slave/worker, polling the db continuously for work.");
-		options.addOption("f", "flush", true,
-		        "Flushes the provided website-file to the server. Nothing is crawled.");
-		options.addOption("s", "settings", true,
-		        "Flushes the provided setting-file to the server. Nothing is crawled.");
-		options.addOption("l", "local", true,
-		        "Do not use server-functionality. Read the website-file and crawl all.");
-		options.addOption("a", "analyse", false,
-		        "Run the analysis-manager. This system will not help crawling");
 		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("Crawljax-testing-suite CLI", options);
+		formatter.printHelp(APPLICATION_NAME, buildOptions());
 	}
 
-	private void actionWorker() {
+	private void actionWorker(String namespace, boolean noWaiting, boolean useDefaults) {
 		try {
 			System.out.println("Started client crawler/worker.");
 			while (true) {
@@ -123,8 +118,7 @@ public class CrawlRunner {
 				while (workTasks.isEmpty()) {
 					workTasks = workload.retrieveWork(1);
 					if (workTasks.isEmpty()) {
-						if (additionalArgs.length >= 1 && additionalArgs[0].equals("-finish"))
-							return;
+						if (noWaiting) return;
 						Thread.sleep(1000 * 10); // sleep 10 seconds
 					}
 				}
@@ -133,9 +127,16 @@ public class CrawlRunner {
 					try {
 						List<String> sections = new ArrayList<String>();
 						sections.add(task.getURL().getHost());
-						sections.add(ConfigurationIni.INI_SECTION_COMMON);
+						if(useDefaults) {
+							sections.add(ConfigurationDao.SECTION_COMMON);
+							System.out.println("Worker uses default settings.");
+						} else {
+							sections.add(namespace);
+						}
 						Map<String, String> args = config.getConfiguration(sections);
-						File dir = CrawlManager.generateOutputDir(task.getURL());
+						if(args.isEmpty())
+							System.out.println("No configuration found for namespace: \"" + namespace + "\". Using Crawljax' default settings!");
+						File dir = crawlManager.generateOutputDir(task.getURL());
 						// Crawl
 						long timeStart = new Date().getTime();
 						boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);

@@ -41,20 +41,11 @@ public class StateAnalysisMetric implements Metric {
 	public static final String TOTAL_BENCHMARK_UNIQUE_STATES = "Total unique benchmark states";
 	public static final String MISSED_UNIQUE_STATES = "Missed unique states";
 
-	/**
-	 * The threshold is used for retrieveNearestState, to indicate the max difference between two
-	 * 'similar' states.
-	 */
-
-	private int thresholdNearestState = 1;
-
 	private DatabaseUtils databaseUtils;
 
 	@Inject
 	public StateAnalysisMetric(DatabaseUtils databaseUtils, NearDuplicateDetection npd) {
 		// Configure a NearestDuplicateDetection for comparing the states
-		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
 		this.nearDuplicateDetection = npd;
 		this.databaseUtils = databaseUtils;
 	}
@@ -137,7 +128,7 @@ public class StateAnalysisMetric implements Metric {
 			// Find the similar/equal state in the benchmark-list, under a threshold.
 			StateResult testState = iterator.next();
 			StateResult benchmarkState =
-			        retrieveNearestState(benchmarkStates, testState, thresholdNearestState);
+			        retrieveNearestState(benchmarkStates, testState);
 			if (benchmarkState != null) {
 				// If found remove the state and all duplicates from the benchmark-list,
 				if (!removeStateAndDuplicates(benchmarkStates, duplicates,
@@ -211,7 +202,7 @@ public class StateAnalysisMetric implements Metric {
 	 *         threshold, return null.
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states,
-	        @NonNull StateResult source, int threshold) {
+	        @NonNull StateResult source) {
 		StateResult result = null;
 		int minDistance = Integer.MAX_VALUE;
 		for (StateResult state : states) {
@@ -221,7 +212,7 @@ public class StateAnalysisMetric implements Metric {
 				        nearDuplicateDetection.generateFingerprint(source.getDom()).getDistance(
 				                nearDuplicateDetection.generateFingerprint(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
-				if (distance <= threshold && distance < minDistance) {
+				if (distance <= nearDuplicateDetection.getDefaultThreshold() && distance < minDistance) {
 					result = state;
 					minDistance = (int) distance;
 				}

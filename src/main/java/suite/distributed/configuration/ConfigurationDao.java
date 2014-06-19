@@ -7,6 +7,8 @@ import java.util.Map;
  * ConfigurationDaoImpl implementations take care of managing distributed ini-like configurations.
  */
 public interface ConfigurationDao {
+	
+	public static final String SECTION_COMMON = "common";
 
 	/**
 	 * Get all configurations.

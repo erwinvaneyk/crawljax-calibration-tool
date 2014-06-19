@@ -50,10 +50,10 @@ public class ConfigurationMapperTest {
 		assertEquals(result.getMaximumRuntime(), 600000);
 		assertEquals(result.getOutputDir(), outputDir);
 		assertEquals(result.getUrl(), url.toURI());
-		assertEquals(result.getThresholdNearDuplicateDetection(), 0.5, 0.01);
+		assertEquals(result.getNearDuplicateDetectionFactory().getDefaultThreshold(), 0.5, 0.01);
 		assertEquals(result.getCrawlRules().getWaitAfterEvent(), 4000);
 		assertEquals(result.getCrawlRules().getWaitAfterReloadUrl(), 4000);
-		assertEquals(result.getFeaturesNearDuplicateDetection().size(), 1);
+		assertEquals(result.getNearDuplicateDetectionFactory().getFeatures().size(), 1);
 	}
 
 }

@@ -26,6 +26,9 @@ public class WorkTask {
 	@DatabaseField(defaultValue = "", canBeNull = false)
 	private String worker;
 
+	@DatabaseField(defaultValue = "")
+	private String namespace;
+
 	@DatabaseField
 	private boolean crawled;
 

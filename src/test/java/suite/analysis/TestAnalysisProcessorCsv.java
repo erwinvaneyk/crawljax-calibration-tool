@@ -36,12 +36,12 @@ public class TestAnalysisProcessorCsv {
 
 	}
 
-	@AfterClass
+	//@AfterClass
 	public static void afterClass() {
 		try {
 			FileUtils.deleteDirectory(dir);
 		} catch (IOException e) {
-			System.out.println("Error while deleting directory: " + e.getMessage());
+			System.out.println("Error while deleting temp-directory." + e.getMessage());
 		}
 	}
 

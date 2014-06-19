@@ -78,8 +78,7 @@ public class DatabaseUtils {
 				log.warn("Not all results for websiteId {} could be deleted.", id);
 			}
 		} catch (SQLException e) {
-			log.info("SQLException while deleting the results of id={}", id);
-			e.printStackTrace();
+			log.error("SQLException while deleting the results of id={}", id);
 		}
 
 		return result;
@@ -125,7 +124,7 @@ public class DatabaseUtils {
 				workload.submitWork(new URL(rawUrl), false);
 			}
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			log.error("Error while reading file: " + e.getMessage());
 		}
 	}
 

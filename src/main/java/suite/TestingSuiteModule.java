@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import suite.analysis.AnalysisBuilder;
 import suite.analysis.AnalysisBuilderImpl;
 import suite.distributed.ConnectionManager;
@@ -20,19 +21,32 @@ import suite.distributed.workload.WorkloadDaoImpl;
 import com.crawljax.core.state.duplicatedetection.DuplicateDetectionModule;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.crawljax.core.state.duplicatedetection.FeatureType;
+import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlhash;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.name.Names;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 
+@Slf4j
 public class TestingSuiteModule extends AbstractModule {
+	
+	private String namespace = "";
+
+	public TestingSuiteModule() {}
+	
+	public TestingSuiteModule(String namespace) {
+		this.namespace  = namespace;
+		log.info("Namespace used: \"" + namespace + "\"");
+	}
 
 	@Override
 	protected void configure() {
 		// Use Near-duplicate Module
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		install(new DuplicateDetectionModule(1, ft));
+		NearDuplicateDetectionCrawlhash factory = new NearDuplicateDetectionCrawlhash(1, ft);
+		install(new DuplicateDetectionModule(factory));
 
 		// Analysis
 		bind(AnalysisBuilder.class).to(AnalysisBuilderImpl.class);
@@ -49,6 +63,9 @@ public class TestingSuiteModule extends AbstractModule {
 
 		// Workload
 		bind(WorkloadDao.class).to(WorkloadDaoImpl.class);
+		
+		// Namespace binding
+		bind(String.class).annotatedWith(Names.named("namespace")).toInstance(namespace);
 	}
 
 	@Provides

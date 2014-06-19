@@ -1,6 +1,5 @@
 package suite.distributed.workload;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -13,6 +12,7 @@ import suite.distributed.ConnectionManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,9 +29,10 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	private static final String COLUMN_URL = "url";
 	private static final String COLUMN_WORKERID = "worker";
 	private static final String COLUMN_CRAWLED = "crawled";
+	private static final String COLUMN_NAMESPACE = "namespace";
 
 	private ConnectionManager connMgr;
-
+	private String namespace;
 	private static String workerID;
 
 	static {
@@ -46,13 +47,20 @@ public class WorkloadDaoImpl implements WorkloadDao {
 
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
-	 * 
-	 * @throws IOException
-	 *             The ConnectionManagerImpl could not retrieve the settings-file.
 	 */
 	@Inject
+	public WorkloadDaoImpl(ConnectionManager conn, @Named("namespace") String namespace) {
+		this.connMgr = conn;
+		this.namespace = namespace;
+		log.info("WorkerID: " + workerID);
+	}
+	
+	/**
+	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
+	 */
 	public WorkloadDaoImpl(ConnectionManager conn) {
-		connMgr = conn;
+		this.connMgr = conn;
+		this.namespace = "";
 		log.info("WorkerID: " + workerID);
 	}
 
@@ -73,14 +81,14 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			        conn.createStatement().executeUpdate(
 			                "UPDATE " + TABLE + " SET " + COLUMN_WORKERID + "=\"" + workerID
 			                        + "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND "
-			                        + COLUMN_WORKERID + "=\"\" LIMIT " + maxcount);
+			                        + COLUMN_WORKERID + "=\"\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" LIMIT " + maxcount);
 			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 			// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res =
 			        conn.createStatement().executeQuery(
 			                "SELECT * FROM  " + TABLE + " WHERE " + COLUMN_WORKERID + " = \""
-			                        + workerID + "\" AND " + COLUMN_CRAWLED + " = 0");
+			                        + workerID + "\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {
 				try {
 					int id = res.getInt("id");
@@ -141,8 +149,9 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			Statement statement = conn.createStatement();
 			ret =
 			        statement.executeUpdate("INSERT INTO " + TABLE + " (" + COLUMN_URL + ","
-			                + COLUMN_CRAWLED + "," + COLUMN_WORKERID + ") VALUES (\"" + url
-			                + "\",0, \"" + worker + "\")", Statement.RETURN_GENERATED_KEYS);
+			                + COLUMN_CRAWLED + "," + COLUMN_WORKERID + "," + COLUMN_NAMESPACE
+			                + ") VALUES (\"" + url + "\",0, \"" + worker + "\",\"" + namespace
+			                + "\")", Statement.RETURN_GENERATED_KEYS);
 			log.info("Succesfully submitted {} to the server.", url);
 
 			// Get generated key
