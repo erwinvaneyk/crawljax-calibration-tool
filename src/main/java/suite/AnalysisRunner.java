@@ -52,7 +52,7 @@ public class AnalysisRunner {
 		try {
 			for (int i = minShingleSize; i <= maxShingleSize; i++) {
 				config.updateConfiguration(NAMESPACE, "feature",
-				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType), 6);
+				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType), 5);
 				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, WEBSITE_IDS);
 				for (Analysis analysis : results) {
 					new AnalysisProcessorCsv(FILENAME + shingleType + "-" + i).apply(analysis);

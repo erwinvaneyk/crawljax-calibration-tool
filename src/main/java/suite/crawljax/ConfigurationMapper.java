@@ -28,7 +28,7 @@ public class ConfigurationMapper {
 
 	private double threshold = -1;
 	private List<FeatureType> features;
-	private String ndd;
+	private String ndd = "";
 
 	/**
 	 * Sets up the crawljax-configuration for a given website, outputDir and additional args
@@ -70,7 +70,7 @@ public class ConfigurationMapper {
 	}
 
 	private NearDuplicateDetection buildNearDuplicateDetectionFactory() {
-		if(threshold < 0 || features == null || ndd == null)
+		if(threshold < 0 || features == null)
 			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
 		log.info("Build NDD using parametes: {} and {}", threshold, features);
 		if(ndd.equalsIgnoreCase("broder")) {
