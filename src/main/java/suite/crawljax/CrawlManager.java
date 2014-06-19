@@ -88,7 +88,7 @@ public class CrawlManager {
 	 *             website contains an invalid syntax
 	 * @throws MalformedURLException
 	 */
-	public static File generateOutputDir(URL website) {
+	public File generateOutputDir(URL website) {
 		Date date = new Date();
 		Timestamp timestamp = new Timestamp(date.getTime());
 		return new File(DEFAULT_OUTPUT_DIR + "/" + website.getHost() + "-" + timestamp.getTime());

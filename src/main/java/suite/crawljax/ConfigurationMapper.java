@@ -26,7 +26,9 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 @Slf4j
 public class ConfigurationMapper {
 
-	private static List<FeatureType> features;
+	private double threshold;
+	private List<FeatureType> features;
+	private String ndd;
 
 	/**
 	 * Sets up the crawljax-configuration for a given website, outputDir and additional args
@@ -62,9 +64,21 @@ public class ConfigurationMapper {
 				        e.getMessage());
 			}
 		}
-		builder.setFeaturesNearDuplicateDetection(features);
+		if(features != null && threshold >= 0 )
+			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());	
 		return builder.build();
 	}
+
+	private NearDuplicateDetection buildNearDuplicateDetectionFactory() {
+		if(threshold < 0 || features == null || ndd == null)
+			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
+		log.info("Build NDD using parametes: {} and {}", threshold, features);
+		if(ndd.equalsIgnoreCase("broder")) {
+			return new NearDuplicateDetectionBroder(threshold,features);
+		} else {
+			return new NearDuplicateDetectionCrawlhash(threshold,features);
+		}
+    }
 
 	/**
 	 * Converts a key=value representation to the relevant setting in Crawljax
@@ -88,7 +102,9 @@ public class ConfigurationMapper {
 		} else if (key.equalsIgnoreCase("t") || key.equalsIgnoreCase("timeout")) {
 			builder.setMaximumRunTime(Long.parseLong(value), TimeUnit.MINUTES);
 		} else if (key.equalsIgnoreCase("threshold")) {
-			builder.setThresholdNearDuplicateDetection(Double.parseDouble(value));
+			threshold = Double.parseDouble(value);
+		} else if (key.equalsIgnoreCase("ndd") || key.equalsIgnoreCase("nearduplicatedetection")) {
+			ndd = value;
 		} else if (key.equalsIgnoreCase("a") || key.equalsIgnoreCase("crawlHiddenAnchors")) {
 			builder.crawlRules().crawlHiddenAnchors(true);
 		} else if (key.equalsIgnoreCase("waitAfterReload")) {
