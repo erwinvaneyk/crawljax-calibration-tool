@@ -26,7 +26,7 @@ import com.crawljax.plugins.crawloverview.CrawlOverview;
 @Slf4j
 public class ConfigurationMapper {
 
-	private double threshold;
+	private double threshold = -1;
 	private List<FeatureType> features;
 	private String ndd;
 
@@ -64,7 +64,7 @@ public class ConfigurationMapper {
 				        e.getMessage());
 			}
 		}
-		if(features != null && threshold >= 0 )
+		if(!features.isEmpty() && threshold >= 0)
 			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());	
 		return builder.build();
 	}

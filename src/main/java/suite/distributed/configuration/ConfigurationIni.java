@@ -19,7 +19,6 @@ import com.google.inject.Singleton;
 @Singleton
 public class ConfigurationIni implements ConfigurationDao {
 
-	public static final String INI_SECTION_COMMON = "common";
 	private static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/settings.ini");
 	private File settingsIniFile;
 
@@ -29,7 +28,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		this.settingsIniFile = absoluteFilepath;
 		try {
 			ini = new Ini(new FileInputStream(settingsIniFile));
-			if (ini.containsKey(INI_SECTION_COMMON))
+			if (ini.containsKey(SECTION_COMMON))
 				log.warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -41,7 +40,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
 		try {
 			ini = new Ini(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
-			if (ini.containsKey(INI_SECTION_COMMON))
+			if (ini.containsKey(SECTION_COMMON))
 				log.warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -79,7 +78,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *            the new ini.
 	 */
 	public void setIni(Ini newIni) {
-		if (newIni.containsKey(INI_SECTION_COMMON))
+		if (newIni.containsKey(SECTION_COMMON))
 			log.warn("Common section could not be found in INI-file");
 		ini = newIni;
 	}
@@ -91,7 +90,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	public Map<String, String> getConfiguration() {
 		// Load common settings{
 		Map<String, String> args = new HashMap<String, String>();
-		addSettings(args, INI_SECTION_COMMON);
+		addSettings(args, SECTION_COMMON);
 		log.debug("Common Settings retrieved.");
 		return args;
 	}
