@@ -59,18 +59,18 @@ public class TestStoreDomPlugin {
 		domPlugin.onNewState(context, newState);
 
 		// Make sure the strippedDom is written correctly to the file
-		String fileContent = "";
+		StringBuffer fileContent = new StringBuffer();
 		File strippedDom = testDir.listFiles()[0];
 		for (File file : strippedDom.listFiles()) {
 			if (file.getName().equals("TestState.html")) {
 				BufferedReader br = new BufferedReader(new FileReader(file));
 				String line;
 				while ((line = br.readLine()) != null) {
-					fileContent += line;
+					fileContent.append(line);
 				}
 				br.close();
 			}
 		}
-		assertEquals("This represents the StrippedDom", fileContent);
+		assertEquals("This represents the StrippedDom", fileContent.toString());
 	}
 }

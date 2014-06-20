@@ -22,7 +22,7 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 	private String filename;
 
 	public AnalysisProcessorCsv(String filename) {
-		if (filename == null || filename == "")
+		if (filename == null || filename.equals(""))
 			throw new AnalysisException("Invalid filename provided: " + filename
 			        + ". Filename cannot be null or empty.");
 		this.filename = filename;

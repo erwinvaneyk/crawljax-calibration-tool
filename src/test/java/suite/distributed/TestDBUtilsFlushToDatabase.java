@@ -38,7 +38,7 @@ public class TestDBUtilsFlushToDatabase {
 	public void testFlushWebsites() throws SQLException, IOException {
 		this.makeWebsiteFile();
 
-		dbUtils.actionFlushWebsitesFile(new File("/testFlushWebsites.txt"));
+		dbUtils.actionFlushWebsitesFile(new File("config/testFlushWebsites.txt"));
 
 		int idFirst = this.getIdFromUrl("http://thiMayNotExist.hu");
 		assertThat(idFirst, not(is(-1)));
@@ -65,10 +65,8 @@ public class TestDBUtilsFlushToDatabase {
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
 			log.error("FileNotFoundException while making the stub website-file");
-			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
 			log.error("UnsupportedEncodingException while making the the stub website-file");
-			System.exit(1);
 		}
 	}
 
@@ -79,7 +77,7 @@ public class TestDBUtilsFlushToDatabase {
 	 * @throws SQLException
 	 */
 	private int getIdFromUrl(String url) throws SQLException {
-		String sql = "SELECT id FROM workload WHERE url=?";
+		String sql = "SELECT id FROM workload WHERE `url`=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setString(1, url);
 
@@ -104,7 +102,7 @@ public class TestDBUtilsFlushToDatabase {
 	public void testFlushSettings() throws SQLException, IOException {
 		this.makeSettingsFile();
 
-		dbUtils.actionFlushSettingsFile(new File("/testFlushSettings.txt"));
+		dbUtils.actionFlushSettingsFile(new File("config/testFlushSettings.txt"));
 		// Test if succesful
 		this.checkIfCorrectlyInserted("notExists", "common", "99");
 		this.checkIfCorrectlyInserted("something", "demo.crawljax.com", "-9");
@@ -126,16 +124,14 @@ public class TestDBUtilsFlushToDatabase {
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
 			log.error("FileNotFoundException while making the stub settings-file");
-			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
 			log.error("UnsupportedEncodingException while making the the stub settings-file");
-			System.exit(1);
 		}
 	}
 
 	private void checkIfCorrectlyInserted(String key, String sectionExp, String valueExp)
 	        throws SQLException {
-		String sql = "SELECT * FROM configuration WHERE 'key'=?";
+		String sql = "SELECT * FROM configuration WHERE `key`=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setString(1, key);
 

@@ -31,7 +31,7 @@ public class ConfigurationMapperTest {
 	public void testConvert() throws MalformedURLException, URISyntaxException {
 		ConfigurationMapper cm = new ConfigurationMapper();
 		URL url = new URL("http://www.test.com");
-		File outputDir = new File("/test/");
+		File outputDir = new File("test/");
 		Map<String, String> args = new HashMap<String, String>();
 		args.put("depth", "5");
 		args.put("maxstates", "4");

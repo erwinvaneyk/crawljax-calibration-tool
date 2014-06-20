@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class ConnectionManagerImpl implements ConnectionManager {
 
-	public static String DRIVER = "com.mysql.jdbc.Driver";
+	public static final String DRIVER = "com.mysql.jdbc.Driver";
 
 	private Connection connection;
 	private static Properties settings;

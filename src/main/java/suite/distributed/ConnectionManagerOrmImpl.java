@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
         implements ConnectionManagerOrm {
 
-	public static String DRIVER = "com.mysql.jdbc.Driver";
+	public static final String DRIVER = "com.mysql.jdbc.Driver";
 
 	private JdbcConnectionSource connection;
 	private static Properties settings;

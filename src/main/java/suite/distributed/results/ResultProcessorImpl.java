@@ -172,18 +172,18 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 * @return contents of file
 	 */
 	private String readFile(File file) throws ResultProcessorException {
-		String fileContent = "";
+		StringBuffer fileContent = new StringBuffer();
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
 
 			while ((line = br.readLine()) != null) {
-				fileContent += line;
+				fileContent.append(line);
 			}
 			br.close();
 		} catch (IOException e) {
 			throw new ResultProcessorException("Could not read file " + file.getName());
 		}
-		return fileContent;
+		return fileContent.toString();
 	}
 }

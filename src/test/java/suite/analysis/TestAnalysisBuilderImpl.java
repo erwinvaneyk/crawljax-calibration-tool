@@ -16,10 +16,6 @@ import static org.mockito.Mockito.*;
 
 public class TestAnalysisBuilderImpl {
 
-	public final static String BenchmarkUrl = "http://demo.crawljax.com";
-	public static WebsiteResult benchmarkWebsite;
-	public static int benchmarkWebsiteID = 1;
-
 	@Test(expected = AnalysisException.class)
 	public void testGetAnalysisIDsNull() {
 		Dao<WebsiteResult, String> websiteDao = mock(Dao.class);

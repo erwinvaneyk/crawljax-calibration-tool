@@ -93,10 +93,8 @@ public class TestResultProcessor {
 			json.close();
 		} catch (FileNotFoundException e) {
 			log.error("FileNotFoundException while adding the stub Json-file to the test directory");
-			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
 			log.error("UnsupportedEncodingException while making the the stub Json-file");
-			System.exit(1);
 		}
 	}
 
@@ -116,7 +114,6 @@ public class TestResultProcessor {
 			screenshot.close();
 		} catch (IOException e) {
 			log.error("IOException while making the screenshot stub file");
-			System.exit(1);
 		}
 	}
 
@@ -131,10 +128,8 @@ public class TestResultProcessor {
 		} catch (FileNotFoundException e) {
 			log.error("FileNotFoundException while adding the stub " + sd
 			        + "-file to the test directory");
-			System.exit(1);
 		} catch (UnsupportedEncodingException e) {
 			log.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
-			System.exit(1);
 		}
 	}
 

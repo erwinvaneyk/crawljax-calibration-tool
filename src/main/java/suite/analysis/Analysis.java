@@ -40,7 +40,7 @@ public class Analysis {
 	 */
 	public Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
 	        ImmutableList<Metric> metrics) {
-		if (title != null && title != "")
+		if (title != null && !title.equals(""))
 			this.title = title;
 		if (benchmarkWebsites == null || benchmarkWebsites.isEmpty()) {
 			throw new AnalysisException(

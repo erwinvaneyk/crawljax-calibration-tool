@@ -52,9 +52,9 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		Map<String, String> config = new HashMap<String, String>();
 		try {
 			Connection conn = connMgr.getConnection();
-			String where = "WHERE ";
+			StringBuffer where = new StringBuffer("WHERE ");
 			for (String section : sections) {
-				where += "`" + COLUMN_SECTION + "`=\"" + section + "\" OR ";
+				where.append("`" + COLUMN_SECTION + "`=\"" + section + "\" OR ");
 			}
 			ResultSet res =
 			        conn.createStatement().executeQuery(

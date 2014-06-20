@@ -26,7 +26,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	private static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/settings.ini");
 	private File settingsIniFile;
 
-	private static Ini ini;
+	private Ini ini;
 
 	/**
 	 * Provide a custom INI-file to use in the ConfigurationIni
