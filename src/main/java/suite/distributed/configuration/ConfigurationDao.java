@@ -42,12 +42,9 @@ public interface ConfigurationDao {
 	 *            the key of the setting
 	 * @param value
 	 *            the value of the setting
-	 * @param importance
-	 *            specifies the relative importance between two conflicting settings. When in a
-	 *            getConfiguration two or more conflicting (= same key) settings are retrieved, the
-	 *            value is returned of the setting with the highest importance.
+	 * 
 	 */
-	public void updateConfiguration(String section, String key, String value, int importance);
+	public void updateConfiguration(String section, String key, String value);
 
 	/**
 	 * Delete a key from one section
@@ -66,4 +63,16 @@ public interface ConfigurationDao {
 	 *            section all keys need to be deleted.
 	 */
 	public void deleteConfiguration(String section);
+	
+	/**
+	 * Sets the relative importance of a section to a new value.
+	 * 
+	 * @param section
+	 *            The relevant section
+	 * @param importance
+	 *            specifies the relative importance between two conflicting settings. When in a
+	 *            getConfiguration two or more conflicting (= same key) settings are retrieved, the
+	 *            value is returned of the setting with the highest importance.
+	 */
+	public void setImportance(String section, int importance);
 }

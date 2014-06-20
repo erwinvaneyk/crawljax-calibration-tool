@@ -52,7 +52,7 @@ public class AnalysisRunner {
 		try {
 			for (int i = minShingleSize; i <= maxShingleSize; i++) {
 				config.updateConfiguration(NAMESPACE, "feature",
-				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType), 5);
+				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType));
 				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, WEBSITE_IDS);
 				for (Analysis analysis : results) {
 					new AnalysisProcessorCsv(FILENAME + shingleType + "-" + i).apply(analysis);
@@ -74,11 +74,11 @@ public class AnalysisRunner {
 
 		for (double i = from; i <= to; i += step) {
 			// update setting
-			config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(i), 6);
+			config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(i));
 			// run crawler
 			results.add(factory.getAnalysis("threshold-" + i, websiteids));
 		}
-		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"), 6);
+		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
 		System.out.println("Finished!");
 		return results;
 	}
@@ -90,7 +90,7 @@ public class AnalysisRunner {
 			if(settings.size() == 0) {
 				Map<String, String> commonSettings = config.getConfiguration(ConfigurationDao.SECTION_COMMON);
 				for(Entry<String, String> commonSetting : commonSettings.entrySet()) {
-					config.updateConfiguration(NAMESPACE, commonSetting.getKey(), commonSetting.getValue(), 6);
+					config.updateConfiguration(NAMESPACE, commonSetting.getKey(), commonSetting.getValue());
 				}
 			}
 		}

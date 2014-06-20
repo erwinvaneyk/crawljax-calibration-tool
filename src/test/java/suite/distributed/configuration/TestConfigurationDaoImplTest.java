@@ -29,13 +29,13 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
+		// Run test
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author");
 		when(resultSet.getString("value")).thenReturn("42", "me");
-
-		// Run test
-		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
@@ -53,13 +53,13 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
+		// Run test
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
 		when(resultSet.getString("value")).thenReturn("42", "me", "10");
-
-		// Run test
-		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		List<String> sections = new ArrayList<String>();
 		sections.add("something");
 		Map<String, String> result = config.getConfiguration(sections);
@@ -117,13 +117,14 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
+		// Run test
+		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		// result mock
 		when(resultSet.next()).thenReturn(true, true, false);
 		when(resultSet.getString("key")).thenReturn("depth", "author");
 		when(resultSet.getString("value")).thenReturn("42", "me");
 
-		// Run test
-		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		Map<String, String> result = config.getConfiguration("something");
 		assertEquals(result.get("depth"), "42");
 		assertEquals(result.get("author"), "me");
@@ -139,13 +140,16 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 		// result mock
-		when(resultSet.next()).thenReturn(true, true, true, false);
-		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
-		when(resultSet.getString("value")).thenReturn("42", "me", "10");
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
+
+		when(resultSet.next()).thenReturn(true, true, true, false);
+		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
+		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+		
 		Map<String, String> result = config.getConfiguration("Something");
 		assertEquals(result.get("depth"), "42");
 		assertEquals(result.get("author"), "me");
@@ -161,13 +165,16 @@ public class TestConfigurationDaoImplTest {
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeQuery(anyString())).thenReturn(resultSet);
-		// result mock
-		when(resultSet.next()).thenReturn(true, true, true, false);
-		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
-		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+		when(resultSet.next()).thenReturn(false);
+		
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
+		
+		when(resultSet.next()).thenReturn(true, true, true, false);
+		when(resultSet.getString("key")).thenReturn("depth", "author", "depth");
+		when(resultSet.getString("value")).thenReturn("42", "me", "10");
+		
 		Map<String, String> result = config.getConfiguration();
 		assertEquals(result.get("depth"), "10");
 		assertEquals(result.get("author"), "42");
@@ -178,14 +185,17 @@ public class TestConfigurationDaoImplTest {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
+		ResultSet resultSet = mock(ResultSet.class);
 		Statement statement = mock(Statement.class);
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
-		config.updateConfiguration("section", "key", "value", 0);
+		config.updateConfiguration("section", "key", "value");
 		verify(statement).executeUpdate(anyString());
 	}
 
@@ -194,14 +204,17 @@ public class TestConfigurationDaoImplTest {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
+		ResultSet resultSet = mock(ResultSet.class);
 		Statement statement = mock(Statement.class);
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(0, 1);
+		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
-		config.updateConfiguration("section", "key", "value", 0);
+		config.updateConfiguration("section", "key", "value");
 		verify(statement, times(2)).executeUpdate(anyString());
 	}
 
@@ -210,10 +223,13 @@ public class TestConfigurationDaoImplTest {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
+		ResultSet resultSet = mock(ResultSet.class);
 		Statement statement = mock(Statement.class);
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
@@ -226,15 +242,28 @@ public class TestConfigurationDaoImplTest {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
+		ResultSet resultSet = mock(ResultSet.class);
 		Statement statement = mock(Statement.class);
 		when(connMgr.getConnection()).thenReturn(conn);
 		when(conn.createStatement()).thenReturn(statement);
 		when(statement.executeUpdate(anyString())).thenReturn(1);
+		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 
 		// Run test
 		ConfigurationDaoImpl config = new ConfigurationDaoImpl(connMgr);
 		config.deleteConfiguration("section", "key");
 		verify(statement).executeUpdate(anyString());
+	}
+	
+	private void getMockImportances(ConnectionManager connMgr) throws SQLException {
+		Connection conn = mock(Connection.class);
+		Statement statement = mock(Statement.class);
+		ResultSet resultSet = mock(ResultSet.class);
+		when(connMgr.getConnection()).thenReturn(conn);
+		when(conn.createStatement()).thenReturn(statement);
+		when(statement.executeQuery(anyString())).thenReturn(resultSet);
+		when(resultSet.next()).thenReturn(false);
 	}
 
 }

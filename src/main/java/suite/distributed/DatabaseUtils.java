@@ -140,8 +140,7 @@ public class DatabaseUtils {
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {
-				config.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section
-				        .getName().length());
+				config.updateConfiguration(section.getName(), el.getKey(), el.getValue());
 			}
 		}
 	}

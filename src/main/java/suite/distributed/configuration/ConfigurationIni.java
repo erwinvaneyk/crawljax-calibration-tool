@@ -133,8 +133,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	/**
 	 * Updates a key=value-setting in the section.
 	 */
-	public void updateConfiguration(@NonNull String section, @NonNull String key, String value,
-	        int importance) {
+	public void updateConfiguration(@NonNull String section, @NonNull String key, String value) {
 		Section settings = ini.containsKey(section) ? ini.get(section) : ini.add(section);
 		settings.put(key, value);
 		try {
@@ -167,5 +166,9 @@ public class ConfigurationIni implements ConfigurationDao {
 			log.error("Failed to delete section: " + e.getMessage());
 		}
 	}
+
+	public void setImportance(String section, int importance) {
+		log.warn("Method setImportance not relevant for ConfigurationIni.");
+    }
 
 }

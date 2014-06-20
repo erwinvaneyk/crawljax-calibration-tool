@@ -31,12 +31,20 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	private static final String COLUMN_KEY = "key";
 	private static final String COLUMN_VALUE = "value";
 	private static final String COLUMN_DEPTH = "depth";
+	private static final int    DEFAULT_IMPORTANCE = 10;
 
 	private ConnectionManager connMgr;
+	private Map<String, Integer> importances;
 
 	@Inject
 	public ConfigurationDaoImpl(ConnectionManager conn) {
-		connMgr = conn;
+		this.connMgr = conn;
+		try {
+	        this.importances = this.getImportanceOfSections();
+        } catch (SQLException e) {
+        	log.error("Failed to retrieve sections: " + e.getMessage());
+        	importances = new HashMap<String,Integer>();
+        }
 	}
 
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
@@ -74,15 +82,14 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return getConfiguration(sections);
 	}
 
-	public void updateConfiguration(@NonNull String section,@NonNull String key, String value,
-	        int importance) {
+	public void updateConfiguration(@NonNull String section,@NonNull String key, String value) {
 		try {
 			Connection conn = connMgr.getConnection();
 			// Attempt update for new value
 			if (conn.createStatement().executeUpdate(
 			        "UPDATE `" + TABLE + "` SET `"
 			                + COLUMN_VALUE + "`=\"" + value + "\",`" + COLUMN_DEPTH + "`="
-			                + importance
+			                + getImportance(section, DEFAULT_IMPORTANCE)
 			                + " WHERE `" + COLUMN_SECTION + "`=\"" + section + "\" AND `"
 			                + COLUMN_KEY + "`=\"" + key + "\"") > 0) {
 				log.info("Updated in section " + section + " key " + key + " to value " + value);
@@ -90,8 +97,9 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 				// If update failed, try insert.
 				conn.createStatement().executeUpdate(
 				        "INSERT INTO  " + TABLE + " VALUES (\"" + section + "\",\""
-				                + key + "\",\"" + value + "\"," + importance + ")");
-				log.info("Inserted into section " + section + " key " + key + " to value "
+				                + key + "\",\"" + value + "\","
+				                + getImportance(section, DEFAULT_IMPORTANCE) + ")");
+				log.info("Inserted into section " + section + " key " + key + " = value "
 				        + value);
 			}
 			connMgr.closeConnection();
@@ -146,5 +154,40 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 			log.error("Error while retrieving configurations: " + e.getMessage());
 		}
 		return config;
+	}
+
+	private Map<String,Integer> getImportanceOfSections() throws SQLException {
+		Connection conn = connMgr.getConnection();
+		ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` ");
+		Map<String,Integer> sections = new HashMap<String,Integer>();
+		while (res.next()) {
+			sections.put(res.getString(COLUMN_SECTION),res.getInt(COLUMN_DEPTH));
+		}
+		connMgr.closeConnection();
+		return sections;
+	}
+	
+	private int getImportance(@NonNull String section, int defaultValue) {
+		Integer importance = importances.get(section);
+		if(importance != null) {
+			return importance;
+		} else {
+			importances.put(section, defaultValue);
+			return defaultValue;
+		}
+	}
+	
+	public void setImportance(@NonNull String section, int importance) {
+		try {
+			Connection conn = connMgr.getConnection();
+	        conn.createStatement().executeUpdate("UPDATE `" + TABLE + "` SET `"
+	                        + COLUMN_DEPTH + "`=\"" + importance
+	                        + " WHERE `" + COLUMN_SECTION + "`=\"" + section);
+	        importances.put(section, importance);
+	        connMgr.closeConnection();
+        } catch (SQLException e) {
+	        log.error("Failed to set new importance: " + e.getMessage());
+        }
+		
 	}
 }
