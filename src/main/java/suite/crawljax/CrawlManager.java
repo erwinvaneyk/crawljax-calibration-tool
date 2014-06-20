@@ -66,15 +66,20 @@ public class CrawlManager {
 		try {
 			ConfigurationDao config = new ConfigurationIni();
 			while (!websiteQueue.isEmpty()) {
-				URL website = new URL(websiteQueue.poll());
-				Map<String, String> args = config.getConfiguration(website.toString());
-				File outputDir = generateOutputDir(website);
-				runCrawler(website, outputDir, args);
-				outputdirs.add(outputDir);
+				String rawUrl = websiteQueue.poll();
+				try {
+					URL website = new URL(rawUrl);
+					Map<String, String> args = config.getConfiguration(website.toString());
+					File outputDir = generateOutputDir(website);
+					runCrawler(website, outputDir, args);
+					outputdirs.add(outputDir);
+				} catch (MalformedURLException e) {
+					log.error("Invalid URL provided: {}. Continuing with the next url. ", rawUrl);
+				} 
 			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+		} catch (IOException e) {
+			log.error("Could not read configuration-settings, because: {}", e.getMessage());
+        }
 		return outputdirs;
 	}
 

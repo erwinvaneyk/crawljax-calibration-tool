@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.ini4j.Ini;
@@ -15,6 +16,9 @@ import org.ini4j.Profile.Section;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Implementation of ConfigurationDao, which uses a local INI-file.to store the settings. *
+ */
 @Slf4j
 @Singleton
 public class ConfigurationIni implements ConfigurationDao {
@@ -24,31 +28,49 @@ public class ConfigurationIni implements ConfigurationDao {
 
 	private static Ini ini;
 
-	public ConfigurationIni(File absoluteFilepath) {
+	/**
+	 * Provide a custom INI-file to use in the ConfigurationIni
+	 * 
+	 * @throws IOException
+	 *             provided INI-file could not be read
+	 */
+	public ConfigurationIni(File absoluteFilepath) throws IOException {
 		this.settingsIniFile = absoluteFilepath;
 		try {
 			ini = new Ini(new FileInputStream(settingsIniFile));
 			if (ini.containsKey(SECTION_COMMON))
 				log.warn("Common section could not be found in INI-file");
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("Failed reading file: {}. Attempting to read default INI instead."
+			        + absoluteFilepath);
+			getDefaultIni();
 		}
 	}
 
+	/**
+	 * Use the default INI-file to use in the ConfigurationIni
+	 * 
+	 * @throws IOException
+	 *             Default INI-file could not be read
+	 */
 	@Inject
-	public ConfigurationIni() {
-		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
-		try {
-			ini = new Ini(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
-			if (ini.containsKey(SECTION_COMMON))
-				log.warn("Common section could not be found in INI-file");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public ConfigurationIni() throws IOException {
+		getDefaultIni();
 	}
-
-	public File getSettingsFile() {
-		return this.settingsIniFile;
+	
+	/**
+	 * Use the default INI-file to use in the ConfigurationIni
+	 * 
+	 * @throws IOException
+	 *             Default INI-file could not be read
+	 */
+	private void getDefaultIni() throws IOException {
+		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
+		ini =
+		        new Ini(new FileInputStream(System.getProperty("user.dir")
+		                + DEFAULT_SETTINGS_FILE));
+		if (ini.containsKey(SECTION_COMMON))
+			log.warn("Common section could not be found in INI-file");
 	}
 
 	/**
@@ -71,22 +93,6 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
-	/**
-	 * Set a new ini-object for setting-building. It requires a common-section to be present.
-	 * 
-	 * @param ini
-	 *            the new ini.
-	 */
-	public void setIni(Ini newIni) {
-		if (newIni.containsKey(SECTION_COMMON))
-			log.warn("Common section could not be found in INI-file");
-		ini = newIni;
-	}
-
-	public Ini getIni() {
-		return ini;
-	}
-
 	public Map<String, String> getConfiguration() {
 		// Load common settings{
 		Map<String, String> args = new HashMap<String, String>();
@@ -95,10 +101,9 @@ public class ConfigurationIni implements ConfigurationDao {
 		return args;
 	}
 
-	public Map<String, String> getConfiguration(List<String> websites) {
-		assert websites != null;
+	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
 		Map<String, String> args = new HashMap<String, String>();
-		for (String section : websites) {
+		for (String section : sections) {
 			addSettings(args, section);
 		}
 		return args;
@@ -115,21 +120,21 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *             invalid website-url
 	 * @throws MalformedURLException
 	 */
-	public Map<String, String> getConfiguration(String website) {
-		assert website != null;
+	public Map<String, String> getConfiguration(@NonNull String section) {
 		// Load common settings{
 		Map<String, String> args = getConfiguration();
-		addSettings(args, website);
+		addSettings(args, section);
 
 		// Setup vital arguments
-		log.info("Settings build for website: " + website);
+		log.info("Settings build for website: " + section);
 		return args;
 	}
 
-	// importance not used
-	public void updateConfiguration(String section, String key, String value, int importance) {
-		assert section != null;
-		assert key != null;
+	/**
+	 * Updates a key=value-setting in the section.
+	 */
+	public void updateConfiguration(@NonNull String section, @NonNull String key, String value,
+	        int importance) {
 		Section settings = ini.containsKey(section) ? ini.get(section) : ini.add(section);
 		settings.put(key, value);
 		try {
@@ -140,9 +145,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
-	public void deleteConfiguration(String section, String key) {
-		assert section != null;
-		assert key != null;
+	public void deleteConfiguration(@NonNull String section, @NonNull String key) {
 		if (ini.containsKey(section)) {
 			Section settings = ini.get(section);
 			settings.remove(key);
@@ -155,8 +158,7 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 	}
 
-	public void deleteConfiguration(String section) {
-		assert section != null;
+	public void deleteConfiguration(@NonNull String section) {
 		ini.remove(section);
 		try {
 			ini.store();

@@ -1,6 +1,7 @@
 package suite.distributed;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -15,7 +16,6 @@ import org.ini4j.Profile.Section;
 
 import suite.crawljax.CrawlManager;
 import suite.distributed.configuration.ConfigurationDao;
-import suite.distributed.configuration.ConfigurationIni;
 import suite.distributed.workload.WorkloadDao;
 
 import com.google.inject.Inject;
@@ -133,9 +133,10 @@ public class DatabaseUtils {
 	 * 
 	 * @param fileName
 	 *            the filename of the settings file.
+	 * @throws IOException 
 	 */
-	public void actionFlushSettingsFile(File absoluteFilepath) {
-		Ini ini = new ConfigurationIni(absoluteFilepath).getIni();
+	public void actionFlushSettingsFile(File absoluteFilepath) throws IOException {
+		Ini ini = new Ini(new FileInputStream(absoluteFilepath));
 
 		for (Section section : ini.values()) {
 			for (Entry<String, String> el : section.entrySet()) {

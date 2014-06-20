@@ -37,9 +37,15 @@ public interface ConfigurationDao {
 	 * Update a single key/value of the section
 	 * 
 	 * @param section
+	 *            the section/namespace in which the key-value is stored
 	 * @param key
+	 *            the key of the setting
 	 * @param value
+	 *            the value of the setting
 	 * @param importance
+	 *            specifies the relative importance between two conflicting settings. When in a
+	 *            getConfiguration two or more conflicting (= same key) settings are retrieved, the
+	 *            value is returned of the setting with the highest importance.
 	 */
 	public void updateConfiguration(String section, String key, String value, int importance);
 

@@ -39,9 +39,8 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		connMgr = conn;
 	}
 
-	public Map<String, String> getConfiguration(List<String> sections) {
+	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
 		log.debug("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
-		assert sections != null;
 		Map<String, String> config = new HashMap<String, String>();
 		try {
 			Connection conn = connMgr.getConnection();
@@ -75,7 +74,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return getConfiguration(sections);
 	}
 
-	public void updateConfiguration(@NonNull String section, String key, String value,
+	public void updateConfiguration(@NonNull String section,@NonNull String key, String value,
 	        int importance) {
 		try {
 			Connection conn = connMgr.getConnection();
@@ -101,9 +100,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		}
 	}
 
-	public void deleteConfiguration(String section, String key) {
-		assert section != null;
-		assert key.length() > 0;
+	public void deleteConfiguration(@NonNull String section,@NonNull String key) {
 		try {
 			Connection conn = connMgr.getConnection();
 			conn.createStatement().executeUpdate(
@@ -117,8 +114,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		}
 	}
 
-	public void deleteConfiguration(String section) {
-		assert section != null;
+	public void deleteConfiguration(@NonNull String section) {
 		try {
 			Connection conn = connMgr.getConnection();
 			conn.createStatement().executeUpdate(

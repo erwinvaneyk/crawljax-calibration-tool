@@ -94,7 +94,11 @@ public class CrawlRunner {
 		} else if (cmd.hasOption("flush")) {
 			dbUtils.actionFlushWebsitesFile(new File(cmd.getOptionValue("flush")));
 		} else if (cmd.hasOption("settings")) {
-			dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
+			try {
+	            dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
+            } catch (IOException e) {
+            	System.out.println("Failed to read the settings-file: " + e.getMessage());
+            }
 		} else if (cmd.hasOption("local")) {
 			actionLocalCrawler(new File(cmd.getOptionValue("local")));
 		} else if (cmd.hasOption("analysis")) {
