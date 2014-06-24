@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import suite.analysis.AnalysisException;
-
 // Stub test case for exception, for potential future features.
 public class TestAnalysisExcp {
 

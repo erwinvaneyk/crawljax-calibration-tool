@@ -11,9 +11,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suite.distributed.ConnectionManagerImpl;
-import suite.distributed.DatabaseUtils;
-
 public class TestDBUtilsDeleteResults {
 
 	private ConnectionManagerImpl con;

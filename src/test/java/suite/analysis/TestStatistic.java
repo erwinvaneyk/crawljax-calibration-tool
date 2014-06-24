@@ -6,10 +6,9 @@ package suite.analysis;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
-
-import suite.analysis.Statistic;
 
 public class TestStatistic {
 
@@ -18,7 +17,7 @@ public class TestStatistic {
 	 */
 	@Test
 	public void testHasDetailsTrue() {
-		ArrayList<Object> details = new ArrayList<Object>();
+		List<Object> details = new ArrayList<Object>();
 		details.add("detail 1");
 		Statistic stat = new Statistic("Name", "value", details);
 		assertTrue(stat.hasDetails());
@@ -56,7 +55,7 @@ public class TestStatistic {
 	 */
 	@Test
 	public void testGetDetails() {
-		ArrayList<Object> details = new ArrayList<Object>();
+		List<Object> details = new ArrayList<Object>();
 		details.add("detail 1");
 		Statistic stat = new Statistic("Name", "value", details);
 		assertEquals(details, stat.getDetails());
@@ -67,10 +66,10 @@ public class TestStatistic {
 	 */
 	@Test
 	public void testEqualsObject() {
-		ArrayList<Object> details = new ArrayList<Object>();
+		List<Object> details = new ArrayList<Object>();
 		details.add("detail 1");
 		Statistic stat = new Statistic("Name", "value", details);
-		ArrayList<Object> details2 = new ArrayList<Object>();
+		List<Object> details2 = new ArrayList<Object>();
 		details2.add("detail 1");
 		Statistic stat2 = new Statistic("Name", "value", details2);
 		assertTrue(stat.equals(stat2));
@@ -81,10 +80,10 @@ public class TestStatistic {
 	 */
 	@Test
 	public void testEqualsObjectOtherDetails() {
-		ArrayList<Object> details = new ArrayList<Object>();
+		List<Object> details = new ArrayList<Object>();
 		details.add("detail 1");
 		Statistic stat = new Statistic("Name", "value", details);
-		ArrayList<Object> details2 = new ArrayList<Object>();
+		List<Object> details2 = new ArrayList<Object>();
 		Statistic stat2 = new Statistic("Name", "value", details2);
 		assertFalse(stat.equals(stat2));
 	}

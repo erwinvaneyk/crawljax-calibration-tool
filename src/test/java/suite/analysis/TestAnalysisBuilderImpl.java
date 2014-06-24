@@ -1,11 +1,7 @@
 package suite.analysis;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
-import suite.analysis.AnalysisBuilderImpl;
-import suite.analysis.AnalysisException;
 import suite.distributed.DatabaseUtils;
 import suite.distributed.results.WebsiteResult;
 import suite.distributed.workload.WorkloadDao;

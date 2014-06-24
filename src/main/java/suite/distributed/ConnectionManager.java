@@ -8,17 +8,17 @@ import java.sql.Connection;
  */
 public interface ConnectionManager {
 
-	public static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/dist.ini");
+	File DEFAULT_SETTINGS_FILE = new File("/src/main/config/dist.ini");
 
 	/**
 	 * Returns the connection. If not present, create a new connection.
 	 * 
 	 * @return the active connection
 	 */
-	public Connection getConnection();
+	Connection getConnection();
 
 	/**
 	 * Closes the connection.
 	 */
-	public void closeConnection();
+	void closeConnection();
 }

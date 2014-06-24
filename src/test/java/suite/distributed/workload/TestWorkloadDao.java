@@ -15,13 +15,11 @@ import java.util.List;
 import org.junit.Test;
 
 import suite.distributed.ConnectionManagerImpl;
-import suite.distributed.workload.WorkTask;
-import suite.distributed.workload.WorkloadDaoImpl;
 
 public class TestWorkloadDao {
 
 	@Test
-	public void testRetrieveWorkInt0() throws SQLException, MalformedURLException {
+	public void testRetrieveWorkInt0() throws SQLException {
 		// Result set
 		List<WorkTask> expected = new ArrayList<WorkTask>();
 		// Mock objects
@@ -95,8 +93,7 @@ public class TestWorkloadDao {
 	}
 
 	@Test
-	public void testRetrieveWorkIntSQLExceptionSELECT() throws SQLException,
-	        MalformedURLException {
+	public void testRetrieveWorkIntSQLExceptionSELECT() throws SQLException {
 		// Result set
 		int expectedSize = 4;
 		List<WorkTask> expected = new ArrayList<WorkTask>();
@@ -116,8 +113,7 @@ public class TestWorkloadDao {
 	}
 
 	@Test
-	public void testRetrieveWorkIntSQLExceptionUPDATE() throws SQLException,
-	        MalformedURLException {
+	public void testRetrieveWorkIntSQLExceptionUPDATE() throws SQLException {
 		// Result set
 		int expectedSize = 4;
 		List<WorkTask> expected = new ArrayList<WorkTask>();
@@ -206,7 +202,7 @@ public class TestWorkloadDao {
 	}
 
 	@Test
-	public void testCheckoutWorkInvalid() throws SQLException, MalformedURLException {
+	public void testCheckoutWorkInvalid() throws MalformedURLException {
 		WorkTask wt1 = new WorkTask(1, new URL("http://1.com"));
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);
@@ -250,7 +246,7 @@ public class TestWorkloadDao {
 	}
 
 	@Test
-	public void testSubmitWorkNull() throws MalformedURLException, SQLException {
+	public void testSubmitWorkNull() {
 		URL url1 = null;
 		// Mock objects
 		ConnectionManagerImpl connMgr = mock(ConnectionManagerImpl.class);

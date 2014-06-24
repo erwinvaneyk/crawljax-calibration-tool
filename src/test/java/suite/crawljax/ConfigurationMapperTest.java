@@ -1,6 +1,3 @@
-/**
- * 
- */
 package suite.crawljax;
 
 import static org.junit.Assert.*;
@@ -13,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-
-import suite.crawljax.ConfigurationMapper;
 
 import com.crawljax.core.configuration.CrawljaxConfiguration;
 
@@ -32,7 +27,7 @@ public class ConfigurationMapperTest {
 		ConfigurationMapper cm = new ConfigurationMapper();
 		URL url = new URL("http://www.test.com");
 		File outputDir = new File("test/");
-		Map<String, String> args = new HashMap<String, String>();
+		Map<String, String> args = new HashMap<String, String>(15);
 		args.put("depth", "5");
 		args.put("maxstates", "4");
 		args.put("timeout", "10");

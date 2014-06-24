@@ -12,7 +12,6 @@ import java.util.Map;
 import org.junit.Test;
 
 import suite.distributed.ConnectionManager;
-import suite.distributed.configuration.ConfigurationDaoImpl;
 
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.Statement;
@@ -44,7 +43,7 @@ public class TestConfigurationDaoImplTest {
 	}
 
 	@Test
-	public void testGetConfigurationListOfStringOverlappingSettings() throws SQLException {
+	public void testGetConfigurationOverlappingSettings() throws SQLException {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);
@@ -131,7 +130,7 @@ public class TestConfigurationDaoImplTest {
 	}
 
 	@Test
-	public void testGetConfigurationStringOverlappingSettings() throws SQLException {
+	public void testGetConfigurationStringOverlapping() throws SQLException {
 		// Setup mocked Database
 		ConnectionManager connMgr = mock(ConnectionManager.class);
 		Connection conn = mock(Connection.class);

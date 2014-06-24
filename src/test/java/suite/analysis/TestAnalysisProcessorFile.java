@@ -9,28 +9,26 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import suite.analysis.AnalysisProcessorFile;
-
 public class TestAnalysisProcessorFile {
 
 	private AnalysisProcessorFile apf;
 
-	private static File testDir = new File(System.getProperty("user.dir") + "/output/temp/");
+	private static File DIR = new File(System.getProperty("user.dir") + "/output/temp/");
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		testDir.mkdir();
+	public static void setUpBeforeClass() {
+		DIR.mkdir();
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-		testDir.delete();
+	public static void tearDownAfterClass() {
+		DIR.delete();
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		apf = new AnalysisProcessorFile();
-		apf.setOutputDir(testDir);
+		apf.setOutputDir(DIR);
 	}
 
 	@Test
