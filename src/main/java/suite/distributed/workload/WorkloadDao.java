@@ -20,7 +20,7 @@ public interface WorkloadDao {
 	 *            the maximum number of urls to retrieve.
 	 * @return a list with claimed urls
 	 */
-	public List<WorkTask> retrieveWork(int maxcount);
+	List<WorkTask> retrieveWork(int maxcount);
 
 	/**
 	 * Registering a succesful crawl.
@@ -29,7 +29,7 @@ public interface WorkloadDao {
 	 *            The url to be checked out.
 	 * @return true if checkout was succesful, else false.
 	 */
-	public boolean checkoutWork(WorkTask id);
+	boolean checkoutWork(WorkTask id);
 
 	/**
 	 * Submit a new url/workunit to the queue/server/container to crawl.
@@ -38,7 +38,7 @@ public interface WorkloadDao {
 	 *            the url to be crawled
 	 * @return true if no errors occurred, else false.
 	 */
-	public int submitWork(URL url, boolean claim);
+	int submitWork(URL url, boolean claim);
 
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
@@ -47,6 +47,6 @@ public interface WorkloadDao {
 	 *            the url to be reverted
 	 * @return true if successful, else false.
 	 */
-	public boolean revertWork(int id);
+	boolean revertWork(int id);
 
 }

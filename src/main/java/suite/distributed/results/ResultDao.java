@@ -152,8 +152,7 @@ public class ResultDao {
 			String sql =
 			        "INSERT INTO " + TABLE_STATE_RESULTS + "(" + COLUMN_ID_WEBSITE + ","
 			                + COLUMN_ID_STATE + ") VALUES(?,?)";
-			PreparedStatement statement =
-			        (PreparedStatement) con.getConnection().prepareStatement(sql,
+			PreparedStatement statement = con.getConnection().prepareStatement(sql,
 			                Statement.RETURN_GENERATED_KEYS);
 
 			statement.setInt(1, id);

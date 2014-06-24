@@ -3,6 +3,7 @@ package suite.distributed.configuration;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +25,7 @@ import com.google.inject.Singleton;
 public class ConfigurationIni implements ConfigurationDao {
 
 	private static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/settings.ini");
-	private File settingsIniFile;
-
+	private static final int DEFAULT_MAPSIZE = 20;
 	private Ini ini;
 
 	/**
@@ -34,17 +34,13 @@ public class ConfigurationIni implements ConfigurationDao {
 	 * @throws IOException
 	 *             provided INI-file could not be read
 	 */
-	public ConfigurationIni(File absoluteFilepath) throws IOException {
-		this.settingsIniFile = absoluteFilepath;
-		try {
-			ini = new Ini(new FileInputStream(settingsIniFile));
-			if (ini.containsKey(SECTION_COMMON))
-				log.warn("Common section could not be found in INI-file");
-		} catch (IOException e) {
-			log.error("Failed reading file: {}. Attempting to read default INI instead."
-			        + absoluteFilepath);
-			getDefaultIni();
-		}
+	public ConfigurationIni(File absoluteFilepath) {
+		try(InputStream file = new FileInputStream(System.getProperty("user.dir") + absoluteFilepath)) {
+			ini = new Ini(file);
+        } catch (IOException e) {
+        	log.error("Failed to load custom settings, trying to load default settings (reason: {}).", e.getMessage());
+        	getDefaultIni();
+        } 
 	}
 
 	/**
@@ -54,7 +50,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *             Default INI-file could not be read
 	 */
 	@Inject
-	public ConfigurationIni() throws IOException {
+	public ConfigurationIni() {
 		getDefaultIni();
 	}
 	
@@ -64,11 +60,12 @@ public class ConfigurationIni implements ConfigurationDao {
 	 * @throws IOException
 	 *             Default INI-file could not be read
 	 */
-	private void getDefaultIni() throws IOException {
-		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
-		ini =
-		        new Ini(new FileInputStream(System.getProperty("user.dir")
-		                + DEFAULT_SETTINGS_FILE));
+	private void getDefaultIni() {
+		try(InputStream file = new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
+			ini = new Ini(file);
+        } catch (IOException e) {
+        	log.error("Failed to load default settings, because {}.", e.getMessage());
+        } 
 		if (ini.containsKey(SECTION_COMMON))
 			log.warn("Common section could not be found in INI-file");
 	}
@@ -82,27 +79,23 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *            the section (ini) that needs to be added.
 	 */
 	private void addSettings(Map<String, String> args, String section) {
-		try {
-			Section settings = ini.get(section);
-			for (String key : settings.keySet()) {
-				args.put(key, settings.get(key));
-			}
-			log.info("Custom settings loaded for section: " + section);
-		} catch (Exception e) {
-			log.warn("Could not find custom settings-section: " + section);
+		Section settings = ini.get(section);
+		for (String key : settings.keySet()) {
+			args.put(key, settings.get(key));
 		}
+		log.info("Custom settings loaded for section: " + section);
 	}
 
 	public Map<String, String> getConfiguration() {
 		// Load common settings{
-		Map<String, String> args = new HashMap<String, String>();
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		addSettings(args, SECTION_COMMON);
 		log.debug("Common Settings retrieved.");
 		return args;
 	}
 
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
-		Map<String, String> args = new HashMap<String, String>();
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		for (String section : sections) {
 			addSettings(args, section);
 		}

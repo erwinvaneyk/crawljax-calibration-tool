@@ -32,6 +32,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	private static final String COLUMN_VALUE = "value";
 	private static final String COLUMN_DEPTH = "depth";
 	private static final int    DEFAULT_IMPORTANCE = 10;
+	private static final int DEFAULT_MAPSIZE = 20;
 
 	private ConnectionManager connMgr;
 	private Map<String, Integer> importances;
@@ -39,17 +40,12 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	@Inject
 	public ConfigurationDaoImpl(ConnectionManager conn) {
 		this.connMgr = conn;
-		try {
-	        this.importances = this.getImportanceOfSections();
-        } catch (SQLException e) {
-        	log.error("Failed to retrieve sections: " + e.getMessage());
-        	importances = new HashMap<String,Integer>();
-        }
+	    this.importances = this.getImportanceOfSections();
 	}
 
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
 		log.debug("Retrieving configurations of sections: " + Arrays.toString(sections.toArray()));
-		Map<String, String> config = new HashMap<String, String>();
+		Map<String, String> config = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		try {
 			Connection conn = connMgr.getConnection();
 			StringBuffer where = new StringBuffer("WHERE ");
@@ -59,7 +55,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 			ResultSet res =
 			        conn.createStatement().executeQuery(
 			                "SELECT * FROM  `" + TABLE + "` "
-			                        + where.substring(0, where.length() - 4)
+			                        + where.substring(0, where.length() - " OR ".length())
 			                        + " ORDER BY `" + COLUMN_DEPTH + "` DESC");
 			while (res.next()) {
 				String key = res.getString(COLUMN_KEY);
@@ -136,7 +132,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	}
 
 	public Map<String, String> getConfiguration() {
-		Map<String, String> config = new HashMap<String, String>();
+		Map<String, String> config = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		try {
 			Connection conn = connMgr.getConnection();
 			ResultSet res =
@@ -156,14 +152,18 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return config;
 	}
 
-	private Map<String,Integer> getImportanceOfSections() throws SQLException {
-		Connection conn = connMgr.getConnection();
-		ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` ");
-		Map<String,Integer> sections = new HashMap<String,Integer>();
-		while (res.next()) {
-			sections.put(res.getString(COLUMN_SECTION),res.getInt(COLUMN_DEPTH));
-		}
-		connMgr.closeConnection();
+	private Map<String,Integer> getImportanceOfSections() {
+		Map<String,Integer> sections = new HashMap<String,Integer>(DEFAULT_MAPSIZE);
+        try(Connection conn = connMgr.getConnection()) {
+	        ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` ");
+			while (res.next()) {
+				sections.put(res.getString(COLUMN_SECTION),res.getInt(COLUMN_DEPTH));
+			}
+        } catch (SQLException e) {
+        	log.error("Error while retrieving importances of section. Reason: {}", e.getMessage());
+        } finally {
+        	connMgr.closeConnection();
+        }
 		return sections;
 	}
 	
@@ -177,6 +177,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		}
 	}
 	
+	@Override
 	public void setImportance(@NonNull String section, int importance) {
 		try {
 			Connection conn = connMgr.getConnection();
@@ -188,6 +189,5 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
         } catch (SQLException e) {
 	        log.error("Failed to set new importance: " + e.getMessage());
         }
-		
 	}
 }

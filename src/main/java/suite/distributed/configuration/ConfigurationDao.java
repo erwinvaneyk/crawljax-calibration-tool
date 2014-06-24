@@ -8,14 +8,14 @@ import java.util.Map;
  */
 public interface ConfigurationDao {
 	
-	public static final String SECTION_COMMON = "common";
+	String SECTION_COMMON = "common";
 
 	/**
 	 * Get all configurations.
 	 * 
 	 * @return map with configurations
 	 */
-	public Map<String, String> getConfiguration();
+	Map<String, String> getConfiguration();
 
 	/**
 	 * Get the configurations associated with the sections.
@@ -23,7 +23,7 @@ public interface ConfigurationDao {
 	 * @param sections
 	 * @return map with configurations of the sections.
 	 */
-	public Map<String, String> getConfiguration(List<String> sections);
+	Map<String, String> getConfiguration(List<String> sections);
 
 	/**
 	 * Get the configurations associated with the section
@@ -31,7 +31,7 @@ public interface ConfigurationDao {
 	 * @param section
 	 * @return map with configurations of the section.
 	 */
-	public Map<String, String> getConfiguration(String section);
+	Map<String, String> getConfiguration(String section);
 
 	/**
 	 * Update a single key/value of the section
@@ -44,7 +44,7 @@ public interface ConfigurationDao {
 	 *            the value of the setting
 	 * 
 	 */
-	public void updateConfiguration(String section, String key, String value);
+	void updateConfiguration(String section, String key, String value);
 
 	/**
 	 * Delete a key from one section
@@ -54,7 +54,7 @@ public interface ConfigurationDao {
 	 * @param keys
 	 *            keys to be deleted
 	 */
-	public void deleteConfiguration(String section, String key);
+	void deleteConfiguration(String section, String key);
 
 	/**
 	 * Delete all keys from a given section
@@ -62,7 +62,7 @@ public interface ConfigurationDao {
 	 * @param section
 	 *            section all keys need to be deleted.
 	 */
-	public void deleteConfiguration(String section);
+	void deleteConfiguration(String section);
 	
 	/**
 	 * Sets the relative importance of a section to a new value.
@@ -74,5 +74,5 @@ public interface ConfigurationDao {
 	 *            getConfiguration two or more conflicting (= same key) settings are retrieved, the
 	 *            value is returned of the setting with the highest importance.
 	 */
-	public void setImportance(String section, int importance);
+	void setImportance(String section, int importance);
 }

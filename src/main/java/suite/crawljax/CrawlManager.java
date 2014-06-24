@@ -42,18 +42,22 @@ public class CrawlManager {
 	 * @throws IOException
 	 *             the file could not be found.
 	 */
-	public void websitesFromFileToQueue(File websitesPath) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()));
-		UrlValidator urlValidator = new UrlValidator();
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (urlValidator.isValid(line))
-				websiteQueue.add(new URL(line).toString());
-			else
-				log.warn("Website: {} is an invalid url. Ignoring website.", line);
-		}
-		br.close();
-		log.info("Website-queue loaded.");
+	public void websitesFromFileToQueue(File websitesPath) {
+		try(BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()))) {
+			UrlValidator urlValidator = new UrlValidator();
+			String line = br.readLine();
+			while (line != null) {
+				if (urlValidator.isValid(line)) {
+					websiteQueue.add(new URL(line).toString());
+				} else {
+					log.warn("Website: {} is an invalid url. Ignoring website.", line);
+				}
+				line = br.readLine();
+			}
+			log.info("Website-queue loaded.");
+        } catch (IOException e) {
+	        log.error("Reading website-file failed, because {}.", e.getMessage());
+        }
 	}
 
 	/**
@@ -63,23 +67,20 @@ public class CrawlManager {
 	 */
 	public List<File> crawlWebsitesFromQueue() {
 		List<File> outputdirs = new ArrayList<File>(websiteQueue.size());
-		try {
-			ConfigurationDao config = new ConfigurationIni();
-			while (!websiteQueue.isEmpty()) {
-				String rawUrl = websiteQueue.poll();
-				try {
-					URL website = new URL(rawUrl);
-					Map<String, String> args = config.getConfiguration(website.toString());
-					File outputDir = generateOutputDir(website);
-					runCrawler(website, outputDir, args);
-					outputdirs.add(outputDir);
-				} catch (MalformedURLException e) {
-					log.error("Invalid URL provided: {}. Continuing with the next url. ", rawUrl);
-				} 
-			}
-		} catch (IOException e) {
-			log.error("Could not read configuration-settings, because: {}", e.getMessage());
-        }
+		ConfigurationDao config = new ConfigurationIni();
+		while (!websiteQueue.isEmpty()) {
+			String rawUrl = websiteQueue.poll();
+			try {
+				URL website = new URL(rawUrl);
+				Map<String, String> args = config.getConfiguration(website.toString());
+				File outputDir = generateOutputDir(website);
+				runCrawler(website, outputDir, args);
+				outputdirs.add(outputDir);
+			} catch (MalformedURLException e) {
+				log.error("Invalid URL provided: {}. Continuing with the next url. ", rawUrl);
+				log.debug("Exception caught while reading URL: {}", e.getMessage());
+			} 
+		}
 		return outputdirs;
 	}
 
@@ -113,7 +114,7 @@ public class CrawlManager {
 		runner.call();
 		ExitStatus reason = runner.getReason();
 		log.debug("Finished crawling {}. Reason: {}", args.get(ARG_WEBSITE), reason.toString());
-		return (!reason.equals(ExitStatus.ERROR));
+		return !reason.equals(ExitStatus.ERROR);
 	}
 
 	/**
@@ -135,4 +136,8 @@ public class CrawlManager {
 		this.websiteQueue = websiteQueue;
 	}
 
+	@Override
+    public String toString() {
+	    return "CrawlManager [websiteQueue=" + websiteQueue + "]";
+    }
 }

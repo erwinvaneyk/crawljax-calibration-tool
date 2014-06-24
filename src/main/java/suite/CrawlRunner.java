@@ -1,11 +1,12 @@
 package suite;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.cli.*;
 
@@ -22,9 +23,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+@Slf4j
 public class CrawlRunner {
-	private static String namespace;
+	private static String NAMESPACE;
 	private static final String APPLICATION_NAME = "Crawljax Testing Suite";
+	private static final long WAIT_INTERVAL = 1000 * 10;
 	
 	@Inject private Injector injector;
 	private DatabaseUtils dbUtils;
@@ -37,15 +40,15 @@ public class CrawlRunner {
 	public static void main(String[] args) {
 		try {
 			// Header
-			System.out.println(APPLICATION_NAME + "\n---------------------------------");
+			System.out.println(APPLICATION_NAME + System.lineSeparator() + "---------------------------------");
 	
 			// Parse commandline
 			CommandLine cmd = new BasicParser().parse(buildOptions(), args);	
-			namespace = cmd.hasOption("n") ? cmd.getOptionValue("n") : "";
+			NAMESPACE = cmd.hasOption("n") ? cmd.getOptionValue("n") : "";
 			
 			// Setup Crawlrunner
 			CrawlRunner cr =
-			        Guice.createInjector(new TestingSuiteModule(namespace)).getInstance(CrawlRunner.class);
+			        Guice.createInjector(new TestingSuiteModule(NAMESPACE)).getInstance(CrawlRunner.class);
 			cr.actOnArgs(cmd);
 			
 			// Finish up.
@@ -67,8 +70,8 @@ public class CrawlRunner {
 		        "Do not use server-functionality. Read the website-file and crawl all.");
 		options.addOption("a", "analyse", false,
 		        "Run the analysis-manager. This system will not help crawling");
-		options.addOption("n", "namespace", true,
-		        "Sets a custom namespace for the instance. This enables multiple crawl-sessions on a single database");
+		options.addOption("n", "NAMESPACE", true,
+		        "Sets a custom NAMESPACE for the instance. This enables multiple crawl-sessions on a single database");
 		options.addOption("noWaiting", false,
 		        "Prevents a worker-instance from waiting on new tasks. If no tasks are left, the worker stops.");
 		options.addOption("useCommonSettings", false,
@@ -90,15 +93,11 @@ public class CrawlRunner {
 
 	public void actOnArgs(CommandLine cmd) {
 		if (cmd.hasOption("worker")) {
-			actionWorker(namespace, cmd.hasOption("noWaiting"), cmd.hasOption("useCommonSettings"));
+			actionWorker(NAMESPACE, cmd.hasOption("noWaiting"), cmd.hasOption("useCommonSettings"));
 		} else if (cmd.hasOption("flush")) {
 			dbUtils.actionFlushWebsitesFile(new File(cmd.getOptionValue("flush")));
 		} else if (cmd.hasOption("settings")) {
-			try {
-	            dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
-            } catch (IOException e) {
-            	System.out.println("Failed to read the settings-file: " + e.getMessage());
-            }
+	        dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
 		} else if (cmd.hasOption("local")) {
 			actionLocalCrawler(new File(cmd.getOptionValue("local")));
 		} else if (cmd.hasOption("analysis")) {
@@ -123,7 +122,7 @@ public class CrawlRunner {
 					workTasks = workload.retrieveWork(1);
 					if (workTasks.isEmpty()) {
 						if (noWaiting) return;
-						Thread.sleep(1000 * 10); // sleep 10 seconds
+						Thread.sleep(WAIT_INTERVAL); // sleep 10 seconds
 					}
 				}
 
@@ -139,7 +138,7 @@ public class CrawlRunner {
 						}
 						Map<String, String> args = config.getConfiguration(sections);
 						if(args.isEmpty())
-							System.out.println("No configuration found for namespace: \"" + namespace + "\". Using Crawljax' default settings!");
+							System.out.println("No configuration found for NAMESPACE: \"" + namespace + "\". Using Crawljax' default settings!");
 						File dir = crawlManager.generateOutputDir(task.getURL());
 						// Crawl
 						long timeStart = new Date().getTime();
@@ -165,17 +164,14 @@ public class CrawlRunner {
 			}
 		} catch (InterruptedException e) {
 			System.out.println("Sleep interrupted; worker stopped.");
+			log.error("Session interupted, reason: {}", e.getMessage());
 		}
 	}
 
 	private void actionLocalCrawler(File websitePath) {
 		System.out.println("Started local crawler");
-		try {
-			crawlManager.websitesFromFileToQueue(websitePath);
-			crawlManager.crawlWebsitesFromQueue();
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+		crawlManager.websitesFromFileToQueue(websitePath);
+		crawlManager.crawlWebsitesFromQueue();
 	}
 
 	private void actionAnalysis() {

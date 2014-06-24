@@ -12,6 +12,6 @@ public interface AnalysisProcessor {
 	 * @param analysisReport
 	 *            the analysis.
 	 */
-	public void apply(Analysis analysisReport);
+	void apply(Analysis analysisReport);
 
 }

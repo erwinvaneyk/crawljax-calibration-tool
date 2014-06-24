@@ -18,9 +18,9 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class AnalysisRunner {
-	private static int[] WEBSITE_IDS = new int[] { 1, 2, 15, 48, 51, 53 };
 	
-	private static String FILENAME = "results";
+	private static final int[] WEBSITE_IDS = new int[] { 1, 2, 15, 48, 51, 53 };
+	private static final String FILENAME = "results";
 	private static final String NAMESPACE = "test";
 
 	private ConfigurationDao config;
@@ -41,12 +41,12 @@ public class AnalysisRunner {
 
 	public void run() {
 		// ############################
-		double minThreshold = 1;
-		double maxThreshold = 1;
-		double stepsizeThreshold = 1;
-		int shingleType = FeatureShingles.SizeType.WORDS.ordinal();
-		int minShingleSize = 1;
-		int maxShingleSize = 1;
+		final double minThreshold = 1;
+		final double maxThreshold = 1;
+		final double stepsizeThreshold = 1;
+		final int shingleType = FeatureShingles.SizeType.WORDS.ordinal();
+		final int minShingleSize = 1;
+		final int maxShingleSize = 1;
 		// #############################
 		namespaceSetup();
 		try {
@@ -79,7 +79,6 @@ public class AnalysisRunner {
 			results.add(factory.getAnalysis("threshold-" + i, websiteids));
 		}
 		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
-		System.out.println("Finished!");
 		return results;
 	}
 	

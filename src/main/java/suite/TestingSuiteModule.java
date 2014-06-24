@@ -34,8 +34,6 @@ import com.j256.ormlite.dao.DaoManager;
 public class TestingSuiteModule extends AbstractModule {
 	
 	private String namespace = "";
-
-	public TestingSuiteModule() {}
 	
 	public TestingSuiteModule(String namespace) {
 		this.namespace  = namespace;

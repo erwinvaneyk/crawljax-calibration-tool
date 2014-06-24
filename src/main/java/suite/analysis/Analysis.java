@@ -9,10 +9,10 @@ import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 /**
  * Data model of an analysis, which contains the tested websites, metrics and results.
  */
+@Slf4j
 public class Analysis {
 
 	@Getter
@@ -30,15 +30,12 @@ public class Analysis {
 	@Getter
 	private ImmutableList<Metric> metrics;
 
-	@Getter
-	private float score = 0;
-
 	/**
 	 * @param title
 	 * @param benchmarkWebsites
 	 * @param metrics
 	 */
-	public Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
+	Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
 	        ImmutableList<Metric> metrics) {
 		if (title != null && !title.equals(""))
 			this.title = title;
@@ -73,13 +70,13 @@ public class Analysis {
 	private ImmutableList<Statistic> runMetrics(Collection<WebsiteResult> websiteResults) {
 		ImmutableList.Builder<Statistic> resultBuilder = ImmutableList.builder();
 		for (Metric metric : metrics) {
-			log.info("Running metric: " + metric.getMetricName());
+			log.info("Running metric: " + metric.getName());
 			try {
 				// ignore/abort metrics, which throw any exception.
 				Collection<Statistic> result = metric.apply(benchmarkWebsites, websiteResults);
 				resultBuilder.addAll(result);
 			} catch (Exception e) {
-				log.error("Error occured while applying metric {}: {}", metric.getMetricName(),
+				log.error("Error occured while applying metric {}: {}", metric.getName(),
 				        e.getMessage());
 			}
 		}

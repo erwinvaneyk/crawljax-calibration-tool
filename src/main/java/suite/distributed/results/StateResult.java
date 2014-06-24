@@ -1,7 +1,7 @@
 package suite.distributed.results;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import com.j256.ormlite.field.*;
@@ -13,9 +13,11 @@ import com.j256.ormlite.table.DatabaseTable;
  */
 @DatabaseTable(tableName = "DomResults")
 @ToString(exclude = { "dom", "strippedDom", "websiteResult", "screenshot" })
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Data
 public class StateResult {
+
+	private static final int RADIX = 2;
 
 	@DatabaseField(canBeNull = false, foreign = true, uniqueCombo = true)
 	private final WebsiteResult websiteResult;
@@ -45,6 +47,6 @@ public class StateResult {
 	}
 
 	public int getStrippedDomHash() {
-		return (int) Long.parseLong(strippedDomHash, 2);
+		return Integer.parseInt(strippedDomHash, RADIX);
 	}
 }

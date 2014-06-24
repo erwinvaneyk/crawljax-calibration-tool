@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
 
+import com.mysql.jdbc.Driver;
 import com.google.inject.Singleton;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,25 +18,22 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class ConnectionManagerImpl implements ConnectionManager {
 
-	public static final String DRIVER = "com.mysql.jdbc.Driver";
-
 	private Connection connection;
-	private static Properties settings;
-	private static String url;
-	private static String database;
-	private static String username;
-	private static String password;
+	private Properties settings;
+	private String url;
+	private String database;
+	private String username;
+	private String password;
 
 	/**
 	 * Load setting files for ConnectionManagerImpl
 	 */
 	public ConnectionManagerImpl() {
-		try {
-			// log.warning("ConnectionManagerImpl uses the default paths for the config-files.");
-			setup(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
+		try(FileInputStream file = new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
+			setup(file);
 		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			log.error("Failed to retrieve database-settings, because {}", e.getMessage());
+		} 
 	}
 
 	/**
@@ -54,13 +52,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
 		database = settings.getProperty("database");
 		username = settings.getProperty("username");
 		password = settings.getProperty("password");
-
-		// Load driver
+		// Setup Driver
 		try {
-			Class.forName(DRIVER).newInstance();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	        new Driver();
+        } catch (SQLException e) {
+        	log.error("Failed to setup Driver: {} ", e.getMessage());
+        }
 		log.debug("Connection settings loaded. Database-user: " + username);
 	}
 
@@ -91,9 +88,16 @@ public class ConnectionManagerImpl implements ConnectionManager {
 			log.debug("Connection with: " + url + database + " closed.");
 		} catch (NullPointerException e) {
 			log.warn("Connection was already closed");
+			log.debug("Exception caught because of closed connection: {}", e.getMessage());
 		} catch (SQLException e) {
 			log.error(e.getMessage());
 		}
 		connection = null;
 	}
+
+	@Override
+    public String toString() {
+	    return "ConnectionManagerImpl [connection=" + connection + ", url=" + url + ":"
+	            + database + "]";
+    }
 }

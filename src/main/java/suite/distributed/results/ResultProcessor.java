@@ -16,13 +16,13 @@ public interface ResultProcessor {
 	 *            The directory that contains the output of the crawl
 	 * @throws ResultProcessorException
 	 */
-	public void uploadResults(int id, File dir, long duration);
+	void uploadResults(int id, File dir, long duration);
 
-	public void uploadDom(int id, File dir);
+	void uploadDom(int id, File dir);
 
-	public void uploadStrippedDom(int id, File dir);
+	void uploadStrippedDom(int id, File dir);
 
-	public void uploadScreenshot(int id, File dir);
+	void uploadScreenshot(int id, File dir);
 
-	public int uploadJson(int id, File dir, long duration);
+	int uploadJson(int id, File dir, long duration);
 }

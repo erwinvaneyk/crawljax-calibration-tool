@@ -10,14 +10,14 @@ import suite.distributed.results.WebsiteResult;
  */
 public class SpeedMetric implements Metric {
 
+	private static final String NAME = "Speed Analysis Metric";
+	
 	public static final String SPEED_INCREASE = "Speed increase";
+
+	private static final float TOTAL_PERCENTAGE = 100;
 
 	private float benchmarkDuration;
 	private float testDuration;
-
-	public String getMetricName() {
-		return "Speed difference metric";
-	}
 
 	public Collection<Statistic> apply(
 	        Collection<WebsiteResult> benchmarkWebsites,
@@ -30,11 +30,20 @@ public class SpeedMetric implements Metric {
 		}
 		float difference = testDuration - benchmarkDuration;
 
-		float res = ((difference * -1) / benchmarkDuration) * 100;
+		float res = ((difference * -1) / benchmarkDuration) * TOTAL_PERCENTAGE;
 		String result = String.valueOf(res);
 		Collection<Statistic> ret = new ArrayList<Statistic>();
 		ret.add(new Statistic(SPEED_INCREASE, result + "%"));
 		return ret;
-
 	}
+	
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+    public String toString() {
+	    return "SpeedMetric [benchmarkDuration=" + benchmarkDuration + ", testDuration="
+	            + testDuration + "]";
+    }
 }

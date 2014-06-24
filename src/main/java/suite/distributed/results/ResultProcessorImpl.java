@@ -121,15 +121,20 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 */
 	public void uploadScreenshot(int id, File dir) throws ResultProcessorException {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
+		FileInputStream fr = null;
 		for (File file : dirOfMap.listFiles()) {
 			String stateId = this.getStateId(file);
 			try {
-				FileInputStream fr = new FileInputStream(file);
-
+				fr = new FileInputStream(file);
 				upload.uploadScreenshotAction(id, fr, stateId);
-				fr.close();
 			} catch (IOException e) {
-				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
+				log.error("Can not close FileInputStream by uploading state {}, because {}.", stateId, e.getMessage());
+			} finally {
+				try {
+	                fr.close();
+                } catch (IOException e) {
+                	log.error("Failed to close file, because: {}", e.getMessage());
+                }
 			}
 		}
 	}
@@ -160,7 +165,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 
 	private String getStateId(File f) {
 		String fileName = f.getName();
-		int indexOfExtension = fileName.lastIndexOf(".");
+		int indexOfExtension = fileName.lastIndexOf('.');
 		return fileName.substring(0, indexOfExtension);
 	}
 
@@ -172,15 +177,13 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 * @return contents of file
 	 */
 	private String readFile(File file) throws ResultProcessorException {
-		StringBuffer fileContent = new StringBuffer();
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line;
-
-			while ((line = br.readLine()) != null) {
+		StringBuffer fileContent = new StringBuffer((int) file.length());
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+			String line = br.readLine();
+			while (line != null) {
 				fileContent.append(line);
+				line = br.readLine();
 			}
-			br.close();
 		} catch (IOException e) {
 			throw new ResultProcessorException("Could not read file " + file.getName());
 		}

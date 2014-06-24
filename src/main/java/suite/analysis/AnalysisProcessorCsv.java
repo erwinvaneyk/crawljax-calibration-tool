@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AnalysisProcessorCsv extends AnalysisProcessorFile implements AnalysisProcessor {
 	private static final String SEPERATOR = ";";
-	private static final String ENTRY_SEPERATOR = "\r\n";
+	private static final String ENTRY_SEPERATOR = System.lineSeparator();
 	private static final String HEADER_ANALYSEID = "Test ID";
 	private static final String FILE_EXTENSION = ".csv";
 
@@ -37,11 +37,9 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 			        + analysisReport.getMetrics());
 			return;
 		}
-		try {
-			Writer writer = openOrCreateFile(
-			        new File(this.getOutputDir() + "/" + filename), true);
+		try(Writer writer = openOrCreateFile(
+			        new File(this.getOutputDir() + "/" + filename), true)) {
 			writeContents(writer, analysisReport);
-			writer.close();
 		} catch (IOException e) {
 			log.error("IOException while writing to csv-file: " + e.getMessage());
 		}
