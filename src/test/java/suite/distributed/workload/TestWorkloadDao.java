@@ -298,6 +298,7 @@ public class TestWorkloadDao {
 		when(statement.executeUpdate(anyString())).thenThrow(new SQLException("MOCK SQL ERROR"));
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
+		assertNotNull(wldao.toString());
 		assertFalse(wldao.revertWork(id));
 	}
 }

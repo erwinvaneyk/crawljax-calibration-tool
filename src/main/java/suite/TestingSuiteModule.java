@@ -24,6 +24,7 @@ import com.crawljax.core.state.duplicatedetection.HashGenerator;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetectionCrawlhash;
 import com.crawljax.core.state.duplicatedetection.XxHashGenerator;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
@@ -45,7 +46,8 @@ public class TestingSuiteModule extends AbstractModule {
 		// Use Near-duplicate Detection instance
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(new FeatureShingles(1, FeatureShingles.SizeType.CHARS));
-		bind(NearDuplicateDetection.class).toInstance(new NearDuplicateDetectionCrawlhash(1, ft, new XxHashGenerator()));
+		bind(NearDuplicateDetection.class).toInstance(
+				new NearDuplicateDetectionCrawlhash(1, ImmutableList.copyOf(ft), new XxHashGenerator()));
 		bind(HashGenerator.class).to(XxHashGenerator.class);
 		
 		// Analysis

@@ -48,7 +48,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		Map<String, String> config = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		try {
 			Connection conn = connMgr.getConnection();
-			StringBuffer where = new StringBuffer("WHERE ");
+			StringBuilder where = new StringBuilder("WHERE ");
 			for (String section : sections) {
 				where.append("`" + COLUMN_SECTION + "`=\"" + section + "\" OR ");
 			}

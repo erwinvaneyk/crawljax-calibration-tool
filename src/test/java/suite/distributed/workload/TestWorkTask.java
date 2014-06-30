@@ -15,6 +15,13 @@ public class TestWorkTask {
 		WorkTask wt = new WorkTask(1, url);
 		assertEquals(wt.getId(), 1);
 		assertEquals(wt.getURL(), url);
+		wt.setCrawled(true);
+		wt.setNamespace("test");
+		wt.setWorker("worker");
+		assertEquals(wt.getNamespace(), "test");
+		assertEquals(wt.getWorker(), "worker");
+		assertTrue(wt.isCrawled());
+		assertNotNull(wt.toString());		
 	}
 
 	@Test
@@ -71,6 +78,6 @@ public class TestWorkTask {
 	public void testHashcode() {
 		WorkTask wt = new WorkTask(1, "http://test.com");
 		wt.hashCode();
-	}
+	} 
 
 }

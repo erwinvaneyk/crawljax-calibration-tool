@@ -57,9 +57,8 @@ public class TestSpeedMetric {
 		when(stateResult.getDom()).thenReturn("mock DOM");
 		when(stateResult.getStrippedDom()).thenReturn("mock Stripped DOM");
 		when(stateResult.getStateId()).thenReturn(id);
-		when(stateResult.getStrippedDomHash()).thenReturn(42);
 		when(stateResult.getWebsiteResult()).thenReturn(parent);
-		return stateResult;
+		return stateResult; 
 	}
 
 	private WebsiteResult getMockedWebsiteResult(int websiteId, int states, String url,

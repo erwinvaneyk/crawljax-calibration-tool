@@ -33,7 +33,7 @@ public class TestStateAnalysisMetric {
 		// run method
 		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertNotNull(sam.apply(benchmarkWebsites, testedWebsites));
-	}
+	} 
 
 	@Test
 	public void testGetMetricName() {
@@ -46,7 +46,6 @@ public class TestStateAnalysisMetric {
 		when(stateResult.getDom()).thenReturn("mock DOM");
 		when(stateResult.getStrippedDom()).thenReturn("mock Stripped DOM");
 		when(stateResult.getStateId()).thenReturn(id);
-		when(stateResult.getStrippedDomHash()).thenReturn(42);
 		when(stateResult.getWebsiteResult()).thenReturn(parent);
 		return stateResult;
 	}

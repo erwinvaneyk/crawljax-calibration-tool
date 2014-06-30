@@ -1,9 +1,7 @@
 package suite.distributed.configuration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +18,7 @@ import com.google.inject.Singleton;
 /**
  * Implementation of ConfigurationDao, which uses a local INI-file.to store the settings. *
  */
-@Slf4j
+@Slf4j 
 @Singleton
 public class ConfigurationIni implements ConfigurationDao {
 
@@ -35,8 +33,8 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *             provided INI-file could not be read
 	 */
 	public ConfigurationIni(File absoluteFilepath) {
-		try(InputStream file = new FileInputStream(System.getProperty("user.dir") + absoluteFilepath)) {
-			ini = new Ini(file);
+		try {
+			ini = new Ini(new File(System.getProperty("user.dir") + absoluteFilepath));
         } catch (IOException e) {
         	log.error("Failed to load custom settings, trying to load default settings (reason: {}).", e.getMessage());
         	getDefaultIni();
@@ -57,12 +55,12 @@ public class ConfigurationIni implements ConfigurationDao {
 	/**
 	 * Use the default INI-file to use in the ConfigurationIni
 	 * 
-	 * @throws IOException
+	 * @throws IOException 
 	 *             Default INI-file could not be read
 	 */
 	private void getDefaultIni() {
-		try(InputStream file = new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
-			ini = new Ini(file);
+		try {
+			ini = new Ini(new File(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
         } catch (IOException e) {
         	log.error("Failed to load default settings, because {}.", e.getMessage());
         } 
@@ -77,23 +75,29 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *            the argument-set to which the settings are added.
 	 * @param section
 	 *            the section (ini) that needs to be added.
-	 */
+	 */ 
 	private void addSettings(Map<String, String> args, String section) {
 		Section settings = ini.get(section);
-		for (String key : settings.keySet()) {
-			args.put(key, settings.get(key));
+		if(settings != null) {
+			for (String key : settings.keySet()) {
+				args.put(key, settings.get(key));
+			}
+			log.info("Custom settings loaded for section: " + section);
+		} else {
+			log.debug("Section {} seems to be empty. No settings added." + section);
 		}
-		log.info("Custom settings loaded for section: " + section);
 	}
 
+	@Override
 	public Map<String, String> getConfiguration() {
-		// Load common settings{
 		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
-		addSettings(args, SECTION_COMMON);
-		log.debug("Common Settings retrieved.");
+		for(String section : ini.keySet()) {
+			addSettings(args, section);
+		} 
 		return args;
-	}
+	} 
 
+	@Override
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
 		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		for (String section : sections) {
@@ -102,20 +106,9 @@ public class ConfigurationIni implements ConfigurationDao {
 		return args;
 	}
 
-	/**
-	 * Generates a map with settings extracted from the ini and website and outputdir-keys. If
-	 * defined custom settings of the website will be added.
-	 * 
-	 * @param website
-	 *            the website for which the arguments are build.
-	 * @return map with arguments for the crawling of the website.
-	 * @throws URISyntaxException
-	 *             invalid website-url
-	 * @throws MalformedURLException
-	 */
+	@Override
 	public Map<String, String> getConfiguration(@NonNull String section) {
-		// Load common settings{
-		Map<String, String> args = getConfiguration();
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
 		addSettings(args, section);
 
 		// Setup vital arguments
@@ -129,12 +122,7 @@ public class ConfigurationIni implements ConfigurationDao {
 	public void updateConfiguration(@NonNull String section, @NonNull String key, String value) {
 		Section settings = ini.containsKey(section) ? ini.get(section) : ini.add(section);
 		settings.put(key, value);
-		try {
-			ini.store();
-			log.info("Configuration updated for section: " + section + " -> " + key + "=" + value);
-		} catch (IOException e) {
-			log.error("Failed to save configuration: " + e.getMessage());
-		}
+		storeConfiguration();
 	}
 
 	public void deleteConfiguration(@NonNull String section, @NonNull String key) {
@@ -142,21 +130,20 @@ public class ConfigurationIni implements ConfigurationDao {
 			Section settings = ini.get(section);
 			settings.remove(key);
 		}
-		try {
-			ini.store();
-			log.info("Configuration deleted for section: " + section + " -> " + key);
-		} catch (IOException e) {
-			log.error("Failed to delete configuration: " + e.getMessage());
-		}
+		storeConfiguration();
 	}
-
+ 
 	public void deleteConfiguration(@NonNull String section) {
 		ini.remove(section);
+		storeConfiguration();
+	}
+	
+	private void storeConfiguration() {
 		try {
 			ini.store();
-			log.info("Configuration deleted section: " + section);
+			log.info("Configuration stored in {}.", ini.getFile());
 		} catch (IOException e) {
-			log.error("Failed to delete section: " + e.getMessage());
+			log.error("Failed to store ini, because: " + e.getMessage());
 		}
 	}
 
@@ -164,4 +151,8 @@ public class ConfigurationIni implements ConfigurationDao {
 		log.warn("Method setImportance not relevant for ConfigurationIni.");
     }
 
+	@Override
+    public String toString() {
+	    return "ConfigurationIni [ini=" + ini.getFile() + "]";
+    }
 }

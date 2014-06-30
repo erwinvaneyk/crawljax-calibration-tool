@@ -19,6 +19,7 @@ import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurati
 import com.crawljax.core.state.NDDStateVertexFactory;
 import com.crawljax.core.state.duplicatedetection.*;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Maps key-value entries to a Crawljax-configuration
@@ -79,9 +80,9 @@ public class ConfigurationMapper {
 			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
 		log.info("Build NDD using parametes: {} and {}", threshold, features);
 		if(ndd.equalsIgnoreCase("broder")) {
-			return new NearDuplicateDetectionBroder(threshold,features);
+			return new NearDuplicateDetectionBroder(threshold,ImmutableList.copyOf(features));
 		} else {
-			return new NearDuplicateDetectionCrawlhash(threshold,features);
+			return new NearDuplicateDetectionCrawlhash(threshold,ImmutableList.copyOf(features));
 		}
     }
 

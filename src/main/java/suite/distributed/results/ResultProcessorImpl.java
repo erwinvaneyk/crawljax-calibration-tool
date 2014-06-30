@@ -177,7 +177,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 * @return contents of file
 	 */
 	private String readFile(File file) throws ResultProcessorException {
-		StringBuffer fileContent = new StringBuffer((int) file.length());
+		StringBuilder fileContent = new StringBuilder((int) file.length());
 		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line = br.readLine();
 			while (line != null) {
