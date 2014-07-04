@@ -113,58 +113,28 @@ public class CrawlRunner {
 	}
 
 	private void actionWorker(String namespace, boolean noWaiting, boolean useDefaults) {
-		try {
-			System.out.println("Started client crawler/worker.");
-			while (true) {
-				// Get worktasks
-				List<WorkTask> workTasks = workload.retrieveWork(1);
-				while (workTasks.isEmpty()) {
-					workTasks = workload.retrieveWork(1);
-					if (workTasks.isEmpty()) {
-						if (noWaiting) return;
-						Thread.sleep(WAIT_INTERVAL); // sleep 10 seconds
-					}
-				}
+		System.out.println("Started client crawler/worker.");
+		while (true) {
+			List<WorkTask> workTasks = getWorkTask(noWaiting);
 
-				for (WorkTask task : workTasks) {
-					try {
-						List<String> sections = new ArrayList<String>();
-						sections.add(task.getURL().getHost());
-						if(useDefaults) {
-							sections.add(ConfigurationDao.SECTION_COMMON);
-							System.out.println("Worker uses default settings.");
-						} else {
-							sections.add(namespace);
-						}
-						Map<String, String> args = config.getConfiguration(sections);
-						if(args.isEmpty())
-							System.out.println("No configuration found for NAMESPACE: \"" + namespace + "\". Using Crawljax' default settings!");
-						File dir = crawlManager.generateOutputDir(task.getURL());
-						// Crawl
-						long timeStart = new Date().getTime();
-						boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
-						if (!hasNoError) {
-							throw new Exception("Crawljax returned an error code");
-						}
-						try {
-							resultProcessor.uploadResults(task.getId(), dir, new Date().getTime()
-							        - timeStart);
-						} catch (ResultProcessorException e) {
-							System.out.println(e.getMessage());
-						}
-						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getURL() + " completed");
-					} catch (Exception e) {
-						System.out.println(e.getMessage());
-						workload.revertWork(task.getId());
-						System.out
-						        .println("crawl: " + task.getURL() + " failed. Claim reverted.");
-					}
+			for (WorkTask task : workTasks) {
+				List<String> sections = new ArrayList<String>();
+				sections.add(task.getURL().getHost());
+				if(useDefaults) {
+					sections.add(ConfigurationDao.SECTION_COMMON);
+					System.out.println("Worker uses default settings.");
+				} else {
+					sections.add(namespace);
 				}
+				Map<String, String> args = config.getConfiguration(sections);
+				if(args.isEmpty())
+					System.out.println("No configuration found for NAMESPACE: \"" + namespace + "\". Using Crawljax' default settings!");
+				
+				startCrawling(task, args);
+				
+				workload.checkoutWork(task);
+				System.out.println("crawl: " + task.getURL() + " completed");
 			}
-		} catch (InterruptedException e) {
-			System.out.println("Sleep interrupted; worker stopped.");
-			log.error("Session interupted, reason: {}", e.getMessage());
 		}
 	}
 
@@ -189,5 +159,44 @@ public class CrawlRunner {
 
 		// Output results
 		new AnalysisProcessorCsv("analysis-results").apply(analysis);
+	}
+	
+	private List<WorkTask> getWorkTask(boolean noWaiting) {
+		List<WorkTask> workTasks = workload.retrieveWork(1);
+		while (workTasks.isEmpty()) {
+			workTasks = workload.retrieveWork(1);
+			if (workTasks.isEmpty()) {
+				if (noWaiting) return null;
+				try {
+	                Thread.sleep(WAIT_INTERVAL);
+                } catch (InterruptedException e) {
+        			System.out.println("Sleep interrupted; worker stopped.");
+        			log.error("Session interupted, reason: {}", e.getMessage());
+        		}
+			}
+		}
+		return workTasks;
+	}
+	
+	private void startCrawling(WorkTask task, Map<String, String> args) {
+		File dir = crawlManager.generateOutputDir(task.getURL());
+		
+		long timeStart = new Date().getTime();
+		boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
+		try {
+			if (!hasNoError) {
+				throw new Exception("Crawljax returned an error code");
+			}
+			
+				resultProcessor.uploadResults(task.getId(), dir, new Date().getTime()
+				        - timeStart);
+		} catch (ResultProcessorException e) {
+			System.out.println(e.getMessage());
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			workload.revertWork(task.getId());
+			System.out
+			        .println("crawl: " + task.getURL() + " failed. Claim reverted.");
+		}
 	}
 }

@@ -14,6 +14,7 @@ public class TestConnectionManager {
 		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		assertNotNull(conn);
+		assertNotNull(connMgr.toString());
 	}
 
 	@Test
