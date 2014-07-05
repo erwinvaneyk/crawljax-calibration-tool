@@ -78,10 +78,11 @@ public class ConfigurationMapper {
 	private NearDuplicateDetection buildNearDuplicateDetectionFactory() {
 		if(threshold < 0 || features == null)
 			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
-		log.info("Build NDD using parametes: {} and {}", threshold, features);
 		if(ndd.equalsIgnoreCase("broder")) {
+			log.info("Build Broder NDD using parametes: {} and {}", threshold, features);
 			return new NearDuplicateDetectionBroder(threshold,ImmutableList.copyOf(features));
 		} else {
+			log.info("Build Crawlhash NDD using parametes: {} and {}", threshold, features);
 			return new NearDuplicateDetectionCrawlhash(threshold,ImmutableList.copyOf(features));
 		}
     }
