@@ -19,7 +19,6 @@ import com.google.inject.Injector;
 
 public class AnalysisRunner {
 	
-	private static final int[] WEBSITE_IDS = new int[] { 1, 2, 15, 48, 51, 53 };
 	private static final String FILENAME = "results";
 	private static final String NAMESPACE = "test";
 
@@ -37,10 +36,14 @@ public class AnalysisRunner {
 	public AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config) {
 		this.factory = factory;
 		this.config = config;
+		factory.addMetric(injector.getInstance(SpeedMetric.class));
+		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
 	}
 
 	public void run() {
 		// ############################
+		// TODO: Should be read from input or external file..
+		final int[] websiteIds = new int[] { 1, 2, 15, 48, 51, 53 };
 		final double minThreshold = 1;
 		final double maxThreshold = 1;
 		final double stepsizeThreshold = 1;
@@ -53,7 +56,7 @@ public class AnalysisRunner {
 			for (int i = minShingleSize; i <= maxShingleSize; i++) {
 				config.updateConfiguration(NAMESPACE, "feature",
 				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType));
-				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, WEBSITE_IDS);
+				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, websiteIds);
 				for (Analysis analysis : results) {
 					new AnalysisProcessorCsv(FILENAME + shingleType + "-" + i).apply(analysis);
 				}
@@ -63,26 +66,41 @@ public class AnalysisRunner {
 		}
 	}
 	
-	public List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
+	/**
+	 * Runs crawler 
+	 * @param from
+	 * @param to
+	 * @param step
+	 * @param websiteids
+	 * @return
+	 */
+	private List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
 		assert from <= to;
 		assert websiteids.length > 0;
 		Map<String, String> defaultSettings = config.getConfiguration(NAMESPACE);
-		// Build factory
-		factory.addMetric(injector.getInstance(SpeedMetric.class));
-		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
 		List<Analysis> results = new ArrayList<Analysis>((int) ((to - from) / step));
 
 		for (double i = from; i <= to; i += step) {
-			// update setting
-			config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(i));
-			// run crawler
-			results.add(factory.getAnalysis("threshold-" + i, websiteids));
+			issueCrawl(websiteids, i);
 		}
 		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
 		return results;
 	}
 	
-
+	/**
+	 * Issue a crawl for all workers
+	 * @param websiteids the ids of the websites which should be recrawled
+	 * @param threshold the threshold
+	 * @return an analysis
+	 */
+	private Analysis issueCrawl(int[] websiteids, double threshold) {
+		config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(threshold));
+		return factory.getAnalysis("threshold-" + threshold, websiteids);	
+	}
+	
+	/**
+	 * Creates a (temporary section for the NAMESPACE by copying the settings of the common section. This is done to keep the original common settings clean.
+	 */
 	private void namespaceSetup() {
 		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			Map<String, String> settings = config.getConfiguration(NAMESPACE);
@@ -95,6 +113,9 @@ public class AnalysisRunner {
 		}
 	}
 	
+	/**
+	 * Removes the (temporary) section of the NAMESPACE.
+	 */
 	private void namespaceCleanup() {
 		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			config.deleteConfiguration(NAMESPACE);
