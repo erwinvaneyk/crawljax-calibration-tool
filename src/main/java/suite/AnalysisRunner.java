@@ -109,7 +109,7 @@ public class AnalysisRunner {
 		List<Analysis> results = new ArrayList<Analysis>((int) ((to - from) / step));
 
 		for (double i = from; i <= to; i += step) {
-			issueCrawl(websiteids, i);
+			results.add(issueCrawl(websiteids, i));
 		}
 		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
 		return results;

@@ -18,6 +18,10 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
 import com.crawljax.core.state.NDDStateVertexFactory;
 import com.crawljax.core.state.duplicatedetection.*;
+import com.crawljax.domcomparators.AttributesStripper;
+import com.crawljax.domcomparators.DomStructureStripper;
+import com.crawljax.domcomparators.HeadStripper;
+import com.crawljax.domcomparators.RedundantWhiteSpaceStripper;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
 import com.google.common.collect.ImmutableList;
 
@@ -70,8 +74,13 @@ public class ConfigurationMapper {
 				        e.getMessage());
 			}
 		}
-		if (!features.isEmpty() && threshold >= 0)
+		if (!features.isEmpty() && threshold >= 0) {
 			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());
+			builder.addDomStripper(new HeadStripper());
+			builder.addDomStripper(new DomStructureStripper());
+			builder.addDomStripper(new AttributesStripper());
+			builder.addDomStripper(new RedundantWhiteSpaceStripper());
+		}
 		return builder.build();
 	}
 
