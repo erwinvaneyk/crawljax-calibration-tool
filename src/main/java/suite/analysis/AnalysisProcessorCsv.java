@@ -37,8 +37,8 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 			        + analysisReport.getMetrics());
 			return;
 		}
-		try(Writer writer = openOrCreateFile(
-			        new File(this.getOutputDir() + "/" + filename), true)) {
+		try (Writer writer = openOrCreateFile(
+		        new File(this.getOutputDir() + "/" + filename), true)) {
 			writeContents(writer, analysisReport);
 		} catch (IOException e) {
 			log.error("IOException while writing to csv-file: " + e.getMessage());

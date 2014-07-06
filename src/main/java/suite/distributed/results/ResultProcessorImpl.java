@@ -23,10 +23,10 @@ public class ResultProcessorImpl implements ResultProcessor {
 	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM";
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots";
 
-	private ResultDao upload;
+	private ResultUpload upload;
 
 	@Inject
-	public ResultProcessorImpl(ResultDao upload) {
+	public ResultProcessorImpl(ResultUpload upload) {
 		this.upload = upload;
 	}
 
@@ -85,7 +85,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 			String fileContent = this.readFile(file);
 			String stateId = this.getStateId(file);
 
-			upload.uploadDomAction(websiteId, fileContent, stateId);
+			upload.uploadDom(websiteId, fileContent, stateId);
 		}
 	}
 
@@ -126,15 +126,16 @@ public class ResultProcessorImpl implements ResultProcessor {
 			String stateId = this.getStateId(file);
 			try {
 				fr = new FileInputStream(file);
-				upload.uploadScreenshotAction(id, fr, stateId);
+				upload.uploadScreenshot(id, fr, stateId);
 			} catch (IOException e) {
-				log.error("Can not close FileInputStream by uploading state {}, because {}.", stateId, e.getMessage());
+				log.error("Can not close FileInputStream by uploading state {}, because {}.",
+				        stateId, e.getMessage());
 			} finally {
 				try {
-	                fr.close();
-                } catch (IOException e) {
-                	log.error("Failed to close file, because: {}", e.getMessage());
-                }
+					fr.close();
+				} catch (IOException e) {
+					log.error("Failed to close file, because: {}", e.getMessage());
+				}
 			}
 		}
 	}
@@ -178,7 +179,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 */
 	private String readFile(File file) throws ResultProcessorException {
 		StringBuilder fileContent = new StringBuilder((int) file.length());
-		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line = br.readLine();
 			while (line != null) {
 				fileContent.append(line);

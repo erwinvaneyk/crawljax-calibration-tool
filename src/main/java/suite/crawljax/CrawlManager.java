@@ -23,7 +23,7 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
 
 /**
  * SuiteManager is responsible for running the actual crawler. Therefore it deals with the arguments
- * needed by the CrawlJax CLI and websites to be crawled.
+ * needed by the CrawlJax-core and websites to be crawled.
  */
 @Slf4j
 public class CrawlManager {
@@ -43,7 +43,7 @@ public class CrawlManager {
 	 *             the file could not be found.
 	 */
 	public void websitesFromFileToQueue(File websitesPath) {
-		try(BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()))) {
 			UrlValidator urlValidator = new UrlValidator();
 			String line = br.readLine();
 			while (line != null) {
@@ -55,9 +55,9 @@ public class CrawlManager {
 				line = br.readLine();
 			}
 			log.info("Website-queue loaded.");
-        } catch (IOException e) {
-	        log.error("Reading website-file failed, because {}.", e.getMessage());
-        }
+		} catch (IOException e) {
+			log.error("Reading website-file failed, because {}.", e.getMessage());
+		}
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class CrawlManager {
 			} catch (MalformedURLException e) {
 				log.error("Invalid URL provided: {}. Continuing with the next url. ", rawUrl);
 				log.debug("Exception caught while reading URL: {}", e.getMessage());
-			} 
+			}
 		}
 		return outputdirs;
 	}
@@ -137,7 +137,7 @@ public class CrawlManager {
 	}
 
 	@Override
-    public String toString() {
-	    return "CrawlManager [websiteQueue=" + websiteQueue + "]";
-    }
+	public String toString() {
+		return "CrawlManager [websiteQueue=" + websiteQueue + "]";
+	}
 }

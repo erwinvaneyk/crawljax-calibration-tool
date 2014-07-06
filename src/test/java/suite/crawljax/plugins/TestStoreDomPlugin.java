@@ -63,15 +63,15 @@ public class TestStoreDomPlugin {
 		StringBuffer fileContent = new StringBuffer((int) strippedDom.length());
 		for (File file : strippedDom.listFiles()) {
 			if (file.getName().equals("TestState.html")) {
-                try(BufferedReader br = new BufferedReader(new FileReader(file))) {
-                	String line = br.readLine();
-    				while (line != null) {
-    					fileContent.append(line);
-    					line = br.readLine();
-    				}
-                } catch (IOException e) {
-	                fail(e.getMessage());
-                }
+				try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+					String line = br.readLine();
+					while (line != null) {
+						fileContent.append(line);
+						line = br.readLine();
+					}
+				} catch (IOException e) {
+					fail(e.getMessage());
+				}
 			}
 		}
 		assertEquals("This represents the StrippedDom", fileContent.toString());

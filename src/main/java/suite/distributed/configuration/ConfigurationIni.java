@@ -18,7 +18,7 @@ import com.google.inject.Singleton;
 /**
  * Implementation of ConfigurationDao, which uses a local INI-file.to store the settings. *
  */
-@Slf4j 
+@Slf4j
 @Singleton
 public class ConfigurationIni implements ConfigurationDao {
 
@@ -35,10 +35,12 @@ public class ConfigurationIni implements ConfigurationDao {
 	public ConfigurationIni(File absoluteFilepath) {
 		try {
 			ini = new Ini(new File(System.getProperty("user.dir") + absoluteFilepath));
-        } catch (IOException e) {
-        	log.error("Failed to load custom settings, trying to load default settings (reason: {}).", e.getMessage());
-        	getDefaultIni();
-        } 
+		} catch (IOException e) {
+			log.error(
+			        "Failed to load custom settings, trying to load default settings (reason: {}).",
+			        e.getMessage());
+			getDefaultIni();
+		}
 	}
 
 	/**
@@ -51,19 +53,19 @@ public class ConfigurationIni implements ConfigurationDao {
 	public ConfigurationIni() {
 		getDefaultIni();
 	}
-	
+
 	/**
 	 * Use the default INI-file to use in the ConfigurationIni
 	 * 
-	 * @throws IOException 
+	 * @throws IOException
 	 *             Default INI-file could not be read
 	 */
 	private void getDefaultIni() {
 		try {
 			ini = new Ini(new File(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
-        } catch (IOException e) {
-        	log.error("Failed to load default settings, because {}.", e.getMessage());
-        } 
+		} catch (IOException e) {
+			log.error("Failed to load default settings, because {}.", e.getMessage());
+		}
 		if (ini.containsKey(SECTION_COMMON))
 			log.warn("Common section could not be found in INI-file");
 	}
@@ -75,10 +77,10 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *            the argument-set to which the settings are added.
 	 * @param section
 	 *            the section (ini) that needs to be added.
-	 */ 
+	 */
 	private void addSettings(Map<String, String> args, String section) {
 		Section settings = ini.get(section);
-		if(settings != null) {
+		if (settings != null) {
 			for (String key : settings.keySet()) {
 				args.put(key, settings.get(key));
 			}
@@ -91,11 +93,11 @@ public class ConfigurationIni implements ConfigurationDao {
 	@Override
 	public Map<String, String> getConfiguration() {
 		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
-		for(String section : ini.keySet()) {
+		for (String section : ini.keySet()) {
 			addSettings(args, section);
-		} 
+		}
 		return args;
-	} 
+	}
 
 	@Override
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
@@ -132,12 +134,12 @@ public class ConfigurationIni implements ConfigurationDao {
 		}
 		storeConfiguration();
 	}
- 
+
 	public void deleteConfiguration(@NonNull String section) {
 		ini.remove(section);
 		storeConfiguration();
 	}
-	
+
 	private void storeConfiguration() {
 		try {
 			ini.store();
@@ -149,10 +151,10 @@ public class ConfigurationIni implements ConfigurationDao {
 
 	public void setImportance(String section, int importance) {
 		log.warn("Method setImportance not relevant for ConfigurationIni.");
-    }
+	}
 
 	@Override
-    public String toString() {
-	    return "ConfigurationIni [ini=" + ini.getFile() + "]";
-    }
+	public String toString() {
+		return "ConfigurationIni [ini=" + ini.getFile() + "]";
+	}
 }

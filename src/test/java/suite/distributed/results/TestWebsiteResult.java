@@ -14,7 +14,7 @@ public class TestWebsiteResult {
 
 	@Test
 	public void testWebsiteResult() {
-		WebsiteResult wr = new WebsiteResult("JSON RESULT",4.0F);
+		WebsiteResult wr = new WebsiteResult("JSON RESULT", 4.0F);
 		wr.setId(42);
 		List<StateResult> stateResults = new ArrayList<StateResult>();
 		wr.setStateResults(stateResults);
@@ -31,8 +31,8 @@ public class TestWebsiteResult {
 
 	@Test
 	public void testWebsiteResultEquals() {
-		WebsiteResult wr1 = new WebsiteResult("JSON RESULT",4.0F);
-		WebsiteResult wr2 = new WebsiteResult("JSON RESULT",4.0F);
+		WebsiteResult wr1 = new WebsiteResult("JSON RESULT", 4.0F);
+		WebsiteResult wr2 = new WebsiteResult("JSON RESULT", 4.0F);
 		WebsiteResult wr3 = new WebsiteResult();
 		assertTrue(wr1.equals(wr2));
 		assertTrue(wr1.equals(wr1));

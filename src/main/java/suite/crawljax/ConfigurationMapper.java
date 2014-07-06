@@ -31,7 +31,7 @@ public class ConfigurationMapper {
 	private static final int FEATURE_INDEX_TYPE = 0;
 	private static final int FEATURE_INDEX_SIZE = 1;
 	private static final int FEATURE_INDEX_SUBTYPE = 2;
-	
+
 	private double threshold = -1;
 	private List<FeatureType> features;
 	private String ndd = "";
@@ -70,22 +70,23 @@ public class ConfigurationMapper {
 				        e.getMessage());
 			}
 		}
-		if(!features.isEmpty() && threshold >= 0)
-			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());	
+		if (!features.isEmpty() && threshold >= 0)
+			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());
 		return builder.build();
 	}
 
 	private NearDuplicateDetection buildNearDuplicateDetectionFactory() {
-		if(threshold < 0 || features == null)
-			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
-		if(ndd.equalsIgnoreCase("broder")) {
+		if (threshold < 0 || features == null)
+			throw new RuntimeException(
+			        "Failed to convert settings to valid NDD. Not all parameters where provided.");
+		if (ndd.equalsIgnoreCase("broder")) {
 			log.info("Build Broder NDD using parametes: {} and {}", threshold, features);
-			return new NearDuplicateDetectionBroder(threshold,ImmutableList.copyOf(features));
+			return new NearDuplicateDetectionBroder(threshold, ImmutableList.copyOf(features));
 		} else {
 			log.info("Build Crawlhash NDD using parametes: {} and {}", threshold, features);
-			return new NearDuplicateDetectionCrawlhash(threshold,ImmutableList.copyOf(features));
+			return new NearDuplicateDetectionCrawlhash(threshold, ImmutableList.copyOf(features));
 		}
-    }
+	}
 
 	/**
 	 * Converts a key=value representation to the relevant setting in Crawljax
@@ -129,19 +130,20 @@ public class ConfigurationMapper {
 			log.warn("Undefined key in configuration: {}", key);
 		}
 	}
-	
+
 	private void addFeature(String feature) {
 		String[] parts = feature.split(";");
-		if(parts.length < FEATURE_SYNTAX_SIZE) {
+		if (parts.length < FEATURE_SYNTAX_SIZE) {
 			log.warn("Invalid syntax for feature {}. Syntax should be: FeatureType;size;type");
 			return;
 		}
 		if (parts[FEATURE_INDEX_TYPE].equalsIgnoreCase("FeatureShingles")) {
 			int index = Integer.valueOf(parts[FEATURE_INDEX_SUBTYPE]);
 			FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
-			FeatureShingles ft = FeatureShingles.withSize(Integer.valueOf(parts[FEATURE_INDEX_SIZE]), fst);
+			FeatureShingles ft =
+			        FeatureShingles.withSize(Integer.valueOf(parts[FEATURE_INDEX_SIZE]), fst);
 			features.add(ft);
 			log.info("Feature added: {}", ft);
-		}		
+		}
 	}
 }

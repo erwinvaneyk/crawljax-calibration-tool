@@ -31,7 +31,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	private static final String COLUMN_KEY = "key";
 	private static final String COLUMN_VALUE = "value";
 	private static final String COLUMN_DEPTH = "depth";
-	private static final int    DEFAULT_IMPORTANCE = 10;
+	private static final int DEFAULT_IMPORTANCE = 10;
 	private static final int DEFAULT_MAPSIZE = 20;
 
 	private ConnectionManager connMgr;
@@ -40,7 +40,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 	@Inject
 	public ConfigurationDaoImpl(ConnectionManager conn) {
 		this.connMgr = conn;
-	    this.importances = this.getImportanceOfSections();
+		this.importances = this.getImportanceOfSections();
 	}
 
 	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
@@ -78,7 +78,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return getConfiguration(sections);
 	}
 
-	public void updateConfiguration(@NonNull String section,@NonNull String key, String value) {
+	public void updateConfiguration(@NonNull String section, @NonNull String key, String value) {
 		try {
 			Connection conn = connMgr.getConnection();
 			// Attempt update for new value
@@ -104,7 +104,7 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		}
 	}
 
-	public void deleteConfiguration(@NonNull String section,@NonNull String key) {
+	public void deleteConfiguration(@NonNull String section, @NonNull String key) {
 		try {
 			Connection conn = connMgr.getConnection();
 			conn.createStatement().executeUpdate(
@@ -152,42 +152,43 @@ public class ConfigurationDaoImpl implements ConfigurationDao {
 		return config;
 	}
 
-	private Map<String,Integer> getImportanceOfSections() {
-		Map<String,Integer> sections = new HashMap<String,Integer>(DEFAULT_MAPSIZE);
-        try(Connection conn = connMgr.getConnection()) {
-	        ResultSet res = conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` ");
+	private Map<String, Integer> getImportanceOfSections() {
+		Map<String, Integer> sections = new HashMap<String, Integer>(DEFAULT_MAPSIZE);
+		try (Connection conn = connMgr.getConnection()) {
+			ResultSet res =
+			        conn.createStatement().executeQuery("SELECT * FROM  `" + TABLE + "` ");
 			while (res.next()) {
-				sections.put(res.getString(COLUMN_SECTION),res.getInt(COLUMN_DEPTH));
+				sections.put(res.getString(COLUMN_SECTION), res.getInt(COLUMN_DEPTH));
 			}
-        } catch (SQLException e) {
-        	log.error("Error while retrieving importances of section. Reason: {}", e.getMessage());
-        } finally {
-        	connMgr.closeConnection();
-        }
+		} catch (SQLException e) {
+			log.error("Error while retrieving importances of section. Reason: {}", e.getMessage());
+		} finally {
+			connMgr.closeConnection();
+		}
 		return sections;
 	}
-	
+
 	private int getImportance(@NonNull String section, int defaultValue) {
 		Integer importance = importances.get(section);
-		if(importance != null) {
+		if (importance != null) {
 			return importance;
 		} else {
 			importances.put(section, defaultValue);
 			return defaultValue;
 		}
 	}
-	
+
 	@Override
 	public void setImportance(@NonNull String section, int importance) {
 		try {
 			Connection conn = connMgr.getConnection();
-	        conn.createStatement().executeUpdate("UPDATE `" + TABLE + "` SET `"
-	                        + COLUMN_DEPTH + "`=\"" + importance
-	                        + " WHERE `" + COLUMN_SECTION + "`=\"" + section);
-	        importances.put(section, importance);
-	        connMgr.closeConnection();
-        } catch (SQLException e) {
-	        log.error("Failed to set new importance: " + e.getMessage());
-        }
+			conn.createStatement().executeUpdate("UPDATE `" + TABLE + "` SET `"
+			        + COLUMN_DEPTH + "`=\"" + importance
+			        + " WHERE `" + COLUMN_SECTION + "`=\"" + section);
+			importances.put(section, importance);
+			connMgr.closeConnection();
+		} catch (SQLException e) {
+			log.error("Failed to set new importance: " + e.getMessage());
+		}
 	}
 }

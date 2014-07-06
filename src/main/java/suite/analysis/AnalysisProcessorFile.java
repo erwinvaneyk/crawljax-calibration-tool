@@ -24,12 +24,13 @@ public class AnalysisProcessorFile implements AnalysisProcessor {
 	protected File output;
 
 	public void apply(Analysis analysisReport) {
-		try(Writer writer = openOrCreateFile(new File(outputDir + "/" + analysisReport.getTitle()
-                + FILE_EXTENSION), false)) {
+		try (Writer writer =
+		        openOrCreateFile(new File(outputDir + "/" + analysisReport.getTitle()
+		                + FILE_EXTENSION), false)) {
 			writeContentsToFile(analysisReport, writer);
 		} catch (IOException e) {
 			log.error("Error while creating file: {}", e.getMessage());
-		} 
+		}
 	}
 
 	protected Writer openOrCreateFile(File file, boolean append) throws IOException {

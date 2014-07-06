@@ -155,7 +155,7 @@ public class TestWorkloadDao {
 		// Run method under inspection
 		WorkloadDaoImpl wldao = new WorkloadDaoImpl(connMgr);
 		List<WorkTask> finalReturn = wldao.retrieveWork(expected.size() + 10); // Ask for 10 more,
-																			   // than received
+		                                                                       // than received
 		assertEquals(finalReturn, expected);
 	}
 

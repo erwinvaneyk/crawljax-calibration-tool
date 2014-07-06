@@ -7,7 +7,7 @@ import java.util.Map;
  * ConfigurationDaoImpl implementations take care of managing distributed ini-like configurations.
  */
 public interface ConfigurationDao {
-	
+
 	String SECTION_COMMON = "common";
 
 	/**
@@ -42,7 +42,6 @@ public interface ConfigurationDao {
 	 *            the key of the setting
 	 * @param value
 	 *            the value of the setting
-	 * 
 	 */
 	void updateConfiguration(String section, String key, String value);
 
@@ -63,7 +62,7 @@ public interface ConfigurationDao {
 	 *            section all keys need to be deleted.
 	 */
 	void deleteConfiguration(String section);
-	
+
 	/**
 	 * Sets the relative importance of a section to a new value.
 	 * 

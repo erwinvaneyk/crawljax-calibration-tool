@@ -29,26 +29,27 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TestDBUtilsFlushToDatabase {
-	
+
 	private static final String WEBSITES_FILE = "output/testFlushWebsites.txt";
 	private static final String STUD_WEBSITE_1 = "http://www.teststubwebsiteA.hu";
 	private static final String STUD_WEBSITE_2 = "http://www.teststubwebsiteB.hu";
 	private static final String STUD_WEBSITE_3 = "http://www.testsstubwebsiteC.hu";
 	private static final String SETTINGS_FILE = "output/testFlushSettings.txt";
-	
+
 	private ConnectionManager con = new ConnectionManagerImpl();
-	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule("TEST")).getInstance(
-	        DatabaseUtils.class);
-	
+	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule("TEST"))
+	        .getInstance(
+	                DatabaseUtils.class);
+
 	@BeforeClass
 	public static void buildFile() {
 		// remove old
 		new File(WEBSITES_FILE).delete();
 		new File(SETTINGS_FILE).delete();
-		
+
 		makeWebsiteFile(WEBSITES_FILE);
 	}
-	
+
 	@AfterClass
 	public static void deleteFile() {
 		new File(WEBSITES_FILE).delete();
@@ -72,18 +73,20 @@ public class TestDBUtilsFlushToDatabase {
 	}
 
 	private static void makeWebsiteFile(String filename) {
-		try(PrintWriter websiteFile = new PrintWriter(new FileWriter(filename, true))) {
+		try (PrintWriter websiteFile = new PrintWriter(new FileWriter(filename, true))) {
 			websiteFile.println(STUD_WEBSITE_1);
 			websiteFile.println(STUD_WEBSITE_2);
 			websiteFile.println(STUD_WEBSITE_3);
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while making the stub website-file: {}", e.getMessage());
+			log.error("FileNotFoundException while making the stub website-file: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub website-file: {}", e.getMessage());
+			log.error("UnsupportedEncodingException while making the the stub website-file: {}",
+			        e.getMessage());
 		} catch (IOException e) {
 			log.error("IOException while making the the stub website-file: {}", e.getMessage());
-        }
+		}
 	}
 
 	/**
@@ -128,19 +131,21 @@ public class TestDBUtilsFlushToDatabase {
 	}
 
 	private void makeSettingsFile() {
-		try(PrintWriter websiteFile = new PrintWriter(new FileWriter(SETTINGS_FILE, true))) {
+		try (PrintWriter websiteFile = new PrintWriter(new FileWriter(SETTINGS_FILE, true))) {
 			websiteFile.println("[common]");
 			websiteFile.println("notExists = 99");
 			websiteFile.println("[demo.crawljax.com]");
 			websiteFile.println("something = -9");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while making the stub settings-file: {}", e.getMessage());
+			log.error("FileNotFoundException while making the stub settings-file: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub settings-file: {}", e.getMessage());
+			log.error("UnsupportedEncodingException while making the the stub settings-file: {}",
+			        e.getMessage());
 		} catch (IOException e) {
 			log.error("IOException while making the the stub website-file: {}", e.getMessage());
-        }
+		}
 	}
 
 	private void checkIfCorrectlyInserted(String key, String sectionExp, String valueExp)

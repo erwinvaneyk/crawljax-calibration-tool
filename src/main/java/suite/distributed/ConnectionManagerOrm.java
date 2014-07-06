@@ -11,7 +11,8 @@ public interface ConnectionManagerOrm extends ConnectionManager {
 
 	/**
 	 * @return returns the Connection compatible with the ORMLite.
-	 * @throws SQLException connection could not be established.
+	 * @throws SQLException
+	 *             connection could not be established.
 	 */
 	ConnectionSource getConnectionORM() throws SQLException;
 

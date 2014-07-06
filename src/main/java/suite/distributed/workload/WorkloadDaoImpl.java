@@ -55,7 +55,7 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		this.namespace = namespace;
 		log.info("WorkerID: " + WORKER_ID);
 	}
-	
+
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
 	 */
@@ -82,14 +82,16 @@ public class WorkloadDaoImpl implements WorkloadDao {
 			        conn.createStatement().executeUpdate(
 			                "UPDATE " + TABLE + " SET " + COLUMN_WORKERID + "=\"" + WORKER_ID
 			                        + "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND "
-			                        + COLUMN_WORKERID + "=\"\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" LIMIT " + maxcount);
+			                        + COLUMN_WORKERID + "=\"\" AND " + COLUMN_NAMESPACE + "=\""
+			                        + namespace + "\" LIMIT " + maxcount);
 			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 			// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res =
 			        conn.createStatement().executeQuery(
 			                "SELECT * FROM  " + TABLE + " WHERE " + COLUMN_WORKERID + " = \""
-			                        + WORKER_ID + "\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" AND " + COLUMN_CRAWLED + " = 0");
+			                        + WORKER_ID + "\" AND " + COLUMN_NAMESPACE + "=\""
+			                        + namespace + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {
 				try {
 					int id = res.getInt("id");
@@ -128,7 +130,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		} catch (SQLException e) {
 			log.error(e.getMessage());
 		} catch (NullPointerException e) {
-			log.error("Unexpected nullPointerException {}, probably the connection " + conn, e.getMessage());
+			log.error("Unexpected nullPointerException {}, probably the connection " + conn,
+			        e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret != 0;
@@ -163,7 +166,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		} catch (SQLException e) {
 			log.error(e.getMessage());
 		} catch (NullPointerException e) {
-			log.error("Unexpected nullPointerException {}, probably the input " + url + " or the connection " + conn, e.getMessage());
+			log.error("Unexpected nullPointerException {}, probably the input " + url
+			        + " or the connection " + conn, e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret;
@@ -195,9 +199,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	}
 
 	@Override
-    public String toString() {
-	    return "WorkloadDaoImpl [worker_id=" + WORKER_ID + "namespace=" + namespace + "]";
-    }
-	
-	
+	public String toString() {
+		return "WorkloadDaoImpl [worker_id=" + WORKER_ID + "namespace=" + namespace + "]";
+	}
+
 }

@@ -17,14 +17,16 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+/**
+ * The AnalysisRunner is responsible for running analyzes.
+ */
 public class AnalysisRunner {
-	
-	private static final String FILENAME = "results";
+
 	private static final String NAMESPACE = "test";
 
+	private String filenamePrefix = "results";
 	private ConfigurationDao config;
 	private AnalysisBuilder factory;
-	@Inject private Injector injector;
 
 	public static void main(String[] args) {
 		AnalysisRunner ar = Guice.createInjector(new TestingSuiteModule(NAMESPACE))
@@ -32,14 +34,26 @@ public class AnalysisRunner {
 		ar.run();
 	}
 
+	/**
+	 * Constructor for AnalysisRunner used by Guice
+	 * 
+	 * @param factory
+	 *            the factory to be used to generate the analysis
+	 * @param config
+	 *            the configurationDao to be used.
+	 */
 	@Inject
-	public AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config) {
+	AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config, SpeedMetric speedMetric,
+	        StateAnalysisMetric saMetric) {
 		this.factory = factory;
 		this.config = config;
-		factory.addMetric(injector.getInstance(SpeedMetric.class));
-		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
+		factory.addMetric(speedMetric);
+		factory.addMetric(saMetric);
 	}
 
+	/**
+	 * Using a given set of website-ids, threshold-range and featuresize-range, WorkTasks
+	 */
 	public void run() {
 		// ############################
 		// TODO: Should be read from input or external file..
@@ -54,25 +68,36 @@ public class AnalysisRunner {
 		namespaceSetup();
 		try {
 			for (int i = minShingleSize; i <= maxShingleSize; i++) {
-				config.updateConfiguration(NAMESPACE, "feature",
-				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType));
-				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, websiteIds);
+				config.updateConfiguration(
+				        NAMESPACE,
+				        "feature",
+				        "FeatureShingles;" + String.valueOf(i) + ";"
+				                + String.valueOf(shingleType));
+				List<Analysis> results =
+				        analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold,
+				                websiteIds);
 				for (Analysis analysis : results) {
-					new AnalysisProcessorCsv(FILENAME + shingleType + "-" + i).apply(analysis);
+					new AnalysisProcessorCsv(filenamePrefix + shingleType + "-" + i)
+					        .apply(analysis);
 				}
 			}
 		} finally {
 			namespaceCleanup();
 		}
 	}
-	
+
 	/**
-	 * Runs crawler 
+	 * Runs crawler on a threshold-range.
+	 * 
 	 * @param from
+	 *            lowerbound of threshold
 	 * @param to
+	 *            upperbound of threshold
 	 * @param step
+	 *            the stepsize of the threshold
 	 * @param websiteids
-	 * @return
+	 *            the websites tht should be crawled each iteration
+	 * @return A list of Analysis. An analysis for each threshold
 	 */
 	private List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
 		assert from <= to;
@@ -86,39 +111,53 @@ public class AnalysisRunner {
 		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
 		return results;
 	}
-	
+
 	/**
 	 * Issue a crawl for all workers
-	 * @param websiteids the ids of the websites which should be recrawled
-	 * @param threshold the threshold
+	 * 
+	 * @param websiteids
+	 *            the ids of the websites which should be recrawled
+	 * @param threshold
+	 *            the threshold
 	 * @return an analysis
 	 */
 	private Analysis issueCrawl(int[] websiteids, double threshold) {
 		config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(threshold));
-		return factory.getAnalysis("threshold-" + threshold, websiteids);	
+		return factory.getAnalysis("threshold-" + threshold, websiteids);
 	}
-	
+
 	/**
-	 * Creates a (temporary section for the NAMESPACE by copying the settings of the common section. This is done to keep the original common settings clean.
+	 * Creates a (temporary section for the NAMESPACE by copying the settings of the common section.
+	 * This is done to keep the original common settings clean.
 	 */
 	private void namespaceSetup() {
-		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
+		if (!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			Map<String, String> settings = config.getConfiguration(NAMESPACE);
-			if(settings.size() == 0) {
-				Map<String, String> commonSettings = config.getConfiguration(ConfigurationDao.SECTION_COMMON);
-				for(Entry<String, String> commonSetting : commonSettings.entrySet()) {
-					config.updateConfiguration(NAMESPACE, commonSetting.getKey(), commonSetting.getValue());
+			if (settings.size() == 0) {
+				Map<String, String> commonSettings =
+				        config.getConfiguration(ConfigurationDao.SECTION_COMMON);
+				for (Entry<String, String> commonSetting : commonSettings.entrySet()) {
+					config.updateConfiguration(NAMESPACE, commonSetting.getKey(),
+					        commonSetting.getValue());
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Removes the (temporary) section of the NAMESPACE.
 	 */
 	private void namespaceCleanup() {
-		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
+		if (!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			config.deleteConfiguration(NAMESPACE);
 		}
+	}
+
+	public String getFilenamePrefix() {
+		return filenamePrefix;
+	}
+
+	public void setFilenamePrefix(String filenamePrefix) {
+		this.filenamePrefix = filenamePrefix;
 	}
 }

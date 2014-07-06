@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @DatabaseTable(tableName = "workload")
 @RequiredArgsConstructor
 @Data
-@EqualsAndHashCode(exclude={"crawled","worker"}) 
+@EqualsAndHashCode(exclude = { "crawled", "worker" })
 public class WorkTask {
 
 	@DatabaseField(generatedId = true, canBeNull = false)

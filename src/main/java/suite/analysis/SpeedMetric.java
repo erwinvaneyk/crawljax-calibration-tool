@@ -11,7 +11,7 @@ import suite.distributed.results.WebsiteResult;
 public class SpeedMetric implements Metric {
 
 	private static final String NAME = "Speed Analysis Metric";
-	
+
 	public static final String SPEED_INCREASE = "Speed increase";
 
 	private static final float TOTAL_PERCENTAGE = 100;
@@ -36,14 +36,14 @@ public class SpeedMetric implements Metric {
 		ret.add(new Statistic(SPEED_INCREASE, result + "%"));
 		return ret;
 	}
-	
+
 	public String getName() {
 		return NAME;
 	}
 
 	@Override
-    public String toString() {
-	    return "SpeedMetric [benchmarkDuration=" + benchmarkDuration + ", testDuration="
-	            + testDuration + "]";
-    }
+	public String toString() {
+		return "SpeedMetric [benchmarkDuration=" + benchmarkDuration + ", testDuration="
+		        + testDuration + "]";
+	}
 }

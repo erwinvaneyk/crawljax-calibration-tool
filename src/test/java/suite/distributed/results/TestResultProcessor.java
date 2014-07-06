@@ -71,24 +71,26 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
-		ResultDao upload = new ResultDao(connMgr);
+		ResultUpload upload = new ResultUpload(connMgr);
 		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 
 	/**
 	 * Make a stub file named result.json
-	 * 
 	 */
 	private void makeJsonStub() {
-		try(PrintWriter json = new PrintWriter("TestDir/result.json", "UTF-8")) {
+		try (PrintWriter json = new PrintWriter("TestDir/result.json", "UTF-8")) {
 			json.println("This is a test");
 			json.println("For the class ResultProcessorImpl.java");
 			json.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while adding the stub Json-file to the test directory: {}", e.getMessage());
+			log.error(
+			        "FileNotFoundException while adding the stub Json-file to the test directory: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub Json-file: {}", e.getMessage());
+			log.error("UnsupportedEncodingException while making the the stub Json-file: {}",
+			        e.getMessage());
 		}
 	}
 
@@ -99,19 +101,21 @@ public class TestResultProcessor {
 	 */
 	private void makeScreenshotStub() {
 		new File("TestDir/screenshots").mkdir();
-		byte imageBin[] = new byte[]{ 0, 1, 0, 0 };
+		byte imageBin[] = new byte[] { 0, 1, 0, 0 };
 
-		try(OutputStream screenshot = new FileOutputStream(new File("TestDir/screenshots/shot1.jpg"))) {
+		try (OutputStream screenshot =
+		        new FileOutputStream(new File("TestDir/screenshots/shot1.jpg"))) {
 			screenshot.write(imageBin);
 			screenshot.close();
 		} catch (IOException e) {
-			log.error("IOException while making the screenshot stub file. Reason: {}", e.getMessage());
+			log.error("IOException while making the screenshot stub file. Reason: {}",
+			        e.getMessage());
 		}
 	}
 
 	private void makeDomStub(String sd) {
 		new File("TestDir/" + sd).mkdir();
-		try(PrintWriter dom = new PrintWriter("TestDir/" + sd + "/state1.html", "UTF-8")) {
+		try (PrintWriter dom = new PrintWriter("TestDir/" + sd + "/state1.html", "UTF-8")) {
 			dom.println("Just a test");
 			dom.println("For the " + sd);
 			dom.close();
@@ -197,7 +201,8 @@ public class TestResultProcessor {
 		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(new SQLException("MOCK sql-exception"));
+		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(
+		        new SQLException("MOCK sql-exception"));
 
 		when(statement.executeUpdate()).thenReturn(1);
 
@@ -206,7 +211,7 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
-		ResultDao upload = new ResultDao(connMgr);
+		ResultUpload upload = new ResultUpload(connMgr);
 		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}

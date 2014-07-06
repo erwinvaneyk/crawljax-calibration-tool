@@ -14,10 +14,11 @@ import org.junit.Test;
 
 public class TestConfigurationIni {
 	private static File file = new File("/testConfiguration.ini");
- 
-	@BeforeClass 
+
+	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		PrintWriter writer = new PrintWriter(new File(System.getProperty("user.dir")  + file), "UTF-8");
+		PrintWriter writer =
+		        new PrintWriter(new File(System.getProperty("user.dir") + file), "UTF-8");
 		writer.println("[section1]");
 		writer.println("key1=value1");
 		writer.println("[section2]");
@@ -25,21 +26,21 @@ public class TestConfigurationIni {
 		writer.println("[section3]");
 		writer.println("key3=value3");
 		writer.close();
-		new File(System.getProperty("user.dir")  + file).deleteOnExit();
+		new File(System.getProperty("user.dir") + file).deleteOnExit();
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
-		new File(System.getProperty("user.dir")  + file).delete();
+		new File(System.getProperty("user.dir") + file).delete();
 	}
 
 	@Test
-	public void testConfigurationIniFile() { 
+	public void testConfigurationIniFile() {
 		ConfigurationDao config = new ConfigurationIni(file);
 		config.setImportance("doesnotmatter", 42);
 		assertNotNull(config.toString());
 	}
-	
+
 	@Test
 	public void testConfigurationIniFileNull() {
 		ConfigurationDao defaultConfig = new ConfigurationIni();
@@ -51,9 +52,9 @@ public class TestConfigurationIni {
 	public void testGetConfiguration() {
 		ConfigurationDao config = new ConfigurationIni(file);
 		Map<String, String> settings = config.getConfiguration();
-		assertEquals(settings.get("key1"),"value1");
-		assertEquals(settings.get("key2"),"value2");
-		assertEquals(settings.get("key3"),"value3");
+		assertEquals(settings.get("key1"), "value1");
+		assertEquals(settings.get("key2"), "value2");
+		assertEquals(settings.get("key3"), "value3");
 	}
 
 	@Test
@@ -64,8 +65,8 @@ public class TestConfigurationIni {
 		sections.add("section3");
 		Map<String, String> settings = config.getConfiguration(sections);
 		assertEquals(settings.size(), 2);
-		assertEquals(settings.get("key3"),"value3");
-		assertEquals(settings.get("key2"),"value2");
+		assertEquals(settings.get("key3"), "value3");
+		assertEquals(settings.get("key2"), "value2");
 	}
 
 	@Test
@@ -73,9 +74,9 @@ public class TestConfigurationIni {
 		ConfigurationDao config = new ConfigurationIni(file);
 		Map<String, String> settings = config.getConfiguration("section3");
 		assertEquals(settings.size(), 1);
-		assertEquals(settings.get("key3"),"value3");
+		assertEquals(settings.get("key3"), "value3");
 	}
-   
+
 	@Test
 	public void testUpdateConfigurationNewSection() {
 		ConfigurationDao config = new ConfigurationIni(file);
@@ -86,7 +87,6 @@ public class TestConfigurationIni {
 		config.deleteConfiguration("section4");
 	}
 
-
 	@Test
 	public void testUpdateConfigurationUpdateKeyValue() {
 		ConfigurationDao config = new ConfigurationIni(file);
@@ -96,7 +96,6 @@ public class TestConfigurationIni {
 		assertEquals(settings.get("key3"), "42");
 	}
 
-	
 	@Test
 	public void testDeleteConfigurationString() {
 		ConfigurationDao config = new ConfigurationIni(file);
@@ -104,14 +103,14 @@ public class TestConfigurationIni {
 		Map<String, String> settings = config.getConfiguration();
 		assertEquals(settings.size(), 2);
 		assertFalse(settings.containsKey("key3"));
-		config.updateConfiguration("section3", "key3", "value3"); //restore
+		config.updateConfiguration("section3", "key3", "value3"); // restore
 	}
- 
+
 	@Test
 	public void testDeleteConfigurationStringString() {
 		ConfigurationDao config = new ConfigurationIni(file);
-		config.updateConfiguration("section3", "key3b","value3b");
-		config.deleteConfiguration("section3","key3b");
+		config.updateConfiguration("section3", "key3b", "value3b");
+		config.deleteConfiguration("section3", "key3b");
 		Map<String, String> settings = config.getConfiguration();
 		assertEquals(settings.size(), 3);
 		assertFalse(settings.containsKey("key3b"));

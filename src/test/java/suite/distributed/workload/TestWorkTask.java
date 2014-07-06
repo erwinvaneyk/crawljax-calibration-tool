@@ -21,7 +21,7 @@ public class TestWorkTask {
 		assertEquals(wt.getNamespace(), "test");
 		assertEquals(wt.getWorker(), "worker");
 		assertTrue(wt.isCrawled());
-		assertNotNull(wt.toString());		
+		assertNotNull(wt.toString());
 	}
 
 	@Test
@@ -78,6 +78,6 @@ public class TestWorkTask {
 	public void testHashcode() {
 		WorkTask wt = new WorkTask(1, "http://test.com");
 		wt.hashCode();
-	} 
+	}
 
 }

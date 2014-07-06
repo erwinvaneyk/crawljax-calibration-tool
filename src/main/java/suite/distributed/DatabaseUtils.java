@@ -80,7 +80,8 @@ public class DatabaseUtils {
 				log.warn("Not all results for websiteId {} could be deleted.", id);
 			}
 		} catch (SQLException e) {
-			log.error("SQLException while deleting the results of id={}, reason {}.", id, e.getMessage());
+			log.error("SQLException while deleting the results of id={}, reason {}.", id,
+			        e.getMessage());
 		}
 
 		return result;
@@ -121,7 +122,7 @@ public class DatabaseUtils {
 	public void actionFlushWebsitesFile(File file) {
 		try {
 			crawlManager.websitesFromFileToQueue(file);
-			String rawUrl =  crawlManager.getWebsiteQueue().poll();
+			String rawUrl = crawlManager.getWebsiteQueue().poll();
 			while (rawUrl != null) {
 				workload.submitWork(new URL(rawUrl), false);
 				rawUrl = crawlManager.getWebsiteQueue().poll();
@@ -136,10 +137,10 @@ public class DatabaseUtils {
 	 * 
 	 * @param fileName
 	 *            the filename of the settings file.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void actionFlushSettingsFile(File absoluteFilepath) {
-		try(InputStream file = new FileInputStream(absoluteFilepath)) {
+		try (InputStream file = new FileInputStream(absoluteFilepath)) {
 			Ini ini = new Ini(file);
 			for (Section section : ini.values()) {
 				for (Entry<String, String> el : section.entrySet()) {
@@ -147,9 +148,9 @@ public class DatabaseUtils {
 				}
 			}
 		} catch (IOException e) {
-	        System.out.println("File not found: " + absoluteFilepath);
-	        log.error("Error while reading file: {}", e.getMessage());
-        } 
+			System.out.println("File not found: " + absoluteFilepath);
+			log.error("Error while reading file: {}", e.getMessage());
+		}
 	}
 
 	/**

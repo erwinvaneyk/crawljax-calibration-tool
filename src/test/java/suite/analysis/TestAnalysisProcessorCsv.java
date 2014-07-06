@@ -32,7 +32,7 @@ public class TestAnalysisProcessorCsv {
 
 	}
 
-	//@AfterClass
+	// @AfterClass
 	public static void afterClass() {
 		try {
 			FileUtils.deleteDirectory(DIR);

@@ -19,15 +19,16 @@ import suite.distributed.results.ResultProcessorException;
 import suite.distributed.workload.WorkTask;
 import suite.distributed.workload.WorkloadDao;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 
 @Slf4j
 public class CrawlRunner {
 	private static String NAMESPACE;
-	private static final String APPLICATION_NAME = "Crawljax Testing Suite";
+	private static final String APPLICATION_NAME = "Crawljax Calibration Tool";
 	private static final long WAIT_INTERVAL = 1000 * 10;
-	
+
 	private DatabaseUtils dbUtils;
 	private ResultProcessor resultProcessor;
 	private WorkloadDao workload;
@@ -37,23 +38,25 @@ public class CrawlRunner {
 	public static void main(String[] args) {
 		try {
 			// Header
-			System.out.println(APPLICATION_NAME + System.lineSeparator() + "---------------------------------");
-	
+			System.out.println(APPLICATION_NAME + System.lineSeparator()
+			        + "---------------------------------");
+
 			// Parse commandline
-			CommandLine cmd = new BasicParser().parse(buildOptions(), args);	
+			CommandLine cmd = new BasicParser().parse(buildOptions(), args);
 			NAMESPACE = cmd.getOptionValue("n");
-			
+
 			// Setup Crawlrunner
 			CrawlRunner cr =
-			        Guice.createInjector(new TestingSuiteModule(NAMESPACE)).getInstance(CrawlRunner.class);
+			        Guice.createInjector(new TestingSuiteModule(NAMESPACE)).getInstance(
+			                CrawlRunner.class);
 			cr.actOnArgs(cmd);
-			
+
 			// Finish up.
 			System.out.println("Finished.");
-        } catch (ParseException e) {
-	        System.out.println("Error while parsing arguments: " + e.getMessage());
-        }
-	}	
+		} catch (ParseException e) {
+			System.out.println("Error while parsing arguments: " + e.getMessage());
+		}
+	}
 
 	private static Options buildOptions() {
 		Options options = new Options();
@@ -65,7 +68,10 @@ public class CrawlRunner {
 		        "Flushes the provided setting-file to the server. Nothing is crawled.");
 		options.addOption("l", "local", true,
 		        "Do not use server-functionality. Read the website-file and crawl all.");
-		options.addOption("n", "NAMESPACE", true,
+		options.addOption(
+		        "n",
+		        "NAMESPACE",
+		        true,
 		        "Sets a custom NAMESPACE for the instance. This enables multiple crawl-sessions on a single database");
 		options.addOption("noWaiting", false,
 		        "Prevents a worker-instance from waiting on new tasks. If no tasks are left, the worker stops.");
@@ -87,7 +93,7 @@ public class CrawlRunner {
 		} else if (cmd.hasOption("flush")) {
 			dbUtils.actionFlushWebsitesFile(new File(cmd.getOptionValue("flush")));
 		} else if (cmd.hasOption("settings")) {
-	        dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
+			dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
 		} else if (cmd.hasOption("local")) {
 			actionLocalCrawler(new File(cmd.getOptionValue("local")));
 		} else {
@@ -100,55 +106,58 @@ public class CrawlRunner {
 		formatter.printHelp(APPLICATION_NAME, buildOptions());
 	}
 
-	private void actionWorker(String namespace, boolean noWaiting) {
+	public void actionWorker(String namespace, boolean noWaiting) {
 		while (true) {
 			WorkTask task = getWorkTask(noWaiting);
-			if(task == null) return;
+			if (task == null)
+				return;
 			Map<String, String> args = getConfigurationForUrl(task.getURL(), namespace);
 			crawlWorkTask(task, args);
 			workload.checkoutWork(task);
-			System.out.println("crawl: " + task.getURL() + " completed");
+			log.info("crawl: {} completed", task.getURL());
 		}
 	}
-	
+
 	private void actionLocalCrawler(File websitePath) {
 		crawlManager.websitesFromFileToQueue(websitePath);
 		crawlManager.crawlWebsitesFromQueue();
 	}
-	
+
 	private Map<String, String> getConfigurationForUrl(URL url, String namespace) {
 		List<String> sections = new ArrayList<String>();
 		sections.add(url.getHost());
-		if(namespace != null) {
+		if (namespace != null) {
 			sections.add(namespace);
 		} else {
 			sections.add(ConfigurationDao.SECTION_COMMON);
 		}
 		return config.getConfiguration(sections);
 	}
-	
-	private WorkTask getWorkTask(boolean noWaiting) {
-		WorkTask workTasks = workload.retrieveWork(1).get(0);
-		while (workTasks == null) {
-			if (noWaiting) return null;
+
+	public WorkTask getWorkTask(boolean noWaiting) {
+		List<WorkTask> workTasks = workload.retrieveWork(1);
+		while (workTasks.size() == 0) {
+			if (noWaiting)
+				return null;
 			try {
-                Thread.sleep(WAIT_INTERVAL);
-            } catch (InterruptedException e) {
-    			System.out.println("Sleep interrupted; worker stopped.");
-    			log.error("Session interupted, reason: {}", e.getMessage());
-    		}
-			workTasks = workload.retrieveWork(1).get(0);
+				log.info("This worker will sleep for {}ms to wait for a worktask.", WAIT_INTERVAL);
+				Thread.sleep(WAIT_INTERVAL);
+			} catch (InterruptedException e) {
+				System.out.println("Sleep interrupted; worker stopped.");
+				log.error("Session interupted, reason: {}", e.getMessage());
+			}
+			workTasks = workload.retrieveWork(1);
 		}
-		return workTasks;
+		return workTasks.get(0);
 	}
-	
+
 	private void crawlWorkTask(WorkTask task, Map<String, String> args) {
 		File dir = crawlManager.generateOutputDir(task.getURL());
 		long timeStart = new Date().getTime();
 		boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
 		try {
 			if (!hasNoError) {
-				System.out.println("Crawljax returned an error code.");
+				log.info("Crawljax returned an error code.");
 				workload.revertWork(task.getId());
 			}
 			long duration = new Date().getTime() - timeStart;

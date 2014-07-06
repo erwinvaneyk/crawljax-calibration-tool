@@ -33,23 +33,24 @@ import com.j256.ormlite.dao.DaoManager;
 
 @Slf4j
 public class TestingSuiteModule extends AbstractModule {
-	
+
 	private String namespace;
-	
+
 	public TestingSuiteModule(String namespace) {
-		this.namespace  = (namespace != null) ? namespace : "";
+		this.namespace = (namespace != null) ? namespace : "";
 		log.info("Namespace used: \"" + namespace + "\"");
 	}
 
 	@Override
-	protected void configure() {		
+	protected void configure() {
 		// Use Near-duplicate Detection instance
 		List<FeatureType> ft = new ArrayList<FeatureType>();
 		ft.add(FeatureShingles.withSize(1, FeatureShingles.SizeType.CHARS));
 		bind(NearDuplicateDetection.class).toInstance(
-				new NearDuplicateDetectionCrawlhash(1, ImmutableList.copyOf(ft), new XxHashGenerator()));
+		        new NearDuplicateDetectionCrawlhash(1, ImmutableList.copyOf(ft),
+		                new XxHashGenerator()));
 		bind(HashGenerator.class).to(XxHashGenerator.class);
-		
+
 		// Analysis
 		bind(AnalysisBuilder.class).to(AnalysisBuilderImpl.class);
 
@@ -65,7 +66,7 @@ public class TestingSuiteModule extends AbstractModule {
 
 		// Workload
 		bind(WorkloadDao.class).to(WorkloadDaoImpl.class);
-		
+
 		// Namespace binding (used in WorkLoad)
 		bind(String.class).annotatedWith(Names.named("namespace")).toInstance(namespace);
 	}

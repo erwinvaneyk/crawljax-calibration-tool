@@ -34,11 +34,12 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 	 */
 	public ConnectionManagerOrmImpl() {
 		super();
-		try(FileInputStream file = new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
+		try (FileInputStream file =
+		        new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
 			setup(file);
 		} catch (IOException e) {
 			log.error("Failed to retrieve database-settings, because {}", e.getMessage());
-		} 
+		}
 	}
 
 	/**
@@ -59,10 +60,10 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 		password = settings.getProperty("password");
 		// Setup Driver
 		try {
-	        new Driver();
-        } catch (SQLException e) {
-        	log.error("Failed to setup Driver: {} ", e.getMessage());
-        }
+			new Driver();
+		} catch (SQLException e) {
+			log.error("Failed to setup Driver: {} ", e.getMessage());
+		}
 		log.debug("Connection settings loaded. Database-user: " + username);
 	}
 
@@ -83,10 +84,10 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 			super.closeConnection();
 		}
 	}
-	
+
 	@Override
-    public String toString() {
-	    return "ConnectionManagerOrmImpl [connection=" + connection + ", url=" + url + ":"
-	            + database + "]";
-    }
+	public String toString() {
+		return "ConnectionManagerOrmImpl [connection=" + connection + ", url=" + url + ":"
+		        + database + "]";
+	}
 }

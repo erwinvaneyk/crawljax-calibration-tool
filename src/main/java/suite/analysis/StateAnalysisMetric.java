@@ -211,7 +211,8 @@ public class StateAnalysisMetric implements Metric {
 				        nearDuplicateDetection.generateFingerprint(source.getDom()).getDistance(
 				                nearDuplicateDetection.generateFingerprint(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
-				if (distance <= nearDuplicateDetection.getDefaultThreshold() && distance < minDistance) {
+				if (distance <= nearDuplicateDetection.getDefaultThreshold()
+				        && distance < minDistance) {
 					result = state;
 					minDistance = distance;
 				}
@@ -275,14 +276,14 @@ public class StateAnalysisMetric implements Metric {
 		}
 		return removed;
 	}
-	
+
 	@Override
 	public String getName() {
 		return NAME;
 	}
 
 	@Override
-    public String toString() {
-	    return "StateAnalysisMetric [nearDuplicateDetection=" + nearDuplicateDetection + "]";
-    }
+	public String toString() {
+		return "StateAnalysisMetric [nearDuplicateDetection=" + nearDuplicateDetection + "]";
+	}
 }

@@ -34,12 +34,12 @@ public class TestAnalysisProcessorCmd {
 		ImmutableList<Statistic> stats = new ImmutableList.Builder<Statistic>().build();
 		when(analysisReport.getMetrics()).thenReturn(metrics);
 		when(analysisReport.getStatistics()).thenReturn(stats);
-		
+
 		new AnalysisProcessorCmd().apply(analysisReport);
 		assertNotNull(outContent.toString());
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test(expected = NullPointerException.class)
 	public void testApplyNull() throws AnalysisException {
 		new AnalysisProcessorCmd().apply(null);
 		assertNotNull(outContent.toString());

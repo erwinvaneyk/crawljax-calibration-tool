@@ -21,8 +21,9 @@ import com.google.inject.Guice;
 public class TestStateAnalysisMetric {
 
 	public StateAnalysisMetric getStateAnalysisMetric() {
-		return Guice.createInjector(new TestingSuiteModule(this.getClass().toString())).getInstance(
-		        StateAnalysisMetric.class);
+		return Guice.createInjector(new TestingSuiteModule(this.getClass().toString()))
+		        .getInstance(
+		                StateAnalysisMetric.class);
 	}
 
 	@Test
@@ -33,7 +34,7 @@ public class TestStateAnalysisMetric {
 		// run method
 		StateAnalysisMetric sam = getStateAnalysisMetric();
 		assertNotNull(sam.apply(benchmarkWebsites, testedWebsites));
-	} 
+	}
 
 	@Test
 	public void testGetMetricName() {

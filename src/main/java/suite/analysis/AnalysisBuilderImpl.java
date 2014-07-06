@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AnalysisBuilderImpl implements AnalysisBuilder {
 
 	private static final int POLL_INTERVAL = 1000 * 10;
-	
+
 	@Getter
 	private ImmutableList<Metric> metrics = new ImmutableList.Builder<Metric>()
 	        .build();
@@ -186,7 +186,7 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 	}
 
 	@Override
-    public String toString() {
-	    return "AnalysisBuilderImpl [metrics=" + metrics + "]";
-    }
+	public String toString() {
+		return "AnalysisBuilderImpl [metrics=" + metrics + "]";
+	}
 }

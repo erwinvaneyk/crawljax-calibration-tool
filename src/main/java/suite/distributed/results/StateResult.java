@@ -12,26 +12,32 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "DomResults")
 @ToString(exclude = { "dom", "strippedDom", "websiteResult", "screenshot" })
 @RequiredArgsConstructor
-@EqualsAndHashCode(exclude= {"strippedDomHash", "screenshot", "strippedDom"})
+@EqualsAndHashCode(exclude = { "strippedDomHash", "screenshot", "strippedDom" })
 public class StateResult {
 
 	@DatabaseField(canBeNull = false, foreign = true, uniqueCombo = true)
-	@Getter private final WebsiteResult websiteResult;
+	@Getter
+	private final WebsiteResult websiteResult;
 
 	@DatabaseField(uniqueCombo = true, canBeNull = false)
-	@Getter private final String stateId;
+	@Getter
+	private final String stateId;
 
 	@DatabaseField
-	@Getter private final String dom;
+	@Getter
+	private final String dom;
 
 	@DatabaseField
-	@Getter private final String strippedDom;
+	@Getter
+	private final String strippedDom;
 
 	@DatabaseField
-	@Getter private final String strippedDomHash;
+	@Getter
+	private final String strippedDomHash;
 
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
-	@Getter private final byte[] screenshot;
+	@Getter
+	private final byte[] screenshot;
 
 	public StateResult() {
 		websiteResult = null;
