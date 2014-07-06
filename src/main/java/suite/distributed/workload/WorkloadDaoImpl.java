@@ -48,6 +48,10 @@ public class WorkloadDaoImpl implements WorkloadDao {
 
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
+	 * @param conn
+	 * 			The manager for the connection
+	 * @param namespace
+	 * 			The domain of the workload
 	 */
 	@Inject
 	public WorkloadDaoImpl(ConnectionManager conn, @Named("namespace") String namespace) {
@@ -58,6 +62,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
+	 * @param conn
+	 * 			The manager for the connection
 	 */
 	public WorkloadDaoImpl(ConnectionManager conn) {
 		this.connMgr = conn;
@@ -113,8 +119,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	/**
 	 * Registering a succesful crawl on the server.
 	 * 
-	 * @param url
-	 *            The url to be checked out.
+	 * @param wt
+	 *            The worktask to be checked out.
 	 * @return true if checkout was succesful, else false.
 	 */
 	public boolean checkoutWork(WorkTask wt) {
@@ -176,8 +182,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
 	 * 
-	 * @param url
-	 *            the url to be reverted
+	 * @param id
+	 *            the id of the website to be reverted
 	 * @return true if successful, else false.
 	 */
 	public boolean revertWork(int id) {

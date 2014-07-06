@@ -33,11 +33,12 @@ public class ResultProcessorImpl implements ResultProcessor {
 	/**
 	 * Upload the resulting all the results to the database.
 	 * 
-	 * @param website
-	 *            The crawled website that genarates the output folder
+	 * @param id
+	 *            The id of the crawled website that genarates the output folder
 	 * @param dir
 	 *            The directory that contains the output of the crawl
-	 * @throws ResultProcessorException
+	 * @param duration
+	 * 			  The duration of the crawl
 	 */
 	public void uploadResults(int id, File dir, long duration) {
 		int websiteID = this.uploadJson(id, dir, duration);
@@ -59,7 +60,6 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The output directory
 	 * @param duration
 	 *            The duration of the crawl
-	 * @throws ResultProcessorException
 	 */
 	public int uploadJson(int id, File dir, long duration) {
 		File jsonFile = this.findFile(dir, PATH_RESULTS_JSON);
@@ -70,11 +70,10 @@ public class ResultProcessorImpl implements ResultProcessor {
 	/**
 	 * Upload only the dom of every state to the database.
 	 * 
-	 * @param id
+	 * @param websiteId
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
 	public void uploadDom(int websiteId, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_DOM);
@@ -96,9 +95,8 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
-	public void uploadStrippedDom(int id, File dir) throws ResultProcessorException {
+	public void uploadStrippedDom(int id, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 
@@ -117,9 +115,8 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
-	public void uploadScreenshot(int id, File dir) throws ResultProcessorException {
+	public void uploadScreenshot(int id, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
 		FileInputStream fr = null;
 		for (File file : dirOfMap.listFiles()) {

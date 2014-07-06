@@ -15,7 +15,6 @@ import suite.distributed.configuration.ConfigurationDao;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 /**
  * The AnalysisRunner is responsible for running analyzes.
@@ -41,6 +40,10 @@ public class AnalysisRunner {
 	 *            the factory to be used to generate the analysis
 	 * @param config
 	 *            the configurationDao to be used.
+	 * @param speedMetric
+	 * 			  measuring the runtime
+	 * @param saMetric
+	 * 			  measuring the duplicate and missed states of a test run
 	 */
 	@Inject
 	AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config, SpeedMetric speedMetric,
@@ -61,7 +64,7 @@ public class AnalysisRunner {
 		final double minThreshold = 1;
 		final double maxThreshold = 1;
 		final double stepsizeThreshold = 1;
-		final int shingleType = FeatureShingles.SizeType.WORDS.ordinal();
+		final int shingleType = FeatureShingles.ShingleType.WORDS.ordinal();
 		final int minShingleSize = 1;
 		final int maxShingleSize = 1;
 		// #############################

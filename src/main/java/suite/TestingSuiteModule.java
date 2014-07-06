@@ -45,7 +45,7 @@ public class TestingSuiteModule extends AbstractModule {
 	protected void configure() {
 		// Use Near-duplicate Detection instance
 		List<FeatureType> ft = new ArrayList<FeatureType>();
-		ft.add(FeatureShingles.withSize(1, FeatureShingles.SizeType.CHARS));
+		ft.add(FeatureShingles.withSize(1, FeatureShingles.ShingleType.CHARS));
 		bind(NearDuplicateDetection.class).toInstance(
 		        new NearDuplicateDetectionCrawlhash(1, ImmutableList.copyOf(ft),
 		                new XxHashGenerator()));

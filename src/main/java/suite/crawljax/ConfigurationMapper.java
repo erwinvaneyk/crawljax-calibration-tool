@@ -139,7 +139,7 @@ public class ConfigurationMapper {
 		}
 		if (parts[FEATURE_INDEX_TYPE].equalsIgnoreCase("FeatureShingles")) {
 			int index = Integer.valueOf(parts[FEATURE_INDEX_SUBTYPE]);
-			FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
+			FeatureShingles.ShingleType fst = FeatureShingles.ShingleType.values()[index];
 			FeatureShingles ft =
 			        FeatureShingles.withSize(Integer.valueOf(parts[FEATURE_INDEX_SIZE]), fst);
 			features.add(ft);

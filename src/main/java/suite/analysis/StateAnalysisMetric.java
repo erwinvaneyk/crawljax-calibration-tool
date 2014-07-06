@@ -148,6 +148,8 @@ public class StateAnalysisMetric implements Metric {
 	 * 
 	 * @param states
 	 *            The original list with any duplicates.
+	 * @param websiteResultId
+	 * 			  The ids of the websites which should be removed
 	 * @return A new list containing the stateResults without any duplicates
 	 */
 	private List<StateResult> removeDuplicatesFromCollection(@NonNull List<StateResult> states,
@@ -189,14 +191,12 @@ public class StateAnalysisMetric implements Metric {
 	}
 
 	/**
-	 * For a given state, find the nearest state in the collection states, under a given threshold.
+	 * For a given state, find the nearest state in the collection states.
 	 * 
 	 * @param states
 	 *            collection to be searched in.
 	 * @param source
 	 *            the reference state
-	 * @param threshold
-	 *            the upper boundary for the distance to the nearest state in states.
 	 * @return StateResult of the state nearest to source. Else if no State was found under the
 	 *         threshold, return null.
 	 */

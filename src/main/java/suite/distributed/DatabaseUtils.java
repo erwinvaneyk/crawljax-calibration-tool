@@ -97,7 +97,7 @@ public class DatabaseUtils {
 	 * @param value
 	 *            The value of the column to be matched.
 	 * @return return true if the deleting was a success.
-	 * @throws SQLException
+	 * @throws SQLException when there are problems with the connection to the database
 	 */
 	private boolean deleteById(String table, String column, int value) throws SQLException {
 		boolean succes = false;
@@ -135,9 +135,8 @@ public class DatabaseUtils {
 	/**
 	 * Flushes entire local settings file to the server, replacing any interfering settings.
 	 * 
-	 * @param fileName
+	 * @param absoluteFilepath
 	 *            the filename of the settings file.
-	 * @throws IOException
 	 */
 	public void actionFlushSettingsFile(File absoluteFilepath) {
 		try (InputStream file = new FileInputStream(absoluteFilepath)) {
@@ -158,9 +157,9 @@ public class DatabaseUtils {
 	 * 
 	 * @param websiteResultId
 	 *            the websiteResultID for which the mapping should be retrieved
-	 * @return map with tuples defining duplicates, using a format <WebsiteResultID,
-	 *         WebsiteResultID>, if an error occurred or nothing was found, return an empty map.
-	 * @throws SQLException
+	 * @return map with tuples defining duplicates, using a format (WebsiteResultID,
+	 *         WebsiteResultID), if an error occurred or nothing was found, return an empty map.
+	 * @throws SQLException when there are problems with the connection to the database
 	 */
 	public Map<String, String> retrieveDuplicatesMap(int websiteResultId)
 	        throws SQLException {

@@ -21,6 +21,7 @@ public interface ConfigurationDao {
 	 * Get the configurations associated with the sections.
 	 * 
 	 * @param sections
+	 * 			  grouping configurations together
 	 * @return map with configurations of the sections.
 	 */
 	Map<String, String> getConfiguration(List<String> sections);
@@ -29,6 +30,7 @@ public interface ConfigurationDao {
 	 * Get the configurations associated with the section
 	 * 
 	 * @param section
+	 * 			  grouping configurations together
 	 * @return map with configurations of the section.
 	 */
 	Map<String, String> getConfiguration(String section);
@@ -50,8 +52,8 @@ public interface ConfigurationDao {
 	 * 
 	 * @param section
 	 *            sections which are scanned to delete keys
-	 * @param keys
-	 *            keys to be deleted
+	 * @param key
+	 *            key to be deleted
 	 */
 	void deleteConfiguration(String section, String key);
 

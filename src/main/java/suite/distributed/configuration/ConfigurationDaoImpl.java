@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * A ConfigurationDao implementation, which makes use of a SQL-database to store the
  * configuration-settings. SQL-implementation of the ConfigurationDao (Table) - Configuration:
- * depth|section|key|value| - pair <secton,key> is UNIQUE - ORDER BY depth DESC
+ * depth|section|key|value| - pair (secton,key) is UNIQUE - ORDER BY depth DESC
  */
 @Slf4j
 @Singleton

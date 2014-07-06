@@ -39,8 +39,6 @@ public class CrawlManager {
 	 * 
 	 * @param websitesPath
 	 *            the path to the file containing websites.
-	 * @throws IOException
-	 *             the file could not be found.
 	 */
 	public void websitesFromFileToQueue(File websitesPath) {
 		try (BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()))) {
@@ -90,9 +88,6 @@ public class CrawlManager {
 	 * @param website
 	 *            the website needing a outputdir
 	 * @return unique name for the dir
-	 * @throws URISyntaxException
-	 *             website contains an invalid syntax
-	 * @throws MalformedURLException
 	 */
 	public File generateOutputDir(URL website) {
 		Date date = new Date();
@@ -103,8 +98,13 @@ public class CrawlManager {
 	/**
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * 
+	 * @param website
+	 * 			  The website to crawl
+	 * @param outputdir
+	 * 			  The location to store the results
 	 * @param args
 	 *            arguments which need to be send to crawljax.
+	 * @return true if the crawl finished succesfull
 	 */
 	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {
 		CrawljaxConfiguration config =

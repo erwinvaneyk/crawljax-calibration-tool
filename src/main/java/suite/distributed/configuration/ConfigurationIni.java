@@ -29,8 +29,9 @@ public class ConfigurationIni implements ConfigurationDao {
 	/**
 	 * Provide a custom INI-file to use in the ConfigurationIni
 	 * 
-	 * @throws IOException
-	 *             provided INI-file could not be read
+	 * @param absoluteFilepath
+	 * 			The path to the local configuration file
+	 * 
 	 */
 	public ConfigurationIni(File absoluteFilepath) {
 		try {
@@ -46,8 +47,6 @@ public class ConfigurationIni implements ConfigurationDao {
 	/**
 	 * Use the default INI-file to use in the ConfigurationIni
 	 * 
-	 * @throws IOException
-	 *             Default INI-file could not be read
 	 */
 	@Inject
 	public ConfigurationIni() {
@@ -57,8 +56,6 @@ public class ConfigurationIni implements ConfigurationDao {
 	/**
 	 * Use the default INI-file to use in the ConfigurationIni
 	 * 
-	 * @throws IOException
-	 *             Default INI-file could not be read
 	 */
 	private void getDefaultIni() {
 		try {

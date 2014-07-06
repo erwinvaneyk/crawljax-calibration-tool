@@ -39,6 +39,7 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 	 * Add a metric-type to the list of metrics used to analyse the results
 	 * 
 	 * @param metric
+	 * 		The way of comparison between the benchmark and new tested websites.
 	 */
 	public void addMetric(Metric metric) {
 		metrics = new ImmutableList.Builder<Metric>()

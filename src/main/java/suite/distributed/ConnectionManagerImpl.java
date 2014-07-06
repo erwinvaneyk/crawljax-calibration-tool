@@ -40,8 +40,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	/**
 	 * The common constructor-method. Reads settings from the file and loads driver-class
 	 * 
-	 * @param connectionDetailsPath
-	 *            the path to the settings-file.
+	 * @param input
+	 *            the settings-file.
 	 * @throws IOException
 	 *             the connection-settings file could not be found.
 	 */

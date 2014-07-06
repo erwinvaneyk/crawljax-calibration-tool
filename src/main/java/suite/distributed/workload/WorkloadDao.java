@@ -25,8 +25,8 @@ public interface WorkloadDao {
 	/**
 	 * Registering a succesful crawl.
 	 * 
-	 * @param url
-	 *            The url to be checked out.
+	 * @param id
+	 *            The id of the worktask to be checked out.
 	 * @return true if checkout was succesful, else false.
 	 */
 	boolean checkoutWork(WorkTask id);
@@ -36,6 +36,8 @@ public interface WorkloadDao {
 	 * 
 	 * @param url
 	 *            the url to be crawled
+	 * @param claim
+	 * 			  if true, prevent others from taking this task
 	 * @return true if no errors occurred, else false.
 	 */
 	int submitWork(URL url, boolean claim);
@@ -43,8 +45,8 @@ public interface WorkloadDao {
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
 	 * 
-	 * @param url
-	 *            the url to be reverted
+	 * @param id
+	 *            the id of the website to be reverted
 	 * @return true if successful, else false.
 	 */
 	boolean revertWork(int id);

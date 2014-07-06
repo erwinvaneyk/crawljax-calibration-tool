@@ -32,8 +32,12 @@ public class Analysis {
 
 	/**
 	 * @param title
+	 * 			The description for the analasys
 	 * @param benchmarkWebsites
+	 * 			The golden-standard of the websites
 	 * @param metrics
+	 * 			The metrics which will determine the way of comparison 
+	 * 			between the benchmark and new tested websites.
 	 */
 	Analysis(String title, Collection<WebsiteResult> benchmarkWebsites,
 	        ImmutableList<Metric> metrics) {
