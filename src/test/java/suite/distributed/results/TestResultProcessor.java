@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
@@ -22,9 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suite.distributed.ConnectionManagerImpl;
-import suite.distributed.results.ResultDao;
-import suite.distributed.results.ResultProcessorException;
-import suite.distributed.results.ResultProcessorImpl;
 
 @Slf4j
 public class TestResultProcessor {
@@ -73,30 +71,26 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(dbContainsTuple);
 		// Method under inspection
-		ResultDao upload = new ResultDao(connMgr);
+		ResultUpload upload = new ResultUpload(connMgr);
 		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}
 
 	/**
 	 * Make a stub file named result.json
-	 * 
-	 * @throws FileNotFoundException
-	 * @throws UnsupportedEncodingException
 	 */
 	private void makeJsonStub() {
-		PrintWriter json;
-		try {
-			json = new PrintWriter("TestDir/result.json", "UTF-8");
+		try (PrintWriter json = new PrintWriter("TestDir/result.json", "UTF-8")) {
 			json.println("This is a test");
 			json.println("For the class ResultProcessorImpl.java");
 			json.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while adding the stub Json-file to the test directory");
-			System.exit(1);
+			log.error(
+			        "FileNotFoundException while adding the stub Json-file to the test directory: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub Json-file");
-			System.exit(1);
+			log.error("UnsupportedEncodingException while making the the stub Json-file: {}",
+			        e.getMessage());
 		}
 	}
 
@@ -107,34 +101,29 @@ public class TestResultProcessor {
 	 */
 	private void makeScreenshotStub() {
 		new File("TestDir/screenshots").mkdir();
-		byte imageBin[] = { 0, 1, 0, 0 };
+		byte imageBin[] = new byte[] { 0, 1, 0, 0 };
 
-		FileOutputStream screenshot;
-		try {
-			screenshot = new FileOutputStream(new File("TestDir/screenshots/shot1.jpg"));
+		try (OutputStream screenshot =
+		        new FileOutputStream(new File("TestDir/screenshots/shot1.jpg"))) {
 			screenshot.write(imageBin);
 			screenshot.close();
 		} catch (IOException e) {
-			log.error("IOException while making the screenshot stub file");
-			System.exit(1);
+			log.error("IOException while making the screenshot stub file. Reason: {}",
+			        e.getMessage());
 		}
 	}
 
 	private void makeDomStub(String sd) {
 		new File("TestDir/" + sd).mkdir();
-		PrintWriter dom;
-		try {
-			dom = new PrintWriter("TestDir/" + sd + "/state1.html", "UTF-8");
+		try (PrintWriter dom = new PrintWriter("TestDir/" + sd + "/state1.html", "UTF-8")) {
 			dom.println("Just a test");
 			dom.println("For the " + sd);
 			dom.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while adding the stub " + sd
-			        + "-file to the test directory");
-			System.exit(1);
+			log.error("Exception while adding the stub " + sd
+			        + "-file to the test directory: {}", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub " + sd + "-file");
-			System.exit(1);
+			log.error("Exception while making the the stub " + sd + "-file:{}", e.getMessage());
 		}
 	}
 
@@ -212,7 +201,8 @@ public class TestResultProcessor {
 		ResultSet resultset = mock(ResultSet.class);
 		// Mock methods
 		when(connMgr.getConnection()).thenReturn(conn);
-		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(new SQLException());
+		when(conn.prepareStatement(anyString(), anyInt())).thenThrow(
+		        new SQLException("MOCK sql-exception"));
 
 		when(statement.executeUpdate()).thenReturn(1);
 
@@ -221,7 +211,7 @@ public class TestResultProcessor {
 		when(statement.executeQuery()).thenReturn(resultset);
 		when(resultset.next()).thenReturn(false);
 		// Method under inspection
-		ResultDao upload = new ResultDao(connMgr);
+		ResultUpload upload = new ResultUpload(connMgr);
 		ResultProcessorImpl resProc = new ResultProcessorImpl(upload);
 		resProc.uploadResults(1, new File("TestDir"), 10);
 	}

@@ -8,8 +8,6 @@ import java.util.Collection;
 
 import org.junit.Test;
 
-import suite.analysis.Analysis;
-import suite.analysis.AnalysisException;
 import suite.distributed.results.StateResult;
 import suite.distributed.results.WebsiteResult;
 import suite.distributed.workload.WorkTask;

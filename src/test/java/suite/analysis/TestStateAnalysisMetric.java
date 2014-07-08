@@ -10,8 +10,6 @@ import java.util.List;
 import org.junit.Test;
 
 import suite.TestingSuiteModule;
-import suite.analysis.StateAnalysisMetric;
-import suite.analysis.Statistic;
 import suite.distributed.results.StateResult;
 import suite.distributed.results.WebsiteResult;
 import suite.distributed.workload.WorkTask;
@@ -23,8 +21,9 @@ import com.google.inject.Guice;
 public class TestStateAnalysisMetric {
 
 	public StateAnalysisMetric getStateAnalysisMetric() {
-		return Guice.createInjector(new TestingSuiteModule()).getInstance(
-		        StateAnalysisMetric.class);
+		return Guice.createInjector(new TestingSuiteModule(this.getClass().toString()))
+		        .getInstance(
+		                StateAnalysisMetric.class);
 	}
 
 	@Test
@@ -40,7 +39,7 @@ public class TestStateAnalysisMetric {
 	@Test
 	public void testGetMetricName() {
 		StateAnalysisMetric sam = getStateAnalysisMetric();
-		assertNotNull(sam.getMetricName());
+		assertNotNull(sam.getName());
 	}
 
 	private StateResult getMockedStateResult(String id, WebsiteResult parent) {
@@ -48,7 +47,6 @@ public class TestStateAnalysisMetric {
 		when(stateResult.getDom()).thenReturn("mock DOM");
 		when(stateResult.getStrippedDom()).thenReturn("mock Stripped DOM");
 		when(stateResult.getStateId()).thenReturn(id);
-		when(stateResult.getStrippedDomHash()).thenReturn(42);
 		when(stateResult.getWebsiteResult()).thenReturn(parent);
 		return stateResult;
 	}

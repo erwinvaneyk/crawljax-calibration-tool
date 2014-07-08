@@ -10,19 +10,47 @@ public interface ResultProcessor {
 	/**
 	 * Save the resulting JSON file of a crawled website.
 	 * 
-	 * @param website
-	 *            The crawled website that generates the output folder
+	 * @param id
+	 *            The id of the crawled website that generates the output folder
 	 * @param dir
 	 *            The directory that contains the output of the crawl
-	 * @throws ResultProcessorException
+	 * @param duration
+	 * 			  The duration of the crawl
 	 */
-	public void uploadResults(int id, File dir, long duration);
+	void uploadResults(int id, File dir, long duration);
 
-	public void uploadDom(int id, File dir);
+	/**
+	 * @param id
+	 * 			  The id of the website which dom to upload
+	 * @param dir
+	 * 			  The directory of the output folder
+	 */
+	void uploadDom(int id, File dir);
 
-	public void uploadStrippedDom(int id, File dir);
+	/**
+	 * @param id
+	 * 			   The id of the website which stripped-dom to upload
+	 * @param dir
+	 * 			   The directory of the output folder
+	 */
+	void uploadStrippedDom(int id, File dir);
 
-	public void uploadScreenshot(int id, File dir);
+	/**
+	 * @param id
+	 * 			   The id of the website which screenshot to upload
+	 * @param dir
+	 * 			   The directory of the output folder
+	 */
+	void uploadScreenshot(int id, File dir);
 
-	public int uploadJson(int id, File dir, long duration);
+	/**
+	 * @param id
+	 * 			   The id of the website which screenshot to upload
+	 * @param dir
+	 * 			   The directory of the output folder
+	 * @param duration
+	 * 			   The duration of the crawl
+	 * @return the new id of the website
+	 */
+	int uploadJson(int id, File dir, long duration);
 }

@@ -10,9 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suite.analysis.Analysis;
-import suite.analysis.AnalysisException;
-import suite.analysis.AnalysisProcessorCmd;
+import com.google.common.collect.ImmutableList;
 
 public class TestAnalysisProcessorCmd {
 
@@ -31,11 +29,17 @@ public class TestAnalysisProcessorCmd {
 	@Test
 	public void testApply() throws AnalysisException {
 		Analysis analysisReport = mock(Analysis.class);
+		Metric metric = mock(Metric.class);
+		ImmutableList<Metric> metrics = new ImmutableList.Builder<Metric>().add(metric).build();
+		ImmutableList<Statistic> stats = new ImmutableList.Builder<Statistic>().build();
+		when(analysisReport.getMetrics()).thenReturn(metrics);
+		when(analysisReport.getStatistics()).thenReturn(stats);
+
 		new AnalysisProcessorCmd().apply(analysisReport);
 		assertNotNull(outContent.toString());
 	}
 
-	@Test
+	@Test(expected = NullPointerException.class)
 	public void testApplyNull() throws AnalysisException {
 		new AnalysisProcessorCmd().apply(null);
 		assertNotNull(outContent.toString());

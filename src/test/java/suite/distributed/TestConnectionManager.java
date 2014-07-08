@@ -7,9 +7,6 @@ import java.sql.SQLException;
 
 import org.junit.Test;
 
-import suite.distributed.ConnectionManager;
-import suite.distributed.ConnectionManagerImpl;
-
 public class TestConnectionManager {
 
 	@Test
@@ -17,10 +14,11 @@ public class TestConnectionManager {
 		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		assertNotNull(conn);
+		assertNotNull(connMgr.toString());
 	}
 
 	@Test
-	public void testGetActiveConnection() throws SQLException {
+	public void testGetActiveConnection() {
 		ConnectionManager connMgr = new ConnectionManagerImpl();
 		Connection conn = connMgr.getConnection();
 		assertNotNull(conn);
@@ -47,7 +45,7 @@ public class TestConnectionManager {
 	}
 
 	@Test
-	public void testCloseInactiveConnection() throws SQLException {
+	public void testCloseInactiveConnection() {
 		ConnectionManager connMgr = new ConnectionManagerImpl();
 		connMgr.closeConnection();
 	}

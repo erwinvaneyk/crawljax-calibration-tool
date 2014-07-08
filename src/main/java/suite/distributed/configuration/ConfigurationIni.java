@@ -1,12 +1,12 @@
 package suite.distributed.configuration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.ini4j.Ini;
@@ -15,40 +15,56 @@ import org.ini4j.Profile.Section;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Implementation of ConfigurationDao, which uses a local INI-file.to store the settings. *
+ */
 @Slf4j
 @Singleton
 public class ConfigurationIni implements ConfigurationDao {
 
 	private static final File DEFAULT_SETTINGS_FILE = new File("/src/main/config/settings.ini");
-	private File settingsIniFile;
+	private static final int DEFAULT_MAPSIZE = 20;
+	private Ini ini;
 
-	private static Ini ini;
-
+	/**
+	 * Provide a custom INI-file to use in the ConfigurationIni
+	 * 
+	 * @param absoluteFilepath
+	 * 			The path to the local configuration file
+	 * 
+	 */
 	public ConfigurationIni(File absoluteFilepath) {
-		this.settingsIniFile = absoluteFilepath;
 		try {
-			ini = new Ini(new FileInputStream(settingsIniFile));
-			if (ini.containsKey(SECTION_COMMON))
-				log.warn("Common section could not be found in INI-file");
+			ini = new Ini(new File(System.getProperty("user.dir") + absoluteFilepath));
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(
+			        "Failed to load custom settings, trying to load default settings (reason: {}).",
+			        e.getMessage());
+			getDefaultIni();
 		}
 	}
 
+	/**
+	 * Use the default INI-file to use in the ConfigurationIni
+	 * 
+	 */
 	@Inject
 	public ConfigurationIni() {
-		this.settingsIniFile = DEFAULT_SETTINGS_FILE;
-		try {
-			ini = new Ini(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
-			if (ini.containsKey(SECTION_COMMON))
-				log.warn("Common section could not be found in INI-file");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		getDefaultIni();
 	}
 
-	public File getSettingsFile() {
-		return this.settingsIniFile;
+	/**
+	 * Use the default INI-file to use in the ConfigurationIni
+	 * 
+	 */
+	private void getDefaultIni() {
+		try {
+			ini = new Ini(new File(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
+		} catch (IOException e) {
+			log.error("Failed to load default settings, because {}.", e.getMessage());
+		}
+		if (ini.containsKey(SECTION_COMMON))
+			log.warn("Common section could not be found in INI-file");
 	}
 
 	/**
@@ -60,110 +76,82 @@ public class ConfigurationIni implements ConfigurationDao {
 	 *            the section (ini) that needs to be added.
 	 */
 	private void addSettings(Map<String, String> args, String section) {
-		try {
-			Section settings = ini.get(section);
+		Section settings = ini.get(section);
+		if (settings != null) {
 			for (String key : settings.keySet()) {
 				args.put(key, settings.get(key));
 			}
 			log.info("Custom settings loaded for section: " + section);
-		} catch (Exception e) {
-			log.warn("Could not find custom settings-section: " + section);
+		} else {
+			log.debug("Section {} seems to be empty. No settings added." + section);
 		}
 	}
 
-	/**
-	 * Set a new ini-object for setting-building. It requires a common-section to be present.
-	 * 
-	 * @param ini
-	 *            the new ini.
-	 */
-	public void setIni(Ini newIni) {
-		if (newIni.containsKey(SECTION_COMMON))
-			log.warn("Common section could not be found in INI-file");
-		ini = newIni;
-	}
-
-	public Ini getIni() {
-		return ini;
-	}
-
+	@Override
 	public Map<String, String> getConfiguration() {
-		// Load common settings{
-		Map<String, String> args = new HashMap<String, String>();
-		addSettings(args, SECTION_COMMON);
-		log.debug("Common Settings retrieved.");
-		return args;
-	}
-
-	public Map<String, String> getConfiguration(List<String> websites) {
-		assert websites != null;
-		Map<String, String> args = new HashMap<String, String>();
-		for (String section : websites) {
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
+		for (String section : ini.keySet()) {
 			addSettings(args, section);
 		}
 		return args;
 	}
 
-	/**
-	 * Generates a map with settings extracted from the ini and website and outputdir-keys. If
-	 * defined custom settings of the website will be added.
-	 * 
-	 * @param website
-	 *            the website for which the arguments are build.
-	 * @return map with arguments for the crawling of the website.
-	 * @throws URISyntaxException
-	 *             invalid website-url
-	 * @throws MalformedURLException
-	 */
-	public Map<String, String> getConfiguration(String website) {
-		assert website != null;
-		// Load common settings{
-		Map<String, String> args = getConfiguration();
-		addSettings(args, website);
-
-		// Setup vital arguments
-		log.info("Settings build for website: " + website);
+	@Override
+	public Map<String, String> getConfiguration(@NonNull List<String> sections) {
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
+		for (String section : sections) {
+			addSettings(args, section);
+		}
 		return args;
 	}
 
-	// importance not used
-	public void updateConfiguration(String section, String key, String value, int importance) {
-		assert section != null;
-		assert key != null;
-		Section settings = ini.containsKey(section) ? ini.get(section) : ini.add(section);
-		settings.put(key, value);
-		try {
-			ini.store();
-			log.info("Configuration updated for section: " + section + " -> " + key + "=" + value);
-		} catch (IOException e) {
-			log.error("Failed to save configuration: " + e.getMessage());
-		}
+	@Override
+	public Map<String, String> getConfiguration(@NonNull String section) {
+		Map<String, String> args = new HashMap<String, String>(DEFAULT_MAPSIZE);
+		addSettings(args, section);
+
+		// Setup vital arguments
+		log.info("Settings build for website: " + section);
+		return args;
 	}
 
-	public void deleteConfiguration(String section, String key) {
-		assert section != null;
-		assert key != null;
+	/**
+	 * Updates a key=value-setting in the section.
+	 */
+	public void updateConfiguration(@NonNull String section, @NonNull String key, String value) {
+		Section settings = ini.containsKey(section) ? ini.get(section) : ini.add(section);
+		settings.put(key, value);
+		storeConfiguration();
+	}
+
+	public void deleteConfiguration(@NonNull String section, @NonNull String key) {
 		if (ini.containsKey(section)) {
 			Section settings = ini.get(section);
 			settings.remove(key);
 		}
-		try {
-			ini.store();
-			log.info("Configuration deleted for section: " + section + " -> " + key);
-		} catch (IOException e) {
-			log.error("Failed to delete configuration: " + e.getMessage());
-		}
+		storeConfiguration();
 	}
 
-	public void deleteConfiguration(String section) {
-		assert section != null;
+	public void deleteConfiguration(@NonNull String section) {
 		ini.remove(section);
+		storeConfiguration();
+	}
+
+	private void storeConfiguration() {
 		try {
 			ini.store();
-			log.info("Configuration deleted section: " + section);
+			log.info("Configuration stored in {}.", ini.getFile());
 		} catch (IOException e) {
-			log.error("Failed to delete section: " + e.getMessage());
+			log.error("Failed to store ini, because: " + e.getMessage());
 		}
 	}
 
+	public void setImportance(String section, int importance) {
+		log.warn("Method setImportance not relevant for ConfigurationIni.");
+	}
+
+	@Override
+	public String toString() {
+		return "ConfigurationIni [ini=" + ini.getFile() + "]";
+	}
 }

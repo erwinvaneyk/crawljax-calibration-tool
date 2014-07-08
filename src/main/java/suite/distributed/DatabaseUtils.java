@@ -1,12 +1,15 @@
 package suite.distributed;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,7 +18,6 @@ import org.ini4j.Profile.Section;
 
 import suite.crawljax.CrawlManager;
 import suite.distributed.configuration.ConfigurationDao;
-import suite.distributed.configuration.ConfigurationIni;
 import suite.distributed.workload.WorkloadDao;
 
 import com.google.inject.Inject;
@@ -78,7 +80,8 @@ public class DatabaseUtils {
 				log.warn("Not all results for websiteId {} could be deleted.", id);
 			}
 		} catch (SQLException e) {
-			log.error("SQLException while deleting the results of id={}", id);
+			log.error("SQLException while deleting the results of id={}, reason {}.", id,
+			        e.getMessage());
 		}
 
 		return result;
@@ -94,7 +97,7 @@ public class DatabaseUtils {
 	 * @param value
 	 *            The value of the column to be matched.
 	 * @return return true if the deleting was a success.
-	 * @throws SQLException
+	 * @throws SQLException when there are problems with the connection to the database
 	 */
 	private boolean deleteById(String table, String column, int value) throws SQLException {
 		boolean succes = false;
@@ -119,9 +122,10 @@ public class DatabaseUtils {
 	public void actionFlushWebsitesFile(File file) {
 		try {
 			crawlManager.websitesFromFileToQueue(file);
-			String rawUrl;
-			while ((rawUrl = crawlManager.getWebsiteQueue().poll()) != null) {
+			String rawUrl = crawlManager.getWebsiteQueue().poll();
+			while (rawUrl != null) {
 				workload.submitWork(new URL(rawUrl), false);
+				rawUrl = crawlManager.getWebsiteQueue().poll();
 			}
 		} catch (IOException e) {
 			log.error("Error while reading file: " + e.getMessage());
@@ -131,17 +135,20 @@ public class DatabaseUtils {
 	/**
 	 * Flushes entire local settings file to the server, replacing any interfering settings.
 	 * 
-	 * @param fileName
+	 * @param absoluteFilepath
 	 *            the filename of the settings file.
 	 */
 	public void actionFlushSettingsFile(File absoluteFilepath) {
-		Ini ini = new ConfigurationIni(absoluteFilepath).getIni();
-
-		for (Section section : ini.values()) {
-			for (Entry<String, String> el : section.entrySet()) {
-				config.updateConfiguration(section.getName(), el.getKey(), el.getValue(), section
-				        .getName().length());
+		try (InputStream file = new FileInputStream(absoluteFilepath)) {
+			Ini ini = new Ini(file);
+			for (Section section : ini.values()) {
+				for (Entry<String, String> el : section.entrySet()) {
+					config.updateConfiguration(section.getName(), el.getKey(), el.getValue());
+				}
 			}
+		} catch (IOException e) {
+			System.out.println("File not found: " + absoluteFilepath);
+			log.error("Error while reading file: {}", e.getMessage());
 		}
 	}
 
@@ -150,13 +157,13 @@ public class DatabaseUtils {
 	 * 
 	 * @param websiteResultId
 	 *            the websiteResultID for which the mapping should be retrieved
-	 * @return map with tuples defining duplicates, using a format <WebsiteResultID,
-	 *         WebsiteResultID>, if an error occurred or nothing was found, return an empty map.
-	 * @throws SQLException
+	 * @return map with tuples defining duplicates, using a format (WebsiteResultID,
+	 *         WebsiteResultID), if an error occurred or nothing was found, return an empty map.
+	 * @throws SQLException when there are problems with the connection to the database
 	 */
-	public ConcurrentHashMap<String, String> retrieveDuplicatesMap(int websiteResultId)
+	public Map<String, String> retrieveDuplicatesMap(int websiteResultId)
 	        throws SQLException {
-		ConcurrentHashMap<String, String> stateIds = new ConcurrentHashMap<String, String>();
+		Map<String, String> stateIds = new ConcurrentHashMap<String, String>();
 		// Retrieve the duplicate mapping from the database.
 		ResultSet res =
 		        con.getConnection()

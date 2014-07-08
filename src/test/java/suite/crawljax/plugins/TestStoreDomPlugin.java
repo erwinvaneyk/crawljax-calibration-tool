@@ -1,10 +1,11 @@
 package suite.crawljax.plugins;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -12,7 +13,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Test;
 
-import suite.crawljax.plugins.StoreDomPlugin;
 import lombok.extern.slf4j.Slf4j;
 
 import com.crawljax.core.CrawlerContext;
@@ -40,7 +40,7 @@ public class TestStoreDomPlugin {
 	}
 
 	@Test
-	public void testStoreDomPluginOnNewState() throws IOException {
+	public void testStoreDomPluginOnNewState() {
 		OnNewStatePlugin domPlugin = new StoreDomPlugin();
 
 		// Mock the context and its methods that are called in the onNewState method
@@ -59,18 +59,21 @@ public class TestStoreDomPlugin {
 		domPlugin.onNewState(context, newState);
 
 		// Make sure the strippedDom is written correctly to the file
-		String fileContent = "";
 		File strippedDom = testDir.listFiles()[0];
+		StringBuffer fileContent = new StringBuffer((int) strippedDom.length());
 		for (File file : strippedDom.listFiles()) {
 			if (file.getName().equals("TestState.html")) {
-				BufferedReader br = new BufferedReader(new FileReader(file));
-				String line;
-				while ((line = br.readLine()) != null) {
-					fileContent += line;
+				try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+					String line = br.readLine();
+					while (line != null) {
+						fileContent.append(line);
+						line = br.readLine();
+					}
+				} catch (IOException e) {
+					fail(e.getMessage());
 				}
-				br.close();
 			}
 		}
-		assertEquals("This represents the StrippedDom", fileContent);
+		assertEquals("This represents the StrippedDom", fileContent.toString());
 	}
 }

@@ -14,12 +14,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suite.TestingSuiteModule;
-import suite.distributed.ConnectionManager;
-import suite.distributed.ConnectionManagerImpl;
-import suite.distributed.DatabaseUtils;
 
 import com.google.inject.Guice;
 
@@ -30,45 +29,63 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TestDBUtilsFlushToDatabase {
+
+	private static final String WEBSITES_FILE = "output/testFlushWebsites.txt";
+	private static final String STUD_WEBSITE_1 = "http://www.teststubwebsiteA.hu";
+	private static final String STUD_WEBSITE_2 = "http://www.teststubwebsiteB.hu";
+	private static final String STUD_WEBSITE_3 = "http://www.testsstubwebsiteC.hu";
+	private static final String SETTINGS_FILE = "output/testFlushSettings.txt";
+
 	private ConnectionManager con = new ConnectionManagerImpl();
-	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule()).getInstance(
-	        DatabaseUtils.class);
+	private DatabaseUtils dbUtils = Guice.createInjector(new TestingSuiteModule("TEST"))
+	        .getInstance(
+	                DatabaseUtils.class);
+
+	@BeforeClass
+	public static void buildFile() {
+		// remove old
+		new File(WEBSITES_FILE).delete();
+		new File(SETTINGS_FILE).delete();
+
+		makeWebsiteFile(WEBSITES_FILE);
+	}
+
+	@AfterClass
+	public static void deleteFile() {
+		new File(WEBSITES_FILE).delete();
+		new File(SETTINGS_FILE).delete();
+	}
 
 	@Test
 	public void testFlushWebsites() throws SQLException, IOException {
-		this.makeWebsiteFile();
 
-		dbUtils.actionFlushWebsitesFile(new File("/testFlushWebsites.txt"));
+		dbUtils.actionFlushWebsitesFile(new File(WEBSITES_FILE));
 
-		int idFirst = this.getIdFromUrl("http://thiMayNotExist.hu");
+		int idFirst = this.getIdFromUrl(STUD_WEBSITE_1);
 		assertThat(idFirst, not(is(-1)));
-		this.deleteWorktaskById(idFirst);
-
-		int idSecond = this.getIdFromUrl("http://maybeThis.uk");
+		assertThat(deleteWorktaskById(idFirst), is(1));
+		int idSecond = this.getIdFromUrl(STUD_WEBSITE_2);
 		assertThat(idSecond, not(is(-1)));
-		this.deleteWorktaskById(idSecond);
-
-		int idThird = this.getIdFromUrl("http://andTheLastOne.pl");
+		assertThat(deleteWorktaskById(idSecond), is(1));
+		int idThird = this.getIdFromUrl(STUD_WEBSITE_3);
 		assertThat(idThird, not(is(-1)));
-		this.deleteWorktaskById(idThird);
-
-		new File("config/testFlushWebsites.txt").delete();
+		assertThat(deleteWorktaskById(idThird), is(1));
 	}
 
-	private void makeWebsiteFile() throws IOException {
-		PrintWriter websiteFile;
-		try {
-			websiteFile = new PrintWriter(new FileWriter("config/testFlushWebsites.txt", true));
-			websiteFile.println("http://thiMayNotExist.hu");
-			websiteFile.println("http://maybeThis.uk");
-			websiteFile.println("http://andTheLastOne.pl");
+	private static void makeWebsiteFile(String filename) {
+		try (PrintWriter websiteFile = new PrintWriter(new FileWriter(filename, true))) {
+			websiteFile.println(STUD_WEBSITE_1);
+			websiteFile.println(STUD_WEBSITE_2);
+			websiteFile.println(STUD_WEBSITE_3);
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while making the stub website-file");
-			System.exit(1);
+			log.error("FileNotFoundException while making the stub website-file: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub website-file");
-			System.exit(1);
+			log.error("UnsupportedEncodingException while making the the stub website-file: {}",
+			        e.getMessage());
+		} catch (IOException e) {
+			log.error("IOException while making the the stub website-file: {}", e.getMessage());
 		}
 	}
 
@@ -79,7 +96,7 @@ public class TestDBUtilsFlushToDatabase {
 	 * @throws SQLException
 	 */
 	private int getIdFromUrl(String url) throws SQLException {
-		String sql = "SELECT id FROM workload WHERE url=?";
+		String sql = "SELECT id FROM workload WHERE `url`=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setString(1, url);
 
@@ -91,51 +108,49 @@ public class TestDBUtilsFlushToDatabase {
 		return id;
 	}
 
-	private void deleteWorktaskById(int id) throws SQLException {
+	private int deleteWorktaskById(int id) throws SQLException {
 		String sql = "DELETE FROM workload WHERE id=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setInt(1, id);
-
-		int delete = st.executeUpdate();
-		assertEquals(1, delete);
+		return st.executeUpdate();
 	}
 
 	@Test
 	public void testFlushSettings() throws SQLException, IOException {
 		this.makeSettingsFile();
 
-		dbUtils.actionFlushSettingsFile(new File("/testFlushSettings.txt"));
+		dbUtils.actionFlushSettingsFile(new File(SETTINGS_FILE));
 		// Test if succesful
 		this.checkIfCorrectlyInserted("notExists", "common", "99");
 		this.checkIfCorrectlyInserted("something", "demo.crawljax.com", "-9");
 
-		this.deleteConfigByKey("notExists");
-		this.deleteConfigByKey("something");
+		assertThat(deleteConfigByKey("notExists"), is(1));
+		assertThat(deleteConfigByKey("something"), is(1));
 
 		new File("config/testFlushSettings.txt").delete();
 	}
 
-	private void makeSettingsFile() throws IOException {
-		PrintWriter websiteFile;
-		try {
-			websiteFile = new PrintWriter(new FileWriter("config/testFlushSettings.txt", true));
+	private void makeSettingsFile() {
+		try (PrintWriter websiteFile = new PrintWriter(new FileWriter(SETTINGS_FILE, true))) {
 			websiteFile.println("[common]");
 			websiteFile.println("notExists = 99");
 			websiteFile.println("[demo.crawljax.com]");
 			websiteFile.println("something = -9");
 			websiteFile.close();
 		} catch (FileNotFoundException e) {
-			log.error("FileNotFoundException while making the stub settings-file");
-			System.exit(1);
+			log.error("FileNotFoundException while making the stub settings-file: {}",
+			        e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			log.error("UnsupportedEncodingException while making the the stub settings-file");
-			System.exit(1);
+			log.error("UnsupportedEncodingException while making the the stub settings-file: {}",
+			        e.getMessage());
+		} catch (IOException e) {
+			log.error("IOException while making the the stub website-file: {}", e.getMessage());
 		}
 	}
 
 	private void checkIfCorrectlyInserted(String key, String sectionExp, String valueExp)
 	        throws SQLException {
-		String sql = "SELECT * FROM configuration WHERE 'key'=?";
+		String sql = "SELECT * FROM configuration WHERE `key`=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setString(1, key);
 
@@ -149,12 +164,10 @@ public class TestDBUtilsFlushToDatabase {
 		}
 	}
 
-	private void deleteConfigByKey(String key) throws SQLException {
+	private int deleteConfigByKey(String key) throws SQLException {
 		String sql = "DELETE FROM configuration WHERE `key`=?";
 		PreparedStatement st = con.getConnection().prepareStatement(sql);
 		st.setString(1, key);
-
-		int delete = st.executeUpdate();
-		assertEquals(1, delete);
+		return st.executeUpdate();
 	}
 }

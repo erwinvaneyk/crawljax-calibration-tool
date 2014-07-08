@@ -23,21 +23,22 @@ public class ResultProcessorImpl implements ResultProcessor {
 	private static final String PATH_RESULTS_STRIPPEDDOM = "strippedDOM";
 	private static final String PATH_RESULTS_SCREENSHOTS = "screenshots";
 
-	private ResultDao upload;
+	private ResultUpload upload;
 
 	@Inject
-	public ResultProcessorImpl(ResultDao upload) {
+	public ResultProcessorImpl(ResultUpload upload) {
 		this.upload = upload;
 	}
 
 	/**
 	 * Upload the resulting all the results to the database.
 	 * 
-	 * @param website
-	 *            The crawled website that genarates the output folder
+	 * @param id
+	 *            The id of the crawled website that genarates the output folder
 	 * @param dir
 	 *            The directory that contains the output of the crawl
-	 * @throws ResultProcessorException
+	 * @param duration
+	 * 			  The duration of the crawl
 	 */
 	public void uploadResults(int id, File dir, long duration) {
 		int websiteID = this.uploadJson(id, dir, duration);
@@ -59,7 +60,6 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The output directory
 	 * @param duration
 	 *            The duration of the crawl
-	 * @throws ResultProcessorException
 	 */
 	public int uploadJson(int id, File dir, long duration) {
 		File jsonFile = this.findFile(dir, PATH_RESULTS_JSON);
@@ -70,11 +70,10 @@ public class ResultProcessorImpl implements ResultProcessor {
 	/**
 	 * Upload only the dom of every state to the database.
 	 * 
-	 * @param id
+	 * @param websiteId
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
 	public void uploadDom(int websiteId, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_DOM);
@@ -85,7 +84,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 			String fileContent = this.readFile(file);
 			String stateId = this.getStateId(file);
 
-			upload.uploadDomAction(websiteId, fileContent, stateId);
+			upload.uploadDom(websiteId, fileContent, stateId);
 		}
 	}
 
@@ -96,9 +95,8 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
-	public void uploadStrippedDom(int id, File dir) throws ResultProcessorException {
+	public void uploadStrippedDom(int id, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_STRIPPEDDOM);
 		File[] files = dirOfMap.listFiles();
 
@@ -117,19 +115,24 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 *            The id of the website
 	 * @param dir
 	 *            The output directory
-	 * @throws ResultProcessorException
 	 */
-	public void uploadScreenshot(int id, File dir) throws ResultProcessorException {
+	public void uploadScreenshot(int id, File dir) {
 		File dirOfMap = this.findFile(dir, PATH_RESULTS_SCREENSHOTS);
+		FileInputStream fr = null;
 		for (File file : dirOfMap.listFiles()) {
 			String stateId = this.getStateId(file);
 			try {
-				FileInputStream fr = new FileInputStream(file);
-
-				upload.uploadScreenshotAction(id, fr, stateId);
-				fr.close();
+				fr = new FileInputStream(file);
+				upload.uploadScreenshot(id, fr, stateId);
 			} catch (IOException e) {
-				log.warn("Can not close FileInputStream by uploading state{}.", stateId);
+				log.error("Can not close FileInputStream by uploading state {}, because {}.",
+				        stateId, e.getMessage());
+			} finally {
+				try {
+					fr.close();
+				} catch (IOException e) {
+					log.error("Failed to close file, because: {}", e.getMessage());
+				}
 			}
 		}
 	}
@@ -160,7 +163,7 @@ public class ResultProcessorImpl implements ResultProcessor {
 
 	private String getStateId(File f) {
 		String fileName = f.getName();
-		int indexOfExtension = fileName.lastIndexOf(".");
+		int indexOfExtension = fileName.lastIndexOf('.');
 		return fileName.substring(0, indexOfExtension);
 	}
 
@@ -172,18 +175,16 @@ public class ResultProcessorImpl implements ResultProcessor {
 	 * @return contents of file
 	 */
 	private String readFile(File file) throws ResultProcessorException {
-		String fileContent = "";
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			String line;
-
-			while ((line = br.readLine()) != null) {
-				fileContent += line;
+		StringBuilder fileContent = new StringBuilder((int) file.length());
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+			String line = br.readLine();
+			while (line != null) {
+				fileContent.append(line);
+				line = br.readLine();
 			}
-			br.close();
 		} catch (IOException e) {
 			throw new ResultProcessorException("Could not read file " + file.getName());
 		}
-		return fileContent;
+		return fileContent.toString();
 	}
 }

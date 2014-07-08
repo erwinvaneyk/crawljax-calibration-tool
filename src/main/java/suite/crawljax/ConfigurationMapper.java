@@ -18,13 +18,23 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
 import com.crawljax.core.configuration.CrawljaxConfiguration.CrawljaxConfigurationBuilder;
 import com.crawljax.core.state.NDDStateVertexFactory;
 import com.crawljax.core.state.duplicatedetection.*;
+import com.crawljax.domcomparators.AttributesStripper;
+import com.crawljax.domcomparators.DomStructureStripper;
+import com.crawljax.domcomparators.HeadStripper;
+import com.crawljax.domcomparators.RedundantWhiteSpaceStripper;
 import com.crawljax.plugins.crawloverview.CrawlOverview;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Maps key-value entries to a Crawljax-configuration
  */
 @Slf4j
 public class ConfigurationMapper {
+
+	private static final int FEATURE_SYNTAX_SIZE = 3;
+	private static final int FEATURE_INDEX_TYPE = 0;
+	private static final int FEATURE_INDEX_SIZE = 1;
+	private static final int FEATURE_INDEX_SUBTYPE = 2;
 
 	private double threshold = -1;
 	private List<FeatureType> features;
@@ -64,21 +74,28 @@ public class ConfigurationMapper {
 				        e.getMessage());
 			}
 		}
-		if(!features.isEmpty() && threshold >= 0)
-			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());	
+		if (!features.isEmpty() && threshold >= 0) {
+			builder.setNearDuplicateDetectionFactory(buildNearDuplicateDetectionFactory());
+			builder.addDomStripper(new HeadStripper());
+			builder.addDomStripper(new DomStructureStripper());
+			builder.addDomStripper(new AttributesStripper());
+			builder.addDomStripper(new RedundantWhiteSpaceStripper());
+		}
 		return builder.build();
 	}
 
 	private NearDuplicateDetection buildNearDuplicateDetectionFactory() {
-		if(threshold < 0 || features == null)
-			throw new RuntimeException("Failed to convert settings to valid NDD. Not all parameters where provided.");
-		log.info("Build NDD using parametes: {} and {}", threshold, features);
-		if(ndd.equalsIgnoreCase("broder")) {
-			return new NearDuplicateDetectionBroder(threshold,features);
+		if (threshold < 0 || features == null)
+			throw new RuntimeException(
+			        "Failed to convert settings to valid NDD. Not all parameters where provided.");
+		if (ndd.equalsIgnoreCase("broder")) {
+			log.info("Build Broder NDD using parametes: {} and {}", threshold, features);
+			return new NearDuplicateDetectionBroder(threshold, ImmutableList.copyOf(features));
 		} else {
-			return new NearDuplicateDetectionCrawlhash(threshold,features);
+			log.info("Build Crawlhash NDD using parametes: {} and {}", threshold, features);
+			return new NearDuplicateDetectionCrawlhash(threshold, ImmutableList.copyOf(features));
 		}
-    }
+	}
 
 	/**
 	 * Converts a key=value representation to the relevant setting in Crawljax
@@ -91,8 +108,7 @@ public class ConfigurationMapper {
 	 *            string value
 	 */
 	private void convertArgument(@NonNull CrawljaxConfigurationBuilder builder,
-	        @NonNull String key, @NonNull String value)
-	        throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	        @NonNull String key, @NonNull String value) {
 
 		// Standard settings
 		if (key.equalsIgnoreCase("d") || key.equalsIgnoreCase("depth")) {
@@ -112,15 +128,7 @@ public class ConfigurationMapper {
 		} else if (key.equalsIgnoreCase("waitAfterEvent")) {
 			builder.crawlRules().waitAfterEvent(Long.parseLong(value), TimeUnit.MILLISECONDS);
 		} else if (key.equalsIgnoreCase("feature")) {
-			String[] parts = value.split(";");
-			assert parts.length >= 3;
-			if (parts[0].equalsIgnoreCase("FeatureShingles")) {
-				Integer index = Integer.valueOf(parts[2]);
-				FeatureShingles.SizeType fst = FeatureShingles.SizeType.values()[index];
-				FeatureShingles ft = new FeatureShingles(Integer.valueOf(parts[1]), fst);
-				features.add(ft);
-				log.info("Feature added: {}", ft);
-			}
+			addFeature(value);
 		} else if (key.equalsIgnoreCase("b") || key.equalsIgnoreCase("browser")) {
 			for (BrowserType b : BrowserType.values()) {
 				if (b.name().equalsIgnoreCase(value)) {
@@ -129,6 +137,22 @@ public class ConfigurationMapper {
 			}
 		} else {
 			log.warn("Undefined key in configuration: {}", key);
+		}
+	}
+
+	private void addFeature(String feature) {
+		String[] parts = feature.split(";");
+		if (parts.length < FEATURE_SYNTAX_SIZE) {
+			log.warn("Invalid syntax for feature {}. Syntax should be: FeatureType;size;type");
+			return;
+		}
+		if (parts[FEATURE_INDEX_TYPE].equalsIgnoreCase("FeatureShingles")) {
+			int index = Integer.valueOf(parts[FEATURE_INDEX_SUBTYPE]);
+			FeatureShingles.ShingleType fst = FeatureShingles.ShingleType.values()[index];
+			FeatureShingles ft =
+			        FeatureShingles.withSize(Integer.valueOf(parts[FEATURE_INDEX_SIZE]), fst);
+			features.add(ft);
+			log.info("Feature added: {}", ft);
 		}
 	}
 }

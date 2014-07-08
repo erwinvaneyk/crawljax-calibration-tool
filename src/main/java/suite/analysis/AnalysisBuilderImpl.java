@@ -26,24 +26,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AnalysisBuilderImpl implements AnalysisBuilder {
 
+	private static final int POLL_INTERVAL = 1000 * 10;
+
 	@Getter
 	private ImmutableList<Metric> metrics = new ImmutableList.Builder<Metric>()
 	        .build();
-	private Dao<WebsiteResult, String> websiteResultDAO;
-	private WorkloadDao workload;
-	private DatabaseUtils dbUtils;
+	private final Dao<WebsiteResult, String> websiteResultDAO;
+	private final WorkloadDao workload;
+	private final DatabaseUtils dbUtils;
 
 	/**
 	 * Add a metric-type to the list of metrics used to analyse the results
 	 * 
 	 * @param metric
+	 * 		The way of comparison between the benchmark and new tested websites.
 	 */
 	public void addMetric(Metric metric) {
 		metrics = new ImmutableList.Builder<Metric>()
 		        .addAll(metrics)
 		        .add(metric)
 		        .build();
-		log.info("Metric added to analysis: " + metric.getMetricName());
+		log.info("Metric added to analysis: " + metric.getName());
 	}
 
 	@Inject
@@ -134,7 +137,7 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 			}
 			where.or(benchmarkedWebsites.size());
 			builder.prepare();
-			return waitForResults(builder, benchmarkedWebsites.size(), 1000 * 10);
+			return waitForResults(builder, benchmarkedWebsites.size(), POLL_INTERVAL);
 		} catch (SQLException e) {
 			throw new AnalysisException("SQL exception caught while re-crawling websiteResults: "
 			        + e.getMessage());
@@ -143,7 +146,7 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 
 	private List<WebsiteResult> waitForResults(QueryBuilder<WebsiteResult, String> builder,
 	        int expectedResultCount, int interval) {
-		List<WebsiteResult> retrieveTestedWebsites;
+		List<WebsiteResult> retrieveTestedWebsites = null;
 		try {
 			retrieveTestedWebsites = builder.query();
 			log.info("Waiting for crawling to finish...");
@@ -181,5 +184,10 @@ public class AnalysisBuilderImpl implements AnalysisBuilder {
 		for (WebsiteResult website : websites) {
 			dbUtils.deleteAllResultsById(website.getId());
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "AnalysisBuilderImpl [metrics=" + metrics + "]";
 	}
 }

@@ -33,35 +33,42 @@ public class WorkloadDaoImpl implements WorkloadDao {
 
 	private ConnectionManager connMgr;
 	private String namespace;
-	private static String workerID;
+	private static String WORKER_ID;
 
 	static {
 		try {
-			workerID = InetAddress.getLocalHost().toString();
+			WORKER_ID = InetAddress.getLocalHost().toString();
 		} catch (UnknownHostException e) {
 			// If host-name is not available, use an alternative name.
-			workerID = System.getProperty("user.name");
-			log.error("Hostname could not be retrieved, using system-name: {}." + workerID);
+			WORKER_ID = System.getProperty("user.name");
+			log.error("Hostname could not be retrieved, using system-name: {}." + WORKER_ID);
+			log.debug("Host not found while retrieving system-name: {}", e.getMessage());
 		}
 	}
 
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
+	 * @param conn
+	 * 			The manager for the connection
+	 * @param namespace
+	 * 			The domain of the workload
 	 */
 	@Inject
 	public WorkloadDaoImpl(ConnectionManager conn, @Named("namespace") String namespace) {
 		this.connMgr = conn;
 		this.namespace = namespace;
-		log.info("WorkerID: " + workerID);
+		log.info("WorkerID: " + WORKER_ID);
 	}
-	
+
 	/**
 	 * Sets up the ConnectionManagerImpl and creates an ID based on the hostname and local ip.
+	 * @param conn
+	 * 			The manager for the connection
 	 */
 	public WorkloadDaoImpl(ConnectionManager conn) {
 		this.connMgr = conn;
 		this.namespace = "";
-		log.info("WorkerID: " + workerID);
+		log.info("WorkerID: " + WORKER_ID);
 	}
 
 	/**
@@ -79,16 +86,18 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		try {
 			int claimed =
 			        conn.createStatement().executeUpdate(
-			                "UPDATE " + TABLE + " SET " + COLUMN_WORKERID + "=\"" + workerID
+			                "UPDATE " + TABLE + " SET " + COLUMN_WORKERID + "=\"" + WORKER_ID
 			                        + "\"  WHERE " + COLUMN_CRAWLED + " = 0 AND "
-			                        + COLUMN_WORKERID + "=\"\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" LIMIT " + maxcount);
+			                        + COLUMN_WORKERID + "=\"\" AND " + COLUMN_NAMESPACE + "=\""
+			                        + namespace + "\" LIMIT " + maxcount);
 			log.debug("Workunits claimed by worker: " + claimed);
 			// Retrieve urls from the server.
 			// Note: this will also return the claimed/unfinished websites not signed off.
 			ResultSet res =
 			        conn.createStatement().executeQuery(
 			                "SELECT * FROM  " + TABLE + " WHERE " + COLUMN_WORKERID + " = \""
-			                        + workerID + "\" AND " + COLUMN_NAMESPACE + "=\"" + namespace + "\" AND " + COLUMN_CRAWLED + " = 0");
+			                        + WORKER_ID + "\" AND " + COLUMN_NAMESPACE + "=\""
+			                        + namespace + "\" AND " + COLUMN_CRAWLED + " = 0");
 			while (res.next()) {
 				try {
 					int id = res.getInt("id");
@@ -110,8 +119,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	/**
 	 * Registering a succesful crawl on the server.
 	 * 
-	 * @param url
-	 *            The url to be checked out.
+	 * @param wt
+	 *            The worktask to be checked out.
 	 * @return true if checkout was succesful, else false.
 	 */
 	public boolean checkoutWork(WorkTask wt) {
@@ -127,7 +136,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		} catch (SQLException e) {
 			log.error(e.getMessage());
 		} catch (NullPointerException e) {
-			log.error("Unexpected null, probably the input " + wt + " or the connection " + conn);
+			log.error("Unexpected nullPointerException {}, probably the connection " + conn,
+			        e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret != 0;
@@ -144,7 +154,7 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		int ret = -1;
 		Connection conn = connMgr.getConnection();
 		try {
-			String worker = claim ? workerID : "";
+			String worker = claim ? WORKER_ID : "";
 			// Insert a new row containing the url in the workload-table.
 			Statement statement = conn.createStatement();
 			ret =
@@ -162,7 +172,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		} catch (SQLException e) {
 			log.error(e.getMessage());
 		} catch (NullPointerException e) {
-			log.error("Unexpected null, probably the input " + url + " or the connection " + conn);
+			log.error("Unexpected nullPointerException {}, probably the input " + url
+			        + " or the connection " + conn, e.getMessage());
 		}
 		connMgr.closeConnection();
 		return ret;
@@ -171,8 +182,8 @@ public class WorkloadDaoImpl implements WorkloadDao {
 	/**
 	 * Reverts previously checked out or claimed work to the available state.
 	 * 
-	 * @param url
-	 *            the url to be reverted
+	 * @param id
+	 *            the id of the website to be reverted
 	 * @return true if successful, else false.
 	 */
 	public boolean revertWork(int id) {
@@ -192,4 +203,10 @@ public class WorkloadDaoImpl implements WorkloadDao {
 		connMgr.closeConnection();
 		return ret != 0;
 	}
+
+	@Override
+	public String toString() {
+		return "WorkloadDaoImpl [worker_id=" + WORKER_ID + "namespace=" + namespace + "]";
+	}
+
 }

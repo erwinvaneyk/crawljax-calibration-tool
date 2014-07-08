@@ -33,10 +33,8 @@ public class StoreDomPlugin implements OnNewStatePlugin {
 	public void onNewState(CrawlerContext context, StateVertex state) {
 		File domFile = new File(context.getConfig().getOutputDir() + OUTPUT_SUBDIR);
 		domFile.mkdirs();
-		try {
-			PrintWriter out = new PrintWriter(domFile + "/" + state.getName() + FILE_EXTENSION);
+		try (PrintWriter out = new PrintWriter(domFile + "/" + state.getName() + FILE_EXTENSION)) {
 			out.print(state.getStrippedDom());
-			out.close();
 		} catch (FileNotFoundException e) {
 			log.error("File could not be found while storing the strippedDOM: {}", e.getMessage());
 		}

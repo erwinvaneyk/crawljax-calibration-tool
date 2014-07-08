@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import suite.distributed.DatabaseUtils;
 import suite.distributed.results.StateResult;
@@ -27,12 +27,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 public class StateAnalysisMetric implements Metric {
 
-	@Getter
-	private final String metricName = "State Analysis Metric";
+	private static final String NAME = "State Analysis Metric";
 
 	@Getter
 	@Setter
-	NearDuplicateDetection nearDuplicateDetection;
+	private NearDuplicateDetection nearDuplicateDetection;
 
 	public static final String MISSED_STATES = "Missed states";
 	public static final String DUPLICATE_STATES = "Duplicate states";
@@ -114,7 +113,7 @@ public class StateAnalysisMetric implements Metric {
 	        @NonNull List<StateResult> testedStates) {
 		assert !benchmarkStates.isEmpty();
 		// Retrieve the duplicate-table
-		ConcurrentHashMap<String, String> duplicates = null;
+		Map<String, String> duplicates = null;
 		try {
 			duplicates =
 			        databaseUtils.retrieveDuplicatesMap(benchmarkStates.get(0).getWebsiteResult()
@@ -149,14 +148,16 @@ public class StateAnalysisMetric implements Metric {
 	 * 
 	 * @param states
 	 *            The original list with any duplicates.
+	 * @param websiteResultId
+	 * 			  The ids of the websites which should be removed
 	 * @return A new list containing the stateResults without any duplicates
 	 */
 	private List<StateResult> removeDuplicatesFromCollection(@NonNull List<StateResult> states,
 	        int websiteResultId) {
-		ArrayList<StateResult> temp = new ArrayList<StateResult>(states);
+		List<StateResult> temp = new ArrayList<StateResult>(states);
 		// get the duplicates-mapping relevant for this list, using the websiteResult-id.
 		try {
-			ConcurrentHashMap<String, String> duplicates =
+			Map<String, String> duplicates =
 			        databaseUtils.retrieveDuplicatesMap(websiteResultId);
 			for (StateResult current : states) {
 				if (temp.contains(current)) {
@@ -190,21 +191,19 @@ public class StateAnalysisMetric implements Metric {
 	}
 
 	/**
-	 * For a given state, find the nearest state in the collection states, under a given threshold.
+	 * For a given state, find the nearest state in the collection states.
 	 * 
 	 * @param states
 	 *            collection to be searched in.
 	 * @param source
 	 *            the reference state
-	 * @param threshold
-	 *            the upper boundary for the distance to the nearest state in states.
 	 * @return StateResult of the state nearest to source. Else if no State was found under the
 	 *         threshold, return null.
 	 */
 	private StateResult retrieveNearestState(Collection<StateResult> states,
 	        @NonNull StateResult source) {
 		StateResult result = null;
-		int minDistance = Integer.MAX_VALUE;
+		double minDistance = Integer.MAX_VALUE;
 		for (StateResult state : states) {
 			try {
 				// For each state, calculate the distance from the source to the state.
@@ -212,9 +211,10 @@ public class StateAnalysisMetric implements Metric {
 				        nearDuplicateDetection.generateFingerprint(source.getDom()).getDistance(
 				                nearDuplicateDetection.generateFingerprint(state.getDom()));
 				// If the distance is better than the previous distance, hold current state.
-				if (distance <= nearDuplicateDetection.getDefaultThreshold() && distance < minDistance) {
+				if (distance <= nearDuplicateDetection.getDefaultThreshold()
+				        && distance < minDistance) {
 					result = state;
-					minDistance = (int) distance;
+					minDistance = distance;
 				}
 			} catch (FeatureException e) {
 				log.error("Error while retrieve nearest state: {}", e.getMessage());
@@ -256,7 +256,7 @@ public class StateAnalysisMetric implements Metric {
 	 * @return true when state was deleted, else false.
 	 */
 	private boolean removeStateAndDuplicates(List<StateResult> states,
-	        ConcurrentHashMap<String, String> duplicates, String stateId) {
+	        Map<String, String> duplicates, String stateId) {
 		// Remove the state
 		boolean removed = removeStateById(states, stateId);
 		if (removed) {
@@ -275,5 +275,15 @@ public class StateAnalysisMetric implements Metric {
 			}
 		}
 		return removed;
+	}
+
+	@Override
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+	public String toString() {
+		return "StateAnalysisMetric [nearDuplicateDetection=" + nearDuplicateDetection + "]";
 	}
 }

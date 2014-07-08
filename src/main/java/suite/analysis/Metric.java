@@ -13,7 +13,7 @@ public interface Metric {
 	/**
 	 * @return metric name
 	 */
-	public String getMetricName();
+	String getName();
 
 	/**
 	 * @param benchmarkWebsites
@@ -22,6 +22,6 @@ public interface Metric {
 	 *            the websiteResults of the test crawl
 	 * @return a map containing as key the section/title and as values the results of the metric.
 	 */
-	public Collection<Statistic> apply(Collection<WebsiteResult> benchmarkWebsites,
+	Collection<Statistic> apply(Collection<WebsiteResult> benchmarkWebsites,
 	        Collection<WebsiteResult> testWebsitesResults);
 }

@@ -23,7 +23,7 @@ import com.crawljax.core.configuration.CrawljaxConfiguration;
 
 /**
  * SuiteManager is responsible for running the actual crawler. Therefore it deals with the arguments
- * needed by the CrawlJax CLI and websites to be crawled.
+ * needed by the CrawlJax-core and websites to be crawled.
  */
 @Slf4j
 public class CrawlManager {
@@ -39,21 +39,23 @@ public class CrawlManager {
 	 * 
 	 * @param websitesPath
 	 *            the path to the file containing websites.
-	 * @throws IOException
-	 *             the file could not be found.
 	 */
-	public void websitesFromFileToQueue(File websitesPath) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()));
-		UrlValidator urlValidator = new UrlValidator();
-		String line;
-		while ((line = br.readLine()) != null) {
-			if (urlValidator.isValid(line))
-				websiteQueue.add(new URL(line).toString());
-			else
-				log.warn("Website: {} is an invalid url. Ignoring website.", line);
+	public void websitesFromFileToQueue(File websitesPath) {
+		try (BufferedReader br = new BufferedReader(new FileReader(websitesPath.toString()))) {
+			UrlValidator urlValidator = new UrlValidator();
+			String line = br.readLine();
+			while (line != null) {
+				if (urlValidator.isValid(line)) {
+					websiteQueue.add(new URL(line).toString());
+				} else {
+					log.warn("Website: {} is an invalid url. Ignoring website.", line);
+				}
+				line = br.readLine();
+			}
+			log.info("Website-queue loaded.");
+		} catch (IOException e) {
+			log.error("Reading website-file failed, because {}.", e.getMessage());
 		}
-		br.close();
-		log.info("Website-queue loaded.");
 	}
 
 	/**
@@ -63,17 +65,19 @@ public class CrawlManager {
 	 */
 	public List<File> crawlWebsitesFromQueue() {
 		List<File> outputdirs = new ArrayList<File>(websiteQueue.size());
-		try {
-			ConfigurationDao config = new ConfigurationIni();
-			while (!websiteQueue.isEmpty()) {
-				URL website = new URL(websiteQueue.poll());
+		ConfigurationDao config = new ConfigurationIni();
+		while (!websiteQueue.isEmpty()) {
+			String rawUrl = websiteQueue.poll();
+			try {
+				URL website = new URL(rawUrl);
 				Map<String, String> args = config.getConfiguration(website.toString());
 				File outputDir = generateOutputDir(website);
 				runCrawler(website, outputDir, args);
 				outputdirs.add(outputDir);
+			} catch (MalformedURLException e) {
+				log.error("Invalid URL provided: {}. Continuing with the next url. ", rawUrl);
+				log.debug("Exception caught while reading URL: {}", e.getMessage());
 			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
 		}
 		return outputdirs;
 	}
@@ -84,9 +88,6 @@ public class CrawlManager {
 	 * @param website
 	 *            the website needing a outputdir
 	 * @return unique name for the dir
-	 * @throws URISyntaxException
-	 *             website contains an invalid syntax
-	 * @throws MalformedURLException
 	 */
 	public File generateOutputDir(URL website) {
 		Date date = new Date();
@@ -97,8 +98,13 @@ public class CrawlManager {
 	/**
 	 * Run CrawlJax for a given set of args. Output can be found in args.get(ARG_OUTPUTDIR).
 	 * 
+	 * @param website
+	 * 			  The website to crawl
+	 * @param outputdir
+	 * 			  The location to store the results
 	 * @param args
 	 *            arguments which need to be send to crawljax.
+	 * @return true if the crawl finished succesfull
 	 */
 	public boolean runCrawler(URL website, File outputdir, Map<String, String> args) {
 		CrawljaxConfiguration config =
@@ -108,7 +114,7 @@ public class CrawlManager {
 		runner.call();
 		ExitStatus reason = runner.getReason();
 		log.debug("Finished crawling {}. Reason: {}", args.get(ARG_WEBSITE), reason.toString());
-		return (!reason.equals(ExitStatus.ERROR));
+		return !reason.equals(ExitStatus.ERROR);
 	}
 
 	/**
@@ -130,4 +136,8 @@ public class CrawlManager {
 		this.websiteQueue = websiteQueue;
 	}
 
+	@Override
+	public String toString() {
+		return "CrawlManager [websiteQueue=" + websiteQueue + "]";
+	}
 }

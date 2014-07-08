@@ -13,8 +13,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suite.analysis.SpeedMetric;
-import suite.analysis.Statistic;
 import suite.distributed.results.StateResult;
 import suite.distributed.results.WebsiteResult;
 import suite.distributed.workload.WorkTask;
@@ -27,7 +25,7 @@ public class TestSpeedMetric {
 	@Test
 	public void testGetMetricName() {
 		SpeedMetric metric = new SpeedMetric();
-		assertNotNull(metric.getMetricName());
+		assertNotNull(metric.getName());
 	}
 
 	/**
@@ -59,7 +57,6 @@ public class TestSpeedMetric {
 		when(stateResult.getDom()).thenReturn("mock DOM");
 		when(stateResult.getStrippedDom()).thenReturn("mock Stripped DOM");
 		when(stateResult.getStateId()).thenReturn(id);
-		when(stateResult.getStrippedDomHash()).thenReturn(42);
 		when(stateResult.getWebsiteResult()).thenReturn(parent);
 		return stateResult;
 	}

@@ -7,17 +7,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import suite.analysis.Analysis;
-import suite.analysis.AnalysisException;
-import suite.analysis.AnalysisProcessorCsv;
-import suite.analysis.Metric;
-import suite.analysis.SpeedMetric;
-import suite.analysis.StateAnalysisMetric;
 import suite.distributed.DatabaseUtils;
 import suite.distributed.results.WebsiteResult;
 import static org.mockito.Mockito.*;
@@ -25,29 +20,30 @@ import static org.mockito.Mockito.*;
 import com.crawljax.core.state.duplicatedetection.NearDuplicateDetection;
 import com.google.common.collect.ImmutableList;
 
+@Slf4j
 public class TestAnalysisProcessorCsv {
 
-	private static File dir;
+	private static File DIR;
 
 	@BeforeClass
 	public static void beforeClass() {
-		dir = new File(System.getProperty("user.dir") + "/output/temp-test/");
-		dir.mkdir();
+		DIR = new File(System.getProperty("user.dir") + "/output/temp-test/");
+		DIR.mkdir();
 
 	}
 
-	//@AfterClass
+	// @AfterClass
 	public static void afterClass() {
 		try {
-			FileUtils.deleteDirectory(dir);
+			FileUtils.deleteDirectory(DIR);
 		} catch (IOException e) {
-			System.out.println("Error while deleting temp-directory." + e.getMessage());
+			log.error("Error while deleting temp-directory." + e.getMessage());
 		}
 	}
 
 	@Test(expected = NullPointerException.class)
 	// temp
-	public void testApply() throws IOException {
+	public void testApply() {
 		Collection<WebsiteResult> websites = new ArrayList<WebsiteResult>();
 		websites.add(mock(WebsiteResult.class));
 		StateAnalysisMetric stateMetric =
@@ -58,23 +54,23 @@ public class TestAnalysisProcessorCsv {
 		        new ImmutableList.Builder<Metric>().add(stateMetric).add(speedMetric).build();
 		Analysis analysis = new Analysis("Test-Analysis", websites, metrics);
 		AnalysisProcessorCsv apc = new AnalysisProcessorCsv("Test-Analysis");
-		apc.setOutputDir(dir);
+		apc.setOutputDir(DIR);
 		apc.apply(analysis);
-		File f = new File(dir + "/" + apc.getFilename());
+		File f = new File(DIR + "/" + apc.getFilename());
 		assertTrue(f.exists());
 	}
 
 	@Test
-	public void testApplyInvalidMetrics() throws IOException {
+	public void testApplyInvalidMetrics() {
 		Collection<WebsiteResult> websites = new ArrayList<WebsiteResult>();
 		websites.add(mock(WebsiteResult.class));
 		Analysis analysis =
 		        new Analysis("Test-analysis-invalid-metrics", websites,
 		                new ImmutableList.Builder<Metric>().build());
 		AnalysisProcessorCsv apc = new AnalysisProcessorCsv("Test-analysis-invalid-metrics");
-		apc.setOutputDir(dir);
+		apc.setOutputDir(DIR);
 		apc.apply(analysis);
-		File f = new File(dir + "/" + apc.getFilename());
+		File f = new File(DIR + "/" + apc.getFilename());
 		assertFalse(f.exists());
 	}
 

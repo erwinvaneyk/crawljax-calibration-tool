@@ -13,7 +13,7 @@ import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ResultDao {
+public class ResultUpload {
 	private static final String TABLE_STATE_RESULTS = "DomResults";
 	private static final String COLUMN_ID_WEBSITE = "websiteResult_id";
 	private static final String COLUMN_ID_STATE = "stateId";
@@ -29,7 +29,7 @@ public class ResultDao {
 	private ConnectionManager con;
 
 	@Inject
-	public ResultDao(ConnectionManager con) {
+	public ResultUpload(ConnectionManager con) {
 		this.con = con;
 	}
 
@@ -71,7 +71,7 @@ public class ResultDao {
 		return ret;
 	}
 
-	public void uploadDomAction(int id, String fileContent, String stateId)
+	public void uploadDom(int id, String fileContent, String stateId)
 	        throws ResultProcessorException {
 		try {
 
@@ -115,7 +115,7 @@ public class ResultDao {
 		}
 	}
 
-	public void uploadScreenshotAction(int id, FileInputStream fr, String stateId)
+	public void uploadScreenshot(int id, FileInputStream fr, String stateId)
 	        throws ResultProcessorException {
 		try {
 
@@ -152,9 +152,8 @@ public class ResultDao {
 			String sql =
 			        "INSERT INTO " + TABLE_STATE_RESULTS + "(" + COLUMN_ID_WEBSITE + ","
 			                + COLUMN_ID_STATE + ") VALUES(?,?)";
-			PreparedStatement statement =
-			        (PreparedStatement) con.getConnection().prepareStatement(sql,
-			                Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement statement = con.getConnection().prepareStatement(sql,
+			        Statement.RETURN_GENERATED_KEYS);
 
 			statement.setInt(1, id);
 			statement.setString(2, stateId);

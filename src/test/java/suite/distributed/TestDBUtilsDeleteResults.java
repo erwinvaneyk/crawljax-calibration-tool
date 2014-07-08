@@ -11,9 +11,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suite.distributed.ConnectionManagerImpl;
-import suite.distributed.DatabaseUtils;
-
 public class TestDBUtilsDeleteResults {
 
 	private ConnectionManagerImpl con;
@@ -24,6 +21,7 @@ public class TestDBUtilsDeleteResults {
 		Statement st = con.getConnection().createStatement();
 
 		String makeWorload = "INSERT INTO workload VALUES (-1, 'http://test.nl', '', 0,'temp')";
+
 		String makeWebsiteResults = "INSERT INTO WebsiteResults VALUES (-2, -1, 'json', 10)";
 		String makeDomResults1 =
 		        "INSERT INTO DomResults VALUES (-2, 'index', 'dom', 'strippeddom', 101101001, null)";

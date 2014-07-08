@@ -15,17 +15,17 @@ import suite.distributed.configuration.ConfigurationDao;
 import com.crawljax.core.state.duplicatedetection.FeatureShingles;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
+/**
+ * The AnalysisRunner is responsible for running analyzes.
+ */
 public class AnalysisRunner {
-	private static int[] WEBSITE_IDS = new int[] { 1, 2, 15, 48, 51, 53 };
-	
-	private static String FILENAME = "results";
+
 	private static final String NAMESPACE = "test";
 
+	private String filenamePrefix = "results";
 	private ConfigurationDao config;
 	private AnalysisBuilder factory;
-	@Inject private Injector injector;
 
 	public static void main(String[] args) {
 		AnalysisRunner ar = Guice.createInjector(new TestingSuiteModule(NAMESPACE))
@@ -33,72 +33,134 @@ public class AnalysisRunner {
 		ar.run();
 	}
 
+	/**
+	 * Constructor for AnalysisRunner used by Guice
+	 * 
+	 * @param factory
+	 *            the factory to be used to generate the analysis
+	 * @param config
+	 *            the configurationDao to be used.
+	 * @param speedMetric
+	 * 			  measuring the runtime
+	 * @param saMetric
+	 * 			  measuring the duplicate and missed states of a test run
+	 */
 	@Inject
-	public AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config) {
+	AnalysisRunner(AnalysisBuilder factory, ConfigurationDao config, SpeedMetric speedMetric,
+	        StateAnalysisMetric saMetric) {
 		this.factory = factory;
 		this.config = config;
+		factory.addMetric(speedMetric);
+		factory.addMetric(saMetric);
 	}
 
+	/**
+	 * Using a given set of website-ids, threshold-range and featuresize-range, WorkTasks
+	 */
 	public void run() {
 		// ############################
-		double minThreshold = 1;
-		double maxThreshold = 1;
-		double stepsizeThreshold = 1;
-		int shingleType = FeatureShingles.SizeType.WORDS.ordinal();
-		int minShingleSize = 1;
-		int maxShingleSize = 1;
+		// TODO: Should be read from input or external file..
+		final int[] websiteIds = new int[] { 1, 2, 15, 48, 51, 53 };
+		final double minThreshold = 1;
+		final double maxThreshold = 1;
+		final double stepsizeThreshold = 1;
+		final int shingleType = FeatureShingles.ShingleType.WORDS.ordinal();
+		final int minShingleSize = 1;
+		final int maxShingleSize = 1;
 		// #############################
 		namespaceSetup();
 		try {
 			for (int i = minShingleSize; i <= maxShingleSize; i++) {
-				config.updateConfiguration(NAMESPACE, "feature",
-				        "FeatureShingles;" + String.valueOf(i) + ";" + String.valueOf(shingleType), 5);
-				List<Analysis> results = analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold, WEBSITE_IDS);
+				config.updateConfiguration(
+				        NAMESPACE,
+				        "feature",
+				        "FeatureShingles;" + String.valueOf(i) + ";"
+				                + String.valueOf(shingleType));
+				List<Analysis> results =
+				        analyseThresholds(minThreshold, maxThreshold, stepsizeThreshold,
+				                websiteIds);
 				for (Analysis analysis : results) {
-					new AnalysisProcessorCsv(FILENAME + shingleType + "-" + i).apply(analysis);
+					new AnalysisProcessorCsv(filenamePrefix + shingleType + "-" + i)
+					        .apply(analysis);
 				}
 			}
 		} finally {
 			namespaceCleanup();
 		}
 	}
-	
-	public List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
+
+	/**
+	 * Runs crawler on a threshold-range.
+	 * 
+	 * @param from
+	 *            lowerbound of threshold
+	 * @param to
+	 *            upperbound of threshold
+	 * @param step
+	 *            the stepsize of the threshold
+	 * @param websiteids
+	 *            the websites tht should be crawled each iteration
+	 * @return A list of Analysis. An analysis for each threshold
+	 */
+	private List<Analysis> analyseThresholds(double from, double to, double step, int[] websiteids) {
 		assert from <= to;
 		assert websiteids.length > 0;
 		Map<String, String> defaultSettings = config.getConfiguration(NAMESPACE);
-		// Build factory
-		factory.addMetric(injector.getInstance(SpeedMetric.class));
-		factory.addMetric(injector.getInstance(StateAnalysisMetric.class));
 		List<Analysis> results = new ArrayList<Analysis>((int) ((to - from) / step));
 
 		for (double i = from; i <= to; i += step) {
-			// update setting
-			config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(i), 6);
-			// run crawler
-			results.add(factory.getAnalysis("threshold-" + i, websiteids));
+			results.add(issueCrawl(websiteids, i));
 		}
-		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"), 6);
-		System.out.println("Finished!");
+		config.updateConfiguration(NAMESPACE, "threshold", defaultSettings.get("threshold"));
 		return results;
 	}
-	
 
+	/**
+	 * Issue a crawl for all workers
+	 * 
+	 * @param websiteids
+	 *            the ids of the websites which should be recrawled
+	 * @param threshold
+	 *            the threshold
+	 * @return an analysis
+	 */
+	private Analysis issueCrawl(int[] websiteids, double threshold) {
+		config.updateConfiguration(NAMESPACE, "threshold", String.valueOf(threshold));
+		return factory.getAnalysis("threshold-" + threshold, websiteids);
+	}
+
+	/**
+	 * Creates a (temporary section for the NAMESPACE by copying the settings of the common section.
+	 * This is done to keep the original common settings clean.
+	 */
 	private void namespaceSetup() {
-		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
+		if (!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			Map<String, String> settings = config.getConfiguration(NAMESPACE);
-			if(settings.size() == 0) {
-				Map<String, String> commonSettings = config.getConfiguration(ConfigurationDao.SECTION_COMMON);
-				for(Entry<String, String> commonSetting : commonSettings.entrySet()) {
-					config.updateConfiguration(NAMESPACE, commonSetting.getKey(), commonSetting.getValue(), 6);
+			if (settings.size() == 0) {
+				Map<String, String> commonSettings =
+				        config.getConfiguration(ConfigurationDao.SECTION_COMMON);
+				for (Entry<String, String> commonSetting : commonSettings.entrySet()) {
+					config.updateConfiguration(NAMESPACE, commonSetting.getKey(),
+					        commonSetting.getValue());
 				}
 			}
 		}
 	}
-	
+
+	/**
+	 * Removes the (temporary) section of the NAMESPACE.
+	 */
 	private void namespaceCleanup() {
-		if(!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
+		if (!NAMESPACE.equals(ConfigurationDao.SECTION_COMMON)) {
 			config.deleteConfiguration(NAMESPACE);
 		}
+	}
+
+	public String getFilenamePrefix() {
+		return filenamePrefix;
+	}
+
+	public void setFilenamePrefix(String filenamePrefix) {
+		this.filenamePrefix = filenamePrefix;
 	}
 }

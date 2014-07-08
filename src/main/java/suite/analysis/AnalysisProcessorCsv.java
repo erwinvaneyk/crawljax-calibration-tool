@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AnalysisProcessorCsv extends AnalysisProcessorFile implements AnalysisProcessor {
 	private static final String SEPERATOR = ";";
-	private static final String ENTRY_SEPERATOR = "\r\n";
+	private static final String ENTRY_SEPERATOR = System.lineSeparator();
 	private static final String HEADER_ANALYSEID = "Test ID";
 	private static final String FILE_EXTENSION = ".csv";
 
@@ -22,7 +22,7 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 	private String filename;
 
 	public AnalysisProcessorCsv(String filename) {
-		if (filename == null || filename == "")
+		if (filename == null || filename.equals(""))
 			throw new AnalysisException("Invalid filename provided: " + filename
 			        + ". Filename cannot be null or empty.");
 		this.filename = filename;
@@ -37,11 +37,9 @@ public class AnalysisProcessorCsv extends AnalysisProcessorFile implements Analy
 			        + analysisReport.getMetrics());
 			return;
 		}
-		try {
-			Writer writer = openOrCreateFile(
-			        new File(this.getOutputDir() + "/" + filename), true);
+		try (Writer writer = openOrCreateFile(
+		        new File(this.getOutputDir() + "/" + filename), true)) {
 			writeContents(writer, analysisReport);
-			writer.close();
 		} catch (IOException e) {
 			log.error("IOException while writing to csv-file: " + e.getMessage());
 		}

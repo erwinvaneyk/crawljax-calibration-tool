@@ -1,14 +1,11 @@
 package suite.distributed.workload;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.junit.Test;
-
-import suite.distributed.workload.WorkTask;
 
 public class TestWorkTask {
 
@@ -18,10 +15,17 @@ public class TestWorkTask {
 		WorkTask wt = new WorkTask(1, url);
 		assertEquals(wt.getId(), 1);
 		assertEquals(wt.getURL(), url);
+		wt.setCrawled(true);
+		wt.setNamespace("test");
+		wt.setWorker("worker");
+		assertEquals(wt.getNamespace(), "test");
+		assertEquals(wt.getWorker(), "worker");
+		assertTrue(wt.isCrawled());
+		assertNotNull(wt.toString());
 	}
 
 	@Test
-	public void testWorkTask2() throws MalformedURLException {
+	public void testWorkTask2() {
 		WorkTask wt = new WorkTask();
 		wt.setCrawled(true);
 		wt.setWorker("henk");
@@ -65,13 +69,13 @@ public class TestWorkTask {
 	}
 
 	@Test(expected = RuntimeException.class)
-	public void testGetUrlBadUrl() throws MalformedURLException {
+	public void testGetUrlBadUrl() {
 		WorkTask wt = new WorkTask(1, "Infjdhlafijiwjcd338428%%667><");
 		wt.getURL();
 	}
 
 	@Test
-	public void testHashcode() throws MalformedURLException {
+	public void testHashcode() {
 		WorkTask wt = new WorkTask(1, "http://test.com");
 		wt.hashCode();
 	}

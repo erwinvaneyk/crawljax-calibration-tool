@@ -1,15 +1,16 @@
 package suite;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.cli.*;
 
-import suite.analysis.*;
 import suite.crawljax.CrawlManager;
 import suite.distributed.DatabaseUtils;
 import suite.distributed.configuration.ConfigurationDao;
@@ -18,42 +19,44 @@ import suite.distributed.results.ResultProcessorException;
 import suite.distributed.workload.WorkTask;
 import suite.distributed.workload.WorkloadDao;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
+@Slf4j
 public class CrawlRunner {
-	private static String namespace;
-	private static final String APPLICATION_NAME = "Crawljax Testing Suite";
-	
-	@Inject private Injector injector;
+	private static String NAMESPACE;
+	private static final String APPLICATION_NAME = "Crawljax Calibration Tool";
+	private static final long WAIT_INTERVAL = 1000 * 10;
+
 	private DatabaseUtils dbUtils;
 	private ResultProcessor resultProcessor;
 	private WorkloadDao workload;
 	private CrawlManager crawlManager;
 	private ConfigurationDao config;
-	private AnalysisBuilder analysisFactory;
 
 	public static void main(String[] args) {
 		try {
 			// Header
-			System.out.println(APPLICATION_NAME + "\n---------------------------------");
-	
+			System.out.println(APPLICATION_NAME + System.lineSeparator()
+			        + "---------------------------------");
+
 			// Parse commandline
-			CommandLine cmd = new BasicParser().parse(buildOptions(), args);	
-			namespace = cmd.hasOption("n") ? cmd.getOptionValue("n") : "";
-			
+			CommandLine cmd = new BasicParser().parse(buildOptions(), args);
+			NAMESPACE = cmd.getOptionValue("n");
+
 			// Setup Crawlrunner
 			CrawlRunner cr =
-			        Guice.createInjector(new TestingSuiteModule(namespace)).getInstance(CrawlRunner.class);
+			        Guice.createInjector(new TestingSuiteModule(NAMESPACE)).getInstance(
+			                CrawlRunner.class);
 			cr.actOnArgs(cmd);
-			
+
 			// Finish up.
 			System.out.println("Finished.");
-        } catch (ParseException e) {
-	        System.out.println("Error while parsing arguments: " + e.getMessage());
-        }
-	}	
+		} catch (ParseException e) {
+			System.out.println("Error while parsing arguments: " + e.getMessage());
+		}
+	}
 
 	private static Options buildOptions() {
 		Options options = new Options();
@@ -65,40 +68,34 @@ public class CrawlRunner {
 		        "Flushes the provided setting-file to the server. Nothing is crawled.");
 		options.addOption("l", "local", true,
 		        "Do not use server-functionality. Read the website-file and crawl all.");
-		options.addOption("a", "analyse", false,
-		        "Run the analysis-manager. This system will not help crawling");
-		options.addOption("n", "namespace", true,
-		        "Sets a custom namespace for the instance. This enables multiple crawl-sessions on a single database");
+		options.addOption(
+		        "n",
+		        "NAMESPACE",
+		        true,
+		        "Sets a custom NAMESPACE for the instance. This enables multiple crawl-sessions on a single database");
 		options.addOption("noWaiting", false,
 		        "Prevents a worker-instance from waiting on new tasks. If no tasks are left, the worker stops.");
-		options.addOption("useCommonSettings", false,
-		        "Lets a worker use the default settings, as defined by ConfigurationDAO. Generally the common-section.");
 		return options;
 	}
 
 	@Inject
 	public CrawlRunner(ResultProcessor resultprocessor, CrawlManager suite,
-	        WorkloadDao workload, ConfigurationDao config, DatabaseUtils dbUtils, 
-			AnalysisBuilder factory) {
+	        WorkloadDao workload, ConfigurationDao config) {
 		this.resultProcessor = resultprocessor;
 		this.crawlManager = suite;
 		this.workload = workload;
 		this.config = config;
-		this.dbUtils = dbUtils;
-		this.analysisFactory = factory;
 	}
 
 	public void actOnArgs(CommandLine cmd) {
 		if (cmd.hasOption("worker")) {
-			actionWorker(namespace, cmd.hasOption("noWaiting"), cmd.hasOption("useCommonSettings"));
+			actionWorker(NAMESPACE, cmd.hasOption("noWaiting"));
 		} else if (cmd.hasOption("flush")) {
 			dbUtils.actionFlushWebsitesFile(new File(cmd.getOptionValue("flush")));
 		} else if (cmd.hasOption("settings")) {
 			dbUtils.actionFlushSettingsFile(new File(cmd.getOptionValue("settings")));
 		} else if (cmd.hasOption("local")) {
 			actionLocalCrawler(new File(cmd.getOptionValue("local")));
-		} else if (cmd.hasOption("analysis")) {
-			actionAnalysis();
 		} else {
 			actionHelp();
 		}
@@ -109,85 +106,65 @@ public class CrawlRunner {
 		formatter.printHelp(APPLICATION_NAME, buildOptions());
 	}
 
-	private void actionWorker(String namespace, boolean noWaiting, boolean useDefaults) {
-		try {
-			System.out.println("Started client crawler/worker.");
-			while (true) {
-				// Get worktasks
-				List<WorkTask> workTasks = workload.retrieveWork(1);
-				while (workTasks.isEmpty()) {
-					workTasks = workload.retrieveWork(1);
-					if (workTasks.isEmpty()) {
-						if (noWaiting) return;
-						Thread.sleep(1000 * 10); // sleep 10 seconds
-					}
-				}
-
-				for (WorkTask task : workTasks) {
-					try {
-						List<String> sections = new ArrayList<String>();
-						sections.add(task.getURL().getHost());
-						if(useDefaults) {
-							sections.add(ConfigurationDao.SECTION_COMMON);
-							System.out.println("Worker uses default settings.");
-						} else {
-							sections.add(namespace);
-						}
-						Map<String, String> args = config.getConfiguration(sections);
-						if(args.isEmpty())
-							System.out.println("No configuration found for namespace: \"" + namespace + "\". Using Crawljax' default settings!");
-						File dir = crawlManager.generateOutputDir(task.getURL());
-						// Crawl
-						long timeStart = new Date().getTime();
-						boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
-						if (!hasNoError) {
-							throw new Exception("Crawljax returned an error code");
-						}
-						try {
-							resultProcessor.uploadResults(task.getId(), dir, new Date().getTime()
-							        - timeStart);
-						} catch (ResultProcessorException e) {
-							System.out.println(e.getMessage());
-						}
-						workload.checkoutWork(task);
-						System.out.println("crawl: " + task.getURL() + " completed");
-					} catch (Exception e) {
-						System.out.println(e.getMessage());
-						workload.revertWork(task.getId());
-						System.out
-						        .println("crawl: " + task.getURL() + " failed. Claim reverted.");
-					}
-				}
-			}
-		} catch (InterruptedException e) {
-			System.out.println("Sleep interrupted; worker stopped.");
+	public void actionWorker(String namespace, boolean noWaiting) {
+		while (true) {
+			WorkTask task = getWorkTask(noWaiting);
+			if (task == null)
+				return;
+			Map<String, String> args = getConfigurationForUrl(task.getURL(), namespace);
+			crawlWorkTask(task, args);
+			workload.checkoutWork(task);
+			log.info("crawl: {} completed", task.getURL());
 		}
 	}
 
 	private void actionLocalCrawler(File websitePath) {
-		System.out.println("Started local crawler");
-		try {
-			crawlManager.websitesFromFileToQueue(websitePath);
-			crawlManager.crawlWebsitesFromQueue();
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+		crawlManager.websitesFromFileToQueue(websitePath);
+		crawlManager.crawlWebsitesFromQueue();
 	}
 
-	private void actionAnalysis() {
-		// Add metrics
-		analysisFactory.addMetric(injector.getInstance(SpeedMetric.class));
-		analysisFactory.addMetric(injector.getInstance(StateAnalysisMetric.class));
-		
-		// Settings
-		Map<String, String> settings = config.getConfiguration("common");
-		String threshold = settings.get("threshold");
-		String feature = settings.get("feature").replace(";","|");
+	private Map<String, String> getConfigurationForUrl(URL url, String namespace) {
+		List<String> sections = new ArrayList<String>();
+		sections.add(url.getHost());
+		if (namespace != null) {
+			sections.add(namespace);
+		} else {
+			sections.add(ConfigurationDao.SECTION_COMMON);
+		}
+		return config.getConfiguration(sections);
+	}
 
-		// Generate report
-		Analysis analysis = analysisFactory.getAnalysis("analysis-" + threshold + "-" + feature, new int[] { 1, 2, 15}); //, 48, 51, 53 });
+	public WorkTask getWorkTask(boolean noWaiting) {
+		List<WorkTask> workTasks = workload.retrieveWork(1);
+		while (workTasks.size() == 0) {
+			if (noWaiting)
+				return null;
+			try {
+				log.info("This worker will sleep for {}ms to wait for a worktask.", WAIT_INTERVAL);
+				Thread.sleep(WAIT_INTERVAL);
+			} catch (InterruptedException e) {
+				System.out.println("Sleep interrupted; worker stopped.");
+				log.error("Session interupted, reason: {}", e.getMessage());
+			}
+			workTasks = workload.retrieveWork(1);
+		}
+		return workTasks.get(0);
+	}
 
-		// Output results
-		new AnalysisProcessorCsv("analysis-results").apply(analysis);
+	private void crawlWorkTask(WorkTask task, Map<String, String> args) {
+		File dir = crawlManager.generateOutputDir(task.getURL());
+		long timeStart = new Date().getTime();
+		boolean hasNoError = crawlManager.runCrawler(task.getURL(), dir, args);
+		try {
+			if (!hasNoError) {
+				log.info("Crawljax returned an error code.");
+				workload.revertWork(task.getId());
+			}
+			long duration = new Date().getTime() - timeStart;
+			resultProcessor.uploadResults(task.getId(), dir, duration);
+		} catch (ResultProcessorException e) {
+			System.out.println(e.getMessage());
+			workload.revertWork(task.getId());
+		}
 	}
 }

@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>crawljax-functional-testing-suite</groupId>
-  <artifactId>crawljax-functional-testing-suite</artifactId>
-  <version>0.8.0</version>
-  <name>Crawljax Functional Testing Suite</name>
+  <groupId>crawljax-calibration-tool</groupId>
+  <artifactId>crawljax-calibration-tool</artifactId>
+  <version>0.9.0</version>
+  <name>Crawljax Calibration Tool</name>
   <description>An automated framework for functional testing crawlers of Crawljax.</description>
   <build>
   	<!-- Build with: mvn clean compile assembly:single -->
@@ -73,10 +73,10 @@
   </plugin>
     </plugins>
   </build>
-  <url>https://github.com/erwinvaneyk/crawljax-functional-testing-suite</url>
+  <url>https://github.com/erwinvaneyk/crawljax-calibration-tool</url>
   <issueManagement>
   	<system>GitHub</system>
-  	<url>https://github.com/erwinvaneyk/crawljax-functional-testing-suite/issues</url>
+  	<url>https://github.com/crawljax/crawljax-calibration-tool/issues</url>
   </issueManagement>
   <inceptionYear>2014</inceptionYear>
   <dependencies>

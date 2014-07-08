@@ -7,6 +7,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 @DatabaseTable(tableName = "workload")
 @RequiredArgsConstructor
 @Data
+@EqualsAndHashCode(exclude = { "crawled", "worker" })
 public class WorkTask {
 
 	@DatabaseField(generatedId = true, canBeNull = false)

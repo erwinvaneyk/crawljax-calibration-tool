@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AnalysisProcessorFile implements AnalysisProcessor {
 
 	private final static String FILE_EXTENSION = ".txt";
-	private final static String LINEBREAK = "\r\n";
+	private final static String LINEBREAK = System.lineSeparator();
 	private final static String HORIZONTALBREAK = "----------------------------" + LINEBREAK;
 
 	@Getter
@@ -24,12 +24,10 @@ public class AnalysisProcessorFile implements AnalysisProcessor {
 	protected File output;
 
 	public void apply(Analysis analysisReport) {
-		try {
-			Writer writer =
-			        openOrCreateFile(new File(outputDir + "/" + analysisReport.getTitle()
-			                + FILE_EXTENSION), false);
+		try (Writer writer =
+		        openOrCreateFile(new File(outputDir + "/" + analysisReport.getTitle()
+		                + FILE_EXTENSION), false)) {
 			writeContentsToFile(analysisReport, writer);
-			closeFile(writer);
 		} catch (IOException e) {
 			log.error("Error while creating file: {}", e.getMessage());
 		}
@@ -58,8 +56,6 @@ public class AnalysisProcessorFile implements AnalysisProcessor {
 		writer.write(HORIZONTALBREAK);
 		writer.write("metrics:" + LINEBREAK);
 		printStatistics(analysisReport, writer);
-		writer.write(HORIZONTALBREAK);
-		writer.write("Score: " + analysisReport.getScore() + LINEBREAK);
 	}
 
 	private void printStatistics(Analysis analysisReport, Writer writer) throws IOException {

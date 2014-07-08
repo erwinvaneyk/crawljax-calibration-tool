@@ -9,6 +9,7 @@ import java.util.Properties;
 import com.google.inject.Singleton;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
+import com.mysql.jdbc.Driver;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,32 +22,31 @@ import lombok.extern.slf4j.Slf4j;
 public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
         implements ConnectionManagerOrm {
 
-	public static String DRIVER = "com.mysql.jdbc.Driver";
-
 	private JdbcConnectionSource connection;
-	private static Properties settings;
-	private static String url;
-	private static String database;
-	private static String username;
-	private static String password;
+	private Properties settings;
+	private String url;
+	private String database;
+	private String username;
+	private String password;
 
 	/**
 	 * Load setting files for ConnectionManagerImpl
 	 */
 	public ConnectionManagerOrmImpl() {
 		super();
-		try {
-			setup(new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE));
+		try (FileInputStream file =
+		        new FileInputStream(System.getProperty("user.dir") + DEFAULT_SETTINGS_FILE)) {
+			setup(file);
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("Failed to retrieve database-settings, because {}", e.getMessage());
 		}
 	}
 
 	/**
 	 * The common constructor-method. Reads settings from the file and loads driver-class
 	 * 
-	 * @param connectionDetailsPath
-	 *            the path to the settings-file.
+	 * @param input
+	 *            the settings-file.
 	 * @throws IOException
 	 *             the connection-settings file could not be found.
 	 */
@@ -58,19 +58,18 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 		database = settings.getProperty("database");
 		username = settings.getProperty("username");
 		password = settings.getProperty("password");
-
-		// Load driver
+		// Setup Driver
 		try {
-			Class.forName(DRIVER).newInstance();
-		} catch (Exception e) {
-			e.printStackTrace();
+			new Driver();
+		} catch (SQLException e) {
+			log.error("Failed to setup Driver: {} ", e.getMessage());
 		}
 		log.debug("Connection settings loaded. Database-user: " + username);
 	}
 
 	/**
-	 * @return
-	 * @throws SQLException
+	 * @return a connection with the sql-database
+	 * @throws SQLException when the connection cannot be made
 	 */
 	public ConnectionSource getConnectionORM() throws SQLException {
 		if (connection == null || !connection.isOpen()) {
@@ -86,4 +85,9 @@ public class ConnectionManagerOrmImpl extends ConnectionManagerImpl
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "ConnectionManagerOrmImpl [connection=" + connection + ", url=" + url + ":"
+		        + database + "]";
+	}
 }
